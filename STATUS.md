@@ -2,81 +2,93 @@
 > 本文件由主Agent维护。任何时刻只允许一个活动任务卡（DEC-003）。
 
 ## 当前状态
-- 当前阶段：STEP-00 协作框架初始化（已合并）
-- main HEAD：1a599cc；回滚tag：rollback-before-step-00 -> 2c80703
+- 当前阶段：STEP-01 工程基线（WP-00）（开发中）
+- main HEAD：1983795；回滚tag：rollback-before-step-01 -> 1983795
 - 阻塞/外部依赖：无
-- 下一个人工决策点：STEP-01 开工指令（用户说"执行 STEP-01"即建卡派发）
+- 下一个人工决策点：STEP-01 交付审核（M1：各包启动、DB连通）
 
-## 当前任务卡：STEP-00 协作框架初始化
-状态: 已合并（用户 2026-08-06 审核通过）    回环计数: 0/3
-执行者: 队长（SOLO Coder，引导例外--四件套未建立时队长可亲自创建文档）    审查者: fm-reviewer（只读）
-需求来源: 用户 STEP-00 启动指令 + 实施方案附录A/B/D    基线提交: main@2c80703    回滚点: rollback-before-step-00
+## 当前任务卡：STEP-01 工程基线（对应 WP-00）
+状态: 开发中    回环计数: 0/3
+执行者: fm-dev    审查者: fm-reviewer（只读）
+需求来源: 实施方案第五章（仓库结构）+ 第八章8.1（STEP-01/M1）+ 第九章9.4（环境策略）+ 附录C（.env.example）+ DEC-001（版本号）    基线提交: main@1983795    回滚点: rollback-before-step-01
 
 ### ① 目标
-建立协作框架四件套（AGENTS.md / STATUS.md / DECISIONS.md / 开发日志.md）与 git 基线，并验证四件套可支撑"无上下文恢复"--不写任何业务代码。
+建立 monorepo 工程基线：pnpm workspace 骨架（packages/shared+engine+list-merger / apps/api+h5+admin / tools/content-pipeline）+ 本地 PG18 Docker + 统一 scripts（pnpm verify 跑通）+ CI 脚本，达 M1 门禁（各包可启动、DB 连通）。仅建骨架，不实现业务逻辑。
 
 ### ② 验收标准 AC
-- [✓] AC1 git init 完成，首次基线提交 + 回滚 tag rollback-before-step-00 已建立
-- [✓] AC2 AGENTS.md 按附录A模板创建（15条铁律 + Ownership表 + 常用命令）
-- [✓] AC3 DECISIONS.md 按附录D创建（DEC-001~009；DEC-001 含联网核对的精确版本号 + 核对来源）
-- [✓] AC4 STATUS.md 按附录D骨架 + 附录B 创建（当前任务卡 = STEP-00 本卡）
-- [✓] AC5 开发日志.md 创建（含记录规则 + STEP-00-START 首条）
-- [✓] AC6 fm-dev "空上下文恢复演练"通过：仅凭仓库文件复述当前唯一任务、边界与下一门禁，不修改任何文件
-- [✓] AC7 fm-reviewer 只读审查通过：四件套与实施方案附录一致、15条铁律无遗漏
-- [✓] AC8 开发日志 STEP-00 五段记录齐全，STATUS.md 状态改为"待用户审核"并停止
+- [ ] AC1 pnpm-workspace.yaml + 根 package.json（统一 scripts: dev/test/test:taboo/db:migrate/db:seed/verify/lint/build）建立，`pnpm install` 成功（exit 0）
+- [ ] AC2 tsconfig.base.json（strict:true）建立，各子包 tsconfig 继承
+- [ ] AC3 packages/{shared,engine,list-merger} 各建包骨架（package.json + src/index.ts + tsconfig + vitest 配置），`pnpm -r build` 成功（exit 0）
+- [ ] AC4 apps/api 骨架：Fastify 启动入口 server.ts（`pnpm dev:api` 可启动监听端口）；Prisma 依赖与 apps/api/prisma 目录就绪（schema.prisma 内容留 STEP-03，本步只建空文件或最小占位）；db.ts PrismaClient 单例骨架
+- [ ] AC5 apps/h5 骨架：Taro 4 + React 配置（config/），`pnpm dev:h5` 可启动（空页面即可），编译目标 h5
+- [ ] AC6 apps/admin 占位（P1，最小 Vite+React 骨架或仅 package.json + 空目录）
+- [ ] AC7 tools/content-pipeline 骨架（package.json + src/ 目录结构）
+- [ ] AC8 docker-compose.yml（local: db=PostgreSQL 18），`docker compose up -d db` 可启动，PG 连通验证（真实命令+退出码）
+- [ ] AC9 .env.example（按附录C）建立；.gitignore（node_modules/.env/dist/coverage 等）建立且 .env 不入库；CLAUDE.md -> AGENTS.md 指针
+- [ ] AC10 `pnpm verify`（lint + build + test）跑通，lint 零 error，exit 0
+- [ ] AC11 CI 脚本（.github/workflows/ci.yml 或等价）建立
+- [ ] AC12 M1：apps/api 启动后 Prisma 能连 PG18（DB 连通，真实验证）；apps/h5 启动可访问
 
 ### ③ 输入资源
-docs/plan/实施方案.md（只读战略副本）@2c80703；.trae/rules/project_rules.md @2c80703；TRAE-SETUP.md @2c80703
+- docs/plan/实施方案.md @1983795（第五章仓库结构、8.1 STEP-01/M1、9.4 环境策略、附录C .env.example）
+- DECISIONS.md @1983795（DEC-001 版本号：Node22.23.2/pnpm11.20/Fastify5.10.0/Prisma7.7.0/Taro4.2.0/Vitest4.1.10）
+- AGENTS.md @1983795（铁律、Ownership、常用命令）
+- STATUS.md @1983795（本任务卡）
 
 ### ④ 边界约束（不允许做什么）
-- 不创建任何业务代码（packages/* / apps/* / tools/* 全部属于 STEP-01 起）
-- 不安装任何依赖（无 package.json / pnpm install）
-- 不建 monorepo 结构（pnpm-workspace.yaml / tsconfig.base.json 等属于 STEP-01）
-- 不修改 docs/plan/实施方案.md（只读战略副本）
+- 不实现业务逻辑：shared 不写 zod schema（STEP-02）；engine 不写算法（STEP-04）；list-merger 不写合并（STEP-04）；api routes 不写业务（STEP-05）；h5 不写页面（STEP-06）；content-pipeline 不写 CLI 逻辑（STEP-07）
+- 不写 schema.prisma 内容（STEP-03）；本步只建 prisma 目录 + 依赖 + PrismaClient 单例骨架（连空库即可）
+- 不修改 docs/plan/实施方案.md（只读）；不修改四件套（队长维护 STATUS.md/开发日志.md 除外）
+- 不引入 DEC-008 禁止项（Redis/消息队列/微服务/K8s）
+- NutUI：本步不装 NutUI（STEP-06 装）；h5 骨架用 Taro 默认
+- Prisma 7：按 Prisma 7 官方方式配置（prisma.config.ts / driver adapter / generator prisma-client）；schema 内容留 STEP-03
+- 运行时代码禁止调用任何 LLM API（DEC-006）
 
 ### ⑤ 异常升级路径
-- 版本核对无法联网获取某项 -> 如实记录已核对项与缺失项，标注核对方式，不脑补版本号
-- 四件套内容与实施方案附录冲突 -> 以附录为准修正
-- 技术争议（如 NutUI React 仅 beta、Prisma 7 破坏性变更）-> 仅在 DEC-001 记录事实，不预定技术方案；抛相应 STEP（02/03/06）由 fm-arch 评估
+- Prisma 7 配置与实施方档 3.2 旧版 schema 示例冲突 -> 以 Prisma 7 实际为准，schema 内容留 STEP-03；配置 HOW 按 Prisma 7 官方文档，完成报告注明假设
+- Taro 4 / Node 22 兼容问题 -> 报队长转 fm-arch
+- Docker PG18 启动/连通失败 -> 真实排查，命令+退出码取证；持续失败报队长
+- 依赖版本冲突 -> 报队长，不擅自降级/升级 DEC-001 锁定版本
+- 第3次被打回 -> 停止修改，等队长诊断（修AC/拆细/换工具）
 
-## 最小测试
-- STEP-00 不产出代码，无代码测试
-- 验证项：`git log --oneline` 含基线提交与四件套提交；四件套文件均存在于仓库根目录；fm-dev 仅凭仓库文件即可复述任务/边界/门禁
+## 最小测试（fm-tester 照跑，真实执行，禁止Mock冒充）
+- `pnpm install --frozen-lockfile`（exit 0）
+- `pnpm verify`（lint+build+test，exit 0，lint 零 error）
+- `docker compose up -d db` + PG 连通验证（psql 或等价，exit 0）
+- `pnpm dev:api` 启动 + DB 连通（Prisma 连 PG18）
+- `pnpm dev:h5` 启动可访问
 
 ## 审查重点
-- 四件套与实施方案附录A/B/D 一致性（模板字段无遗漏）
-- AGENTS.md 15条铁律与 project_rules.md 全员纪律一致、无遗漏
-- DEC-001 版本号均有可追溯来源
-- 未越界创建业务代码 / monorepo 结构 / 安装依赖
+- monorepo 结构与实施方档第五章一致（目录/包命名）
+- 各包仅骨架无业务逻辑（越界检查：shared 无 zod schema、engine 无算法、api 无 route 业务）
+- Prisma 7 配置正确（driver adapter / generator prisma-client，非旧版 prisma-client-js）
+- .env 不入库（.gitignore 有效）；.env.example 无真实密钥
+- pnpm verify 真实通过（命令+退出码，非 Mock）
+- 依赖版本符合 DEC-001
 
 ## 交付门禁
-开发（队长亲自，引导例外）-> fm-reviewer 只读审查 -> 主复验 -> 状态改"待用户审核"并暂停；
+开发（fm-dev）-> 独立测试（fm-tester，真实环境）-> 交叉审查（fm-reviewer，只读）-> 主复验 -> 状态改"待用户审核"并暂停；
 用户批准前不合并、不启动下一 STEP（DEC-005）。
 
-## 完成报告（执行者=队长填写）
-- AC自检: [✓]AC1..AC8 全部通过（详见开发日志 STEP-00-COMPLETE）
-- 交付物: AGENTS.md / STATUS.md / DECISIONS.md / 开发日志.md @3fda0aa
-- 测试结果: 无代码测试；fm-dev 空上下文恢复演练 AC1-AC5 全 ✓（git status --short 空，未改文件）；fm-reviewer 五维度全 [✓]
-- 新增依赖及理由: 无（STEP-00 不安装依赖）
+## 完成报告（fm-dev 填写）
+- AC自检: [ ]AC1...（逐条[✓]/[✗]）
+- 交付物: <路径@commit>
+- 测试结果: <覆盖率/用例通过数/exit code>
+- 新增依赖及理由: <列出>
 - 遗留与下一步建议:
-  1. 附录A模板 gap（全员纪律6"禁止Mock冒充"未显式入铁律）--project_rules.md 已独立生效，建议后续修订附录A补齐，不阻断
-  2. Prisma 7 破坏性变更--STEP-03 数据层需按 Prisma 7 适配（抛 fm-arch）
-  3. NutUI React Taro 仅 beta--STEP-02/06 前需评估（抛 fm-arch）
-  4. 实施方案 8.1 表"DEC-001~008"与附录D.3"DEC-001~009"编号不一致（实施方案内部，非阻断）
 
 ## 审查报告（fm-reviewer 填写，任何✗=打回，回环+1）
-- [✓] 契约一致性（四件套与实施方案附录A/B/D 一致；15条铁律齐全；DEC-001~009 齐全）
-- [✓] 越界检查（diff 仅限文档，无业务代码/monorepo/依赖）
-- [✓] 安全缺陷（无敏感信息入库）
-- [✓] 逻辑正确性（15条铁律无遗漏；DEC-001~009 齐全；版本来源可追溯）
-- [✓] 可维护性（文件命名/结构与附录一致）
-- 总体结论：审查通过，无需回环。3项非阻断观察（见完成报告遗留项1/4及开发日志 STEP-00-REVIEW）。
+- [ ] 契约一致性（结构符合第五章；依赖版本符合 DEC-001）
+- [ ] 越界检查（仅骨架，无业务逻辑；不改四件套/实施方案）
+- [ ] 安全缺陷（.env 不入库；无敏感信息；无 LLM 运行时调用）
+- [ ] 逻辑正确性（pnpm verify 真实通过；DB 连通真实验证；M1 达成）
+- [ ] 可维护性（命名/strict/CI 可重复）
 
 ## 总任务拆解
 | STEP | 对应WP | 内容 | 状态 |
 |---|---|---|---|
 | STEP-00 | - | 协作框架四件套 | 已合并 |
-| STEP-01 | WP-00 | 工程基线（monorepo骨架+本地PG18 Docker+CI） | 未开始 |
+| STEP-01 | WP-00 | 工程基线（monorepo骨架+本地PG18 Docker+CI） | 进行中 |
 | STEP-02 | WP-01 | 契约冻结（shared zod schema，v0.1） | 未开始 |
 | STEP-03 | WP-02 | 数据层（schema.prisma+migration+seed） | 未开始 |
 | STEP-04 | WP-03/06 | 推荐引擎+清单合并器 | 未开始 |
