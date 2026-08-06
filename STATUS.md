@@ -2,98 +2,104 @@
 > 本文件由主Agent维护。任何时刻只允许一个活动任务卡（DEC-003）。
 
 ## 当前状态
-- 当前阶段：STEP-02 契约冻结（WP-01）（已合并，契约 v0.1 冻结）
-- main HEAD：f68f4f0；回滚tag：rollback-before-step-02 -> c9f9f79；契约冻结tag：v0.1
-- 阻塞/外部依赖：无
-- 下一个人工决策点：等待用户"执行 STEP-03"指令启动数据层
+- 当前阶段：STEP-03 数据层（WP-02）（开发中）
+- main HEAD：b82fdcc；回滚tag：rollback-before-step-03 -> b82fdcc；契约冻结tag：v0.1
+- 阻塞/外部依赖：本机无 Docker/PostgreSQL，migration+seed 真实 PG 验证需 CI 补验
+- 下一个人工决策点：STEP-03 交付审核
 
-## 当前任务卡：STEP-02 契约冻结（对应 WP-01）
-状态: 已合并（契约 v0.1 冻结）    回环计数: 0/3
+## 当前任务卡：STEP-03 数据层（对应 WP-02）
+状态: 开发中    回环计数: 0/3
 执行者: fm-dev    审查者: fm-reviewer（只读）
-需求来源: 实施方案第三章3.2（数据模型）+ 第五章仓库结构（shared目录）+ 5.1 API路由清单 + 1.2 F1-F7 + 1.3 YAGNI + DEC-001    基线提交: main@c9f9f79    回滚点: rollback-before-step-02
+需求来源: 实施方案第三章3.2（Prisma Schema 12 model+8 enum）+ 第五章仓库结构（apps/api/prisma/{schema.prisma,seed.ts,migrations/}）+ 7.1 WP-02（10菜/4套）+ 8.1 STEP-03 + DEC-001（Prisma 7 适配）+ STEP-02 契约 v0.1    基线提交: main@b82fdcc    回滚点: rollback-before-step-03
 
 ### ① 目标
-packages/shared 全部 zod schema + 类型 + 常量，冻结 v0.1。定义数据模型契约（Family/Dish/Menu/Plan 等 12 个实体 + 8 个枚举）、API 请求/响应契约（对齐 5.1 路由清单 10 条路由）、常量表（品类/器具/时长档）。用户批准后打 tag v0.1 冻结。
+apps/api/prisma/schema.prisma 实现 3.2 全部数据模型（12 model + 8 enum），Prisma 7 适配；生成初始 migration；实现 seed.ts（10菜/4套+家庭+规则+禁忌，可重复 upsert），seed 数据通过 shared v0.1 zod schema 校验。真实 PG 验证受环境限制，CI 补验。
 
 ### ② 验收标准 AC
-- [✓] AC1 zod 依赖添加到 packages/shared/package.json（DEC-001 未记录 zod 版本，fm-dev 已核对最新稳定版本 4.4.3），pnpm install 成功（exit 0）
-- [✓] AC2 schemas/family.ts：FamilySchema、FamilyRuleSchema、ExclusionRuleSchema + 枚举（ExclusionScope: INGREDIENT|DISH|TAG, Severity: HARD|SOFT），字段对齐 3.2（Family: id/name/createdAt; FamilyRule: defaultPeople/timeBudgets/equipment/cuisines; ExclusionRule: scope/targetId/targetTag/severity/note）
-- [✓] AC3 schemas/dish.ts：DishSchema、DishIngredientSchema、IngredientSchema、SubstitutionSchema + 枚举（MealRole: MAIN|SIDE|SOUP|STAPLE, ContentStatus: DRAFT|TESTED|PUBLISHED, ContentOrigin: LLM_DRAFT|MANUAL），字段对齐 3.2（Dish: name/mealRole/cuisine/flavorTags/spicyLevel/splitFlavor/activeMinutes/totalMinutes/equipment/steps/status/origin; Ingredient: name/aliases/category/defaultUnit; DishIngredient: qty/unit/optional; Substitution: ratio/note）
-- [✓] AC4 schemas/menu.ts：MenuSchema、MenuDishSchema、CookLogSchema + 枚举（MenuScene: WEEKDAY_FAST|WEEKEND|CLEARANCE|BUDGET），字段对齐 3.2（Menu: name/scene/serves/totalActiveMinutes/prepSequence/status; CookLog: cookedAt/actualMinutes/result/failPoints/willRepeat）
-- [✓] AC5 schemas/plan.ts：PlanSchema、EventSchema + 枚举（PlanStatus: PROPOSED|LOCKED|COOKED|SKIPPED, EventType: GENERATE|VIEW|LOCK|SWAP_MENU|SWAP_DISH|COOKED|NOT_COOKED|REPEAT），字段对齐 3.2（Plan: planDate/context/candidates/lockedMenuId/shoppingList/status; Event: type/payload）
-- [✓] AC6 schemas/api.ts：API 请求/响应 schema 对齐 5.1 路由清单全部路由（GET/PUT /api/family/rules, POST /api/recommend, POST /api/plans/:id/lock, POST /api/plans/:id/swap, GET/PATCH /api/plans/:id/shopping-list, POST /api/plans/:id/feedback, GET /api/plans, POST /api/plans/:id/repeat）
-- [✓] AC7 types/：从 zod schema 推导类型导出（z.infer），覆盖全部 schema 和枚举
-- [✓] AC8 constants/：品类表（CATEGORIES: 蔬菜/肉类/水产/蛋奶/调料/主食）、器具表（EQUIPMENT: wok/rice_cooker/steamer/air_fryer）、时长档（TIME_BUDGETS: [15, 30, 60]）
-- [✓] AC9 index.ts：统一导出所有 schema、类型、常量（保留 PACKAGE_NAME 导出以兼容现有 engine/list-merger 依赖）
-- [✓] AC10 单元测试覆盖关键 schema（合法输入通过、非法输入拒绝，覆盖枚举校验、必填校验、类型校验，至少覆盖 family/dish/menu/plan/api 各 1 个用例）
-- [✓] AC11 pnpm verify 跑通（lint 零 error，build 成功，test 41/41 通过，exit 0）
-- [✓] AC12 pnpm -r build 成功（shared 变更不破坏 engine/list-merger/api/content-pipeline 的现有构建）
+- [ ] AC1 schema.prisma 实现 12 个 model（Family/FamilyRule/ExclusionRule/Ingredient/Substitution/Dish/DishIngredient/Menu/MenuDish/CookLog/Plan/Event），字段对齐 3.2（第 92-256 行），Prisma 7 适配（generator prisma-client，datasource 无 url）
+- [ ] AC2 8 个 enum（Severity/ExclusionScope/MealRole/ContentStatus/ContentOrigin/MenuScene/PlanStatus/EventType），枚举值与 3.2 + shared v0.1 一致
+- [ ] AC3 model 间关系完整：Family-FamilyRule 1:1(@unique), Family-ExclusionRule 1:N, Ingredient-DishIngredient 1:N, Ingredient-Substitution 双向(from/to), Dish-DishIngredient 1:N, Menu-MenuDish 1:N(@@id复合主键), Menu-CookLog 1:N, Dish-CookLog 1:N, Family-Plan 1:N, Plan-Event 1:N, Family-Event 1:N
+- [ ] AC4 Json 字段保留（Dish.steps / Menu.prepSequence / Plan.context / Plan.candidates / Plan.shoppingList / Event.payload 为 Json 类型，与 3.2 一致）
+- [ ] AC5 prisma generate 成功（PrismaClient 生成无错误，apps/api build 通过）
+- [ ] AC6 初始 migration 生成并落盘 prisma/migrations/（prisma migrate dev --name init 需 DB；无 DB 环境用 prisma migrate diff --from-empty --to-schema-datamodel --script 生成 SQL 落盘）
+- [ ] AC7 seed.ts 实现：1家庭+FamilyRule+ExclusionRule(HARD/SOFT各≥1) + 10道Dish(覆盖MAIN/SIDE/SOUP/STAPLE，status含PUBLISHED) + 配套Ingredient(覆盖CATEGORIES 6类) + DishIngredient关联 + 4套Menu(覆盖WEEKDAY_FAST/WEEKEND/CLEARANCE/BUDGET) + MenuDish关联；可重复执行(upsert)
+- [ ] AC8 seed 数据通过 shared zod schema v0.1 校验（import @family-menu/shared 校验 seed 对象合法性）
+- [ ] AC9 seed 命令配置（Prisma 7 seed 配置方式需核对官方文档：prisma.config.ts seed 字段 或 package.json prisma.seed），pnpm db:seed 可调用
+- [ ] AC10 pnpm verify 跑通（lint 零 error，build 成功，test 通过，exit 0）
+- [ ] AC11 pnpm -r build 成功（不破坏 shared/engine/list-merger/h5 现有构建）
+- [ ] AC12 [环境限制] 真实 PG migration+seed 验证 -> CI 补验（本机无 Docker/PostgreSQL）
 
 ### ③ 输入资源
-- docs/plan/实施方案.md @c9f9f79：
-  - 第三章 3.2 数据模型（第 92-256 行）：12 个 model + 8 个 enum 的完整定义
-  - 第五章仓库结构（第 352-356 行）：shared/src/{schemas/types/constants/} 目录结构
-  - 5.1 API 路由清单（第 394-406 行）：10 条路由的方法/路径/功能
-  - 1.2 F1-F7 功能清单（第 38-46 行）：功能验收口径
-  - 1.3 YAGNI 清单（第 48-51 行）：明确不做
-  - 第二章技术栈（第 62 行）：Fastify 5 + zod（fastify-type-provider-zod）
-- DECISIONS.md @1983795（DEC-001 版本号，zod 版本未记录需核对；DEC-006 运行时零LLM；DEC-008 YAGNI边界）
-- AGENTS.md @1983795（铁律、Ownership: packages/shared 归属 WP-01）
-- STATUS.md @c9f9f79（本任务卡）
-- packages/shared/src/index.ts @270a05a（当前骨架：仅导出 PACKAGE_NAME）
+- docs/plan/实施方案.md @b82fdcc：
+  - 第三章 3.2 Prisma Schema（第 92-256 行）：12 model + 8 enum 完整定义（含字段/关系/枚举值）
+  - 第五章仓库结构（第 365 行）：apps/api/prisma/{schema.prisma,seed.ts,migrations/}
+  - 7.1 WP-02（第 565 行）：schema.prisma+migration+seed（10菜/4套）
+  - 8.1 STEP-03（第 608 行）：真实PG验证、可重复seed
+- DECISIONS.md @b82fdcc（DEC-001 Prisma 7 破坏性变更：generator prisma-client / datasource URL 迁 prisma.config.ts / driver adapter / dotenv 显式加载）
+- STEP-02 契约 v0.1 @v0.1 tag（packages/shared zod schema，seed 数据校验依据）
+- AGENTS.md @b82fdcc（铁律、Ownership: apps/api/prisma 归属 WP-02）
+- 现有基线 @b82fdcc：
+  - apps/api/prisma/schema.prisma（占位：仅 generator+datasource，无 model）
+  - apps/api/prisma.config.ts（defineConfig + datasource.url + dotenv）
+  - apps/api/src/db.ts（PrismaClient 单例 + PrismaPg adapter）
+  - apps/api/package.json（prisma ^7.7.0 / @prisma/client / @prisma/adapter-pg / pg）
+  - 根 package.json（db:migrate = prisma migrate dev, db:seed = prisma db seed）
+  - docker-compose.yml（PG18, profiles ["local"]）
+  - .env.example（DATABASE_URL=postgresql://app:app_password@localhost:5432/family_menu）
 
 ### ④ 边界约束（不允许做什么）
-- 只改 packages/shared（WP-01 主控）；不改其他包（engine/list-merger/api/h5/admin/content-pipeline）
-- 不写 Prisma schema（STEP-03）；本步只定义 zod schema（运行时契约），不涉及数据库
-- 不写业务逻辑（engine 算法/api 路由/h5 页面/list-merger 合并/content-pipeline CLI）
-- schema 中的 JSON 字段（steps/prepSequence/context/candidates/shoppingList/payload）用 zod schema 精确定义（如 steps = z.array(z.object({order, text, parallel?}))），不用 z.unknown() 或 z.any()
-- 不引入 DEC-008 禁止项（Redis/消息队列/微服务/K8s）
-- zod 版本需核对（DEC-001 未记录），不擅自锁定不兼容版本；如有兼容性问题报队长
+- 只改 apps/api/prisma（schema.prisma/seed.ts/migrations/）+ apps/api/prisma.config.ts（如需 seed 配置）+ apps/api/package.json（如需 prisma.seed）+ apps/api/src/db.ts（如需调整）；不改其他包
+- 不改 packages/shared（契约 v0.1 已冻结，变更须走契约变更流程）
+- 不写业务逻辑（engine 算法/api 路由/h5 页面/list-merger）
+- schema.prisma 字段/枚举与 3.2 一致，与 shared v0.1 一致（不擅自增减字段或改枚举值）
+- 不改 docker-compose.yml（STEP-01 已建）
 - 不改 docs/plan/实施方案.md（只读）；不修改四件套（队长维护 STATUS.md/开发日志.md 除外）
 - 运行时代码禁止调用任何 LLM API（DEC-006）
-- 不改 tsconfig.base.json（strict:true 已在 STEP-01 配置）
+- 不引入 DEC-008 禁止项（Redis/消息队列/微服务/K8s）
+- Prisma 7 适配方案属 HOW，fm-dev 按官方文档实现；与 DEC-001 记录冲突时报队长
 
 ### ⑤ 异常升级路径
-- zod 版本与 fastify-type-provider-zod 兼容性问题 -> 报队长转 fm-arch
-- schema 设计与 3.2 数据模型字段冲突 -> 以 3.2 为准，完成报告注明假设
-- API 路由契约与 5.1 清单冲突 -> 以 5.1 为准
-- 枚举值与 3.2 不一致 -> 以 3.2 为准
+- Prisma 7 migrate/seed 配置与官方文档冲突 -> 报队长转 fm-arch
+- schema 字段与 3.2 或 v0.1 契约冲突 -> 以 3.2/v0.1 为准，完成报告注明
+- 本机无 DB 无法执行 migrate dev/seed -> 报队长，CI 补验（不伪造结果）
+- Prisma 7 generator/datasource 配置报错 -> 以 DEC-001 + prisma.config.ts 现有配置为准
 - 第3次被打回 -> 停止修改，等队长诊断
 
 ## 最小测试（fm-tester 照跑，真实执行，禁止Mock冒充）
 - `pnpm install --frozen-lockfile`（exit 0）
 - `pnpm verify`（lint+build+test，exit 0，lint 零 error）
-- schema 单元测试：合法输入通过、非法输入拒绝（覆盖关键 schema 和枚举）
-- `pnpm -r build`（shared 变更不破坏其他包构建）
+- `prisma generate`（exit 0，PrismaClient 生成成功）
+- seed 数据 zod 校验：seed 对象通过 shared v0.1 schema parse（合法通过）
+- `pnpm -r build`（不破坏其他包构建）
+- [环境限制] `prisma migrate dev` + `pnpm db:seed` 需 PG，本机无 Docker -> CI 补验
 
 ## 审查重点
-- schema 字段与 3.2 数据模型逐项一致（12 个 model + 8 个 enum）
-- API 契约与 5.1 路由清单一致（10 条路由的请求/响应 schema）
-- JSON 字段精确定义（非 z.unknown()）
-- 仅改 packages/shared，不改其他包
-- zod 版本合理（DEC-001 未记录，核对来源）
-- 类型导出完整（z.infer 覆盖全部 schema）
-- 常量表与 3.2/5.1 一致（品类/器具/时长档）
-- 保留 PACKAGE_NAME 导出（兼容现有依赖）
+- schema.prisma 字段/关系/枚举与 3.2 逐项一致（12 model + 8 enum）
+- 与 shared v0.1 契约一致（枚举值/字段名/Json 字段）
+- Prisma 7 适配正确（generator prisma-client / datasource 无 url / driver adapter）
+- migration SQL 落盘且可重复（migrations/ 目录）
+- seed 数据合理（10菜/4套+家庭+规则+禁忌，覆盖枚举值，可重复 upsert）
+- seed 数据通过 zod 校验（不伪造）
+- 仅改 apps/api/prisma + 相关配置，不改 packages/shared
+- 无 LLM 调用、无 DEC-008 禁止项
 
 ## 交付门禁
 开发（fm-dev）-> 独立测试（fm-tester，真实环境）-> 交叉审查（fm-reviewer，只读）-> 主复验 -> 状态改"待用户审核"并暂停；
-用户批准前不合并、不启动下一 STEP（DEC-005）。**STEP-02 末含契约 v0.1 冻结批准**（人工决策点）。
+用户批准前不合并、不启动下一 STEP（DEC-005）。
 
 ## 完成报告（fm-dev 填写）
-- AC自检: [✓]AC1-AC12 逐条通过（12/12）
-- 交付物: packages/shared/src/{schemas/{family,dish,menu,plan,api}.ts, types/index.ts, constants/index.ts, index.ts} + packages/shared/test/schemas.spec.ts @c51e358
-- 测试结果: 41/41 passed（shared 39 + engine 1 + list-merger 1），pnpm verify exit 0，pnpm -r build exit 0
-- 新增依赖及理由: zod ^4.4.3（核对来源：pnpm view zod version -> 4.4.3 + zod.dev/v4/versioning；fastify-type-provider-zod >=5.x 配 v4 兼容，STEP-05 装 v5+）
-- 遗留与下一步建议: ①test:taboo 仍失效（STEP-01 遗留，STEP-04 前修复）②CookLog.result 建议升格 z.enum（STEP-04）③breakdown/shoppingList/payload 用 z.record 待 STEP-04 精化
+- AC自检: [ ]AC1...（逐条[✓]/[✗]）
+- 交付物: <路径@commit>
+- 测试结果: <用例通过数/exit code>
+- 新增依赖及理由: <列出>
+- 遗留与下一步建议:
 
 ## 审查报告（fm-reviewer 填写，任何✗=打回，回环+1）
-- [✓] 契约一致性（12 模型 + 8 枚举与 3.2 逐项一致；10 路由与 5.1 一致；3 常量与 3.2/5.1 一致）
-- [✓] 越界检查（仅改 packages/shared；无业务逻辑；不改四件套/实施方案/其他包）
-- [✓] 安全缺陷（无 LLM 调用；无 DEC-008 禁止项；JSON 字段精确定义，breakdown/shoppingList/payload 用 z.record+注释符合边界约束例外条款）
-- [✓] 逻辑正确性（zod schema 校验逻辑正确；z.infer 类型推导完整；pnpm verify 真实通过 41/41）
-- [✓] 可维护性（命名规范一致；strict 兼容；export * 导出结构清晰；保留 PACKAGE_NAME 兼容）
-- 5 项设计假设全部 [合理]；4 项非阻断观察项；回环计数 0/3，审查通过
+- [ ] 契约一致性（schema 字段与 3.2 一致；枚举与 v0.1 一致；关系完整）
+- [ ] 越界检查（仅改 apps/api/prisma；无业务逻辑；不改 shared/四件套/实施方案/其他包）
+- [ ] 安全缺陷（无 LLM 调用；无 DEC-008 禁止项；seed 数据可重复不产生脏数据）
+- [ ] 逻辑正确性（prisma generate 成功；migration SQL 合理；seed upsert 逻辑正确；zod 校验通过）
+- [ ] 可维护性（命名规范；Prisma 7 配置一致；seed 可读可扩展）
 
 ## 总任务拆解
 | STEP | 对应WP | 内容 | 状态 |
@@ -101,7 +107,7 @@ packages/shared 全部 zod schema + 类型 + 常量，冻结 v0.1。定义数据
 | STEP-00 | - | 协作框架四件套 | 已合并 |
 | STEP-01 | WP-00 | 工程基线（monorepo骨架+本地PG18 Docker+CI） | 已合并 |
 | STEP-02 | WP-01 | 契约冻结（shared zod schema，v0.1） | 已合并 |
-| STEP-03 | WP-02 | 数据层（schema.prisma+migration+seed） | 未开始 |
+| STEP-03 | WP-02 | 数据层（schema.prisma+migration+seed） | 进行中 |
 | STEP-04 | WP-03/06 | 推荐引擎+清单合并器 | 未开始 |
 | STEP-05 | WP-04 | API（Fastify路由+口令鉴权+契约测试） | 未开始 |
 | STEP-06 | WP-05 | H5前端（5页面走通） | 未开始 |
