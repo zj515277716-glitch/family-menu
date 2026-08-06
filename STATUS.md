@@ -2,105 +2,109 @@
 > 本文件由主Agent维护。任何时刻只允许一个活动任务卡（DEC-003）。
 
 ## 当前状态
-- 当前阶段：STEP-03 数据层（WP-02）（已合并）
-- main HEAD：90cd33f；回滚tag：rollback-before-step-03 -> b82fdcc；契约冻结tag：v0.1
-- 阻塞/外部依赖：AC12 真实 PG migration+seed 验证需 CI 补验
-- 下一个人工决策点：等待用户"执行 STEP-04"指令启动推荐引擎+清单合并器
+- 当前阶段：STEP-04 推荐引擎+清单合并器（WP-03/06）（开发中）
+- main HEAD：7ad971c；回滚tag：rollback-before-step-04 -> 7ad971c；契约冻结tag：v0.1
+- 阻塞/外部依赖：无
+- 下一个人工决策点：STEP-04 交付审核（M2 里程碑：禁忌集100%阻断）
 
-## 当前任务卡：STEP-03 数据层（对应 WP-02）
-状态: 已合并    回环计数: 0/3
+## 当前任务卡：STEP-04 推荐引擎+清单合并器（对应 WP-03/06）
+状态: 开发中    回环计数: 0/3
 执行者: fm-dev    审查者: fm-reviewer（只读）
-需求来源: 实施方案第三章3.2（Prisma Schema 12 model+8 enum）+ 第五章仓库结构（apps/api/prisma/{schema.prisma,seed.ts,migrations/}）+ 7.1 WP-02（10菜/4套）+ 8.1 STEP-03 + DEC-001（Prisma 7 适配）+ STEP-02 契约 v0.1    基线提交: main@b82fdcc    回滚点: rollback-before-step-03
+需求来源: 实施方案第四章（推荐引擎设计 4.1-4.4）+ 第五章仓库结构（engine/list-merger 目录）+ 7.2 WP-03 任务卡示例 + 7.1 WP-03/WP-06 + 8.1 STEP-04 + DEC-006（零LLM）+ STEP-02 契约 v0.1    基线提交: main@7ad971c    回滚点: rollback-before-step-04
 
 ### ① 目标
-apps/api/prisma/schema.prisma 实现 3.2 全部数据模型（12 model + 8 enum），Prisma 7 适配；生成初始 migration；实现 seed.ts（10菜/4套+家庭+规则+禁忌，可重复 upsert），seed 数据通过 shared v0.1 zod schema 校验。真实 PG 验证受环境限制，CI 补验。
+实现推荐引擎三层管道（safetyFilter/feasibilityFilter/score）+ diversify（packages/engine，纯函数零IO），禁忌集100%阻断；实现采购清单合并器（packages/list-merger，纯函数）；修复 pnpm test:taboo 脚本（STEP-01 遗留）。达成 M2 里程碑。
 
 ### ② 验收标准 AC
-- [✓] AC1 schema.prisma 实现 12 个 model（Family/FamilyRule/ExclusionRule/Ingredient/Substitution/Dish/DishIngredient/Menu/MenuDish/CookLog/Plan/Event），字段对齐 3.2（第 92-256 行），Prisma 7 适配（generator prisma-client，datasource 无 url）
-- [✓] AC2 8 个 enum（Severity/ExclusionScope/MealRole/ContentStatus/ContentOrigin/MenuScene/PlanStatus/EventType），枚举值与 3.2 + shared v0.1 一致
-- [✓] AC3 model 间关系完整：Family-FamilyRule 1:1(@unique), Family-ExclusionRule 1:N, Ingredient-DishIngredient 1:N, Ingredient-Substitution 双向(from/to), Dish-DishIngredient 1:N, Menu-MenuDish 1:N(@@id复合主键), Menu-CookLog 1:N, Dish-CookLog 1:N, Family-Plan 1:N, Plan-Event 1:N, Family-Event 1:N
-- [✓] AC4 Json 字段保留（Dish.steps / Menu.prepSequence / Plan.context / Plan.candidates / Plan.shoppingList / Event.payload 为 Json 类型，与 3.2 一致）
-- [✓] AC5 prisma generate 成功（PrismaClient 7.9.1 生成无错误，apps/api build 通过）
-- [✓] AC6 初始 migration 生成并落盘 prisma/migrations/20260806000000_init/migration.sql（migrate diff --from-empty --to-schema --script 生成，8 enum + 12 table + 2 unique + 13 FK）
-- [✓] AC7 seed.ts：1家庭+FamilyRule+ExclusionRule(HARD/SOFT各1) + 10道Dish(MAIN6/SIDE2/SOUP1/STAPLE1，PUBLISHED9/TESTED1) + 17Ingredient(蔬菜6/肉类3/水产2/蛋奶1/调料4/主食1) + 29 DishIngredient关联 + 4套Menu(WEEKDAY_FAST/WEEKEND/CLEARANCE/BUDGET) + 13 MenuDish关联；可重复执行(upsert)
-- [✓] AC8 seed 数据通过 shared zod schema v0.1 校验（validateSeedData + seed.spec.ts 16 用例全通过）
-- [✓] AC9 seed 命令配置（prisma.config.ts migrations.seed = 'tsx prisma/seed.ts'），pnpm db:seed 可调用
-- [✓] AC10 pnpm verify 跑通（lint 零 error，build 成功，test 57/57 通过，exit 0）
-- [✓] AC11 pnpm -r build 成功（不破坏 shared/engine/list-merger/h5 现有构建）
-- [环境限制] AC12 真实 PG migration+seed 验证 -> CI 补验（本机无 Docker/PostgreSQL）
+- [ ] AC1 engine/src/types.ts 定义核心接口（TonightContext/RecommendInput/ScoredMenu/FilterTrace/ScoreDim/recommend 签名 + View 类型），对齐 4.2 第281-312行
+- [ ] AC2 engine/src/safety.ts safetyFilter（第一层：HARD禁忌过滤，成分未确认滤除，产出 FilterTrace），对齐 4.1 第269行；安全层永远先于评分，不可被权重覆盖
+- [ ] AC3 engine/src/feasibility.ts feasibilityFilter（第二层：时长/器具硬过滤，mustUse无法消耗->标记而非过滤），对齐 4.1 第270行
+- [ ] AC4 engine/src/score.ts score（第三层：6维评分，权重 0.35×历史接受度 + 0.20×时长难度匹配 + 0.15×食材复用 + 0.10×偏好覆盖 + 0.10×近期多样性 + 0.10×膳食类别多样性），对齐 4.1 第271-275行，无随机性（固定输入回归一致）
+- [ ] AC5 engine/src/diversify.ts diversify（第四层：取Top-N后错开主蛋白/风格，输出3套+每套reasons[]），对齐 4.1 第276行
+- [ ] AC6 engine/src/recommend.ts recommend 主函数（串联四层，输出 {candidates: ScoredMenu[], filtered: FilterTrace[]}，不足3套时如实返回并说明），engine/src/index.ts 统一导出
+- [ ] AC7 engine/test/{taboo.spec.ts, score.spec.ts, fixtures/} 禁忌测试集（HARD规则×含该成分菜单，变形用例：别名/隐含成分/可选食材含禁忌，断言filtered含且candidates不含）+ 评分回归测试 + fixtures
+- [ ] AC8 list-merger/src/{normalize,units,merge}.ts 实现 mergeShoppingList（同食材合并经aliases归一 -> 单位换算 -> 按category分组 -> 去除家庭常备调料），对齐 4.4 第323-329行
+- [ ] AC9 list-merger/test/merge.spec.ts 合并测试（含单位换算、别名归一、分组、去常备，错误率<1%门槛）
+- [ ] AC10 pnpm test:taboo 修复（vitest.config.ts 添加 test.projects 或改脚本为 pnpm --filter @family-menu/engine test），exit 0，禁忌集100%阻断
+- [ ] AC11 pnpm verify exit 0（lint 零 error，build 成功，test 通过），单测覆盖率≥90%（engine + list-merger）
+- [ ] AC12 pnpm -r build 成功（不破坏 shared/api/h5 现有构建），千套菜单库单次 recommend 调用<50ms（性能测试）
 
 ### ③ 输入资源
-- docs/plan/实施方案.md @b82fdcc：
-  - 第三章 3.2 Prisma Schema（第 92-256 行）：12 model + 8 enum 完整定义（含字段/关系/枚举值）
-  - 第五章仓库结构（第 365 行）：apps/api/prisma/{schema.prisma,seed.ts,migrations/}
-  - 7.1 WP-02（第 565 行）：schema.prisma+migration+seed（10菜/4套）
-  - 8.1 STEP-03（第 608 行）：真实PG验证、可重复seed
-- DECISIONS.md @b82fdcc（DEC-001 Prisma 7 破坏性变更：generator prisma-client / datasource URL 迁 prisma.config.ts / driver adapter / dotenv 显式加载）
-- STEP-02 契约 v0.1 @v0.1 tag（packages/shared zod schema，seed 数据校验依据）
-- AGENTS.md @b82fdcc（铁律、Ownership: apps/api/prisma 归属 WP-02）
-- 现有基线 @b82fdcc：
-  - apps/api/prisma/schema.prisma（占位：仅 generator+datasource，无 model）
-  - apps/api/prisma.config.ts（defineConfig + datasource.url + dotenv）
-  - apps/api/src/db.ts（PrismaClient 单例 + PrismaPg adapter）
-  - apps/api/package.json（prisma ^7.7.0 / @prisma/client / @prisma/adapter-pg / pg）
-  - 根 package.json（db:migrate = prisma migrate dev, db:seed = prisma db seed）
-  - docker-compose.yml（PG18, profiles ["local"]）
-  - .env.example（DATABASE_URL=postgresql://app:app_password@localhost:5432/family_menu）
+- docs/plan/实施方案.md @7ad971c：
+  - 第四章 推荐引擎设计（第 262-329 行）：4.1 三层管道+diversify / 4.2 核心接口签名 / 4.3 禁忌测试集 / 4.4 采购清单合并器
+  - 第五章仓库结构（第 357-361 行）：engine/src/{types,safety,feasibility,score,diversify,recommend}.ts + test/{taboo.spec.ts,score.spec.ts,fixtures/} / list-merger/src/{normalize,units,merge}.ts + test/merge.spec.ts
+  - 7.2 WP-03 任务卡示例（第 577-582 行）：目标/AC/输入/边界/异常
+  - 7.1 WP-03（第566行）/ WP-06（第569行）
+  - 8.1 STEP-04（第609行）：M2 里程碑 禁忌集100%阻断
+- DECISIONS.md @7ad971c（DEC-006 运行时零LLM；DEC-008 YAGNI边界）
+- STEP-02 契约 v0.1 @v0.1 tag（packages/shared zod schema + 类型 + 常量，engine/list-merger 依赖）
+- AGENTS.md @7ad971c（铁律8：引擎相关改动必跑 pnpm test:taboo；Ownership: packages/engine 归属 WP-03，packages/list-merger 归属 WP-06）
+- 现有基线 @7ad971c：
+  - packages/engine/src/index.ts（仅 PACKAGE_NAME 导出，骨架占位）
+  - packages/engine/test/placeholder.spec.ts（占位测试）
+  - packages/engine/package.json（已依赖 @family-menu/shared workspace:* + vitest ^4.1.10）
+  - packages/list-merger/src/index.ts（仅 PACKAGE_NAME 导出，骨架占位）
+  - packages/list-merger/test/placeholder.spec.ts（占位测试）
+  - packages/list-merger/package.json（已依赖 @family-menu/shared workspace:* + vitest ^4.1.10）
+  - vitest.config.ts（仅 test.include，无 test.projects -> test:taboo 失效）
+  - 根 package.json（test:taboo = "vitest run --project engine"，需修复）
 
 ### ④ 边界约束（不允许做什么）
-- 只改 apps/api/prisma（schema.prisma/seed.ts/migrations/）+ apps/api/prisma.config.ts（如需 seed 配置）+ apps/api/package.json（如需 prisma.seed）+ apps/api/src/db.ts（如需调整）；不改其他包
-- 不改 packages/shared（契约 v0.1 已冻结，变更须走契约变更流程）
-- 不写业务逻辑（engine 算法/api 路由/h5 页面/list-merger）
-- schema.prisma 字段/枚举与 3.2 一致，与 shared v0.1 一致（不擅自增减字段或改枚举值）
-- 不改 docker-compose.yml（STEP-01 已建）
-- 不改 docs/plan/实施方案.md（只读）；不修改四件套（队长维护 STATUS.md/开发日志.md 除外）
-- 运行时代码禁止调用任何 LLM API（DEC-006）
+- 可修改：packages/engine/* + packages/list-merger/* + vitest.config.ts + 根 package.json（仅 test:taboo 脚本）
+- 禁改 packages/shared（契约 v0.1 已冻结，变更须走契约变更流程）
+- 禁改 apps/*（WP-04/05 范围）
+- 引擎纯函数零IO/零LLM/零数据库依赖（4.2 铁律），输入输出全是内存对象
+- 不做 ML/协同过滤/LLM调用/数据库读写
+- 评分权重属 HOW，按 4.1 默认权重（0.35/0.20/0.15/0.10/0.10/0.10）实现并在完成报告注明
+- 安全层永远先于评分，不可被任何权重覆盖（4.2 铁律）
+- 不改 docker-compose.yml / 四件套 / 实施方案 / prisma
 - 不引入 DEC-008 禁止项（Redis/消息队列/微服务/K8s）
-- Prisma 7 适配方案属 HOW，fm-dev 按官方文档实现；与 DEC-001 记录冲突时报队长
+- 新增依赖在完成报告列出并说明理由（如 @vitest/coverage-v8 用于覆盖率统计）
 
 ### ⑤ 异常升级路径
-- Prisma 7 migrate/seed 配置与官方文档冲突 -> 报队长转 fm-arch
-- schema 字段与 3.2 或 v0.1 契约冲突 -> 以 3.2/v0.1 为准，完成报告注明
-- 本机无 DB 无法执行 migrate dev/seed -> 报队长，CI 补验（不伪造结果）
-- Prisma 7 generator/datasource 配置报错 -> 以 DEC-001 + prisma.config.ts 现有配置为准
+- 契约缺字段（shared v0.1 不满足 engine 需求）-> 停下@队长转 fm-arch（契约变更流程）
+- 评分权重争议 -> 属 HOW，按 4.1 默认权重实现并注明假设
+- 引擎性能不达标（千套<50ms） -> 完成报告注明，报队长评估
+- 禁忌集无法100%阻断 -> 阻塞，报队长诊断（不可放过）
 - 第3次被打回 -> 停止修改，等队长诊断
 
 ## 最小测试（fm-tester 照跑，真实执行，禁止Mock冒充）
 - `pnpm install --frozen-lockfile`（exit 0）
 - `pnpm verify`（lint+build+test，exit 0，lint 零 error）
-- `prisma generate`（exit 0，PrismaClient 生成成功）
-- seed 数据 zod 校验：seed 对象通过 shared v0.1 schema parse（合法通过）
+- `pnpm test:taboo`（exit 0，禁忌集100%阻断，**M2 发布门槛**）
 - `pnpm -r build`（不破坏其他包构建）
-- [环境限制] `prisma migrate dev` + `pnpm db:seed` 需 PG，本机无 Docker -> CI 补验
+- 覆盖率：engine + list-merger 单测覆盖率≥90%（vitest --coverage）
+- 性能：千套菜单库 recommend 单次调用<50ms
 
 ## 审查重点
-- schema.prisma 字段/关系/枚举与 3.2 逐项一致（12 model + 8 enum）
-- 与 shared v0.1 契约一致（枚举值/字段名/Json 字段）
-- Prisma 7 适配正确（generator prisma-client / datasource 无 url / driver adapter）
-- migration SQL 落盘且可重复（migrations/ 目录）
-- seed 数据合理（10菜/4套+家庭+规则+禁忌，覆盖枚举值，可重复 upsert）
-- seed 数据通过 zod 校验（不伪造）
-- 仅改 apps/api/prisma + 相关配置，不改 packages/shared
-- 无 LLM 调用、无 DEC-008 禁止项
+- 三层管道实现与 4.1 逐项一致（safetyFilter/feasibilityFilter/score 权重）
+- 接口签名与 4.2 一致（TonightContext/RecommendInput/ScoredMenu/FilterTrace/recommend）
+- 禁忌测试集与 4.3 一致（HARD×含成分菜单，别名/隐含/可选变形，断言filtered含且candidates不含）
+- 清单合并器与 4.4 一致（归一->换算->分组->去常备）
+- 引擎纯函数零IO/零LLM/零数据库依赖
+- 安全层永远先于评分
+- 与 shared v0.1 契约一致（不修改 shared）
+- test:taboo 修复有效（exit 0）
+- 覆盖率≥90%，无随机性
+- 目录结构与第五章一致（engine/src/{types,safety,feasibility,score,diversify,recommend}.ts + list-merger/src/{normalize,units,merge}.ts）
 
 ## 交付门禁
 开发（fm-dev）-> 独立测试（fm-tester，真实环境）-> 交叉审查（fm-reviewer，只读）-> 主复验 -> 状态改"待用户审核"并暂停；
-用户批准前不合并、不启动下一 STEP（DEC-005）。
+用户批准前不合并、不启动下一 STEP（DEC-005）。**M2 里程碑：禁忌集100%阻断**。
 
 ## 完成报告（fm-dev 填写）
-- AC自检: [✓]AC1-AC11 逐条通过（11/11），AC12 [环境限制]
-- 交付物: apps/api/prisma/{schema.prisma, migrations/20260806000000_init/migration.sql, migration_lock.toml, seed-data.ts, seed.ts} + apps/api/prisma.config.ts + apps/api/test/seed.spec.ts @67aa6c9
-- 测试结果: 57/57 passed（shared 39 + engine 1 + list-merger 1 + api/seed 16），pnpm verify exit 0，pnpm -r build exit 0，prisma generate exit 0
-- 新增依赖及理由: 无（全部依赖 STEP-01 已安装）
-- 遗留与下一步建议: ①test:taboo 仍失效（STEP-01 遗留，STEP-04 前修复）②AC12 真实 PG 验证 CI 补验 ③seed ExclusionScope 仅 TAG 后续补充
+- AC自检: [ ]AC1...（逐条[✓]/[✗]）
+- 交付物: <路径@commit>
+- 测试结果: <用例通过数/exit code/覆盖率/性能ms>
+- 新增依赖及理由: <列出>
+- 遗留与下一步建议:
 
 ## 审查报告（fm-reviewer 填写，任何✗=打回，回环+1）
-- [✓] 契约一致性（12 model + 8 enum 与 3.2 第92-256行逐项一致；与 shared v0.1 一致；seed zod 校验正确）
-- [✓] 越界检查（7 文件全在允许范围 apps/api/prisma + prisma.config.ts + test/；未改 packages/shared）
-- [✓] 安全缺陷（无 LLM 调用 DEC-006；无 DEC-008 禁止项；seed upsert 幂等；无敏感信息入库）
-- [✓] 逻辑正确性（prisma generate 成功；migration SQL 合理 8 enum+12 table+2 unique+13 FK；seed upsert 正确；zod 校验通过 16 用例；11 组关系完整）
-- [✓] 可维护性（命名与 3.2/shared 一致；Prisma 7 配置一致；seed 可读可扩展）
-- 6 项设计假设全部 [合理]；6 项非阻断观察项；回环计数 0/3，审查通过
+- [ ] 契约一致性（三层管道与4.1一致；接口与4.2一致；禁忌集与4.3一致；合并器与4.4一致；与shared v0.1一致）
+- [ ] 越界检查（仅改 packages/engine + packages/list-merger + vitest.config.ts + 根package.json；不改 shared/apps/四件套/实施方案）
+- [ ] 安全缺陷（无LLM调用DEC-006；无DEC-008禁止项；安全层先于评分不可覆盖；纯函数零IO）
+- [ ] 逻辑正确性（safetyFilter HARD过滤正确；score 权重正确无随机性；diversify 错开逻辑正确；mergeShoppingList 合并正确；禁忌集100%阻断；覆盖率≥90%）
+- [ ] 可维护性（命名规范；纯函数可测；目录结构与第五章一致）
 
 ## 总任务拆解
 | STEP | 对应WP | 内容 | 状态 |
@@ -109,7 +113,7 @@ apps/api/prisma/schema.prisma 实现 3.2 全部数据模型（12 model + 8 enum�
 | STEP-01 | WP-00 | 工程基线（monorepo骨架+本地PG18 Docker+CI） | 已合并 |
 | STEP-02 | WP-01 | 契约冻结（shared zod schema，v0.1） | 已合并 |
 | STEP-03 | WP-02 | 数据层（schema.prisma+migration+seed） | 已合并 |
-| STEP-04 | WP-03/06 | 推荐引擎+清单合并器 | 未开始 |
+| STEP-04 | WP-03/06 | 推荐引擎+清单合并器 | 进行中 |
 | STEP-05 | WP-04 | API（Fastify路由+口令鉴权+契约测试） | 未开始 |
 | STEP-06 | WP-05 | H5前端（5页面走通） | 未开始 |
 | STEP-07 | WP-07 | 内容管线CLI | 未开始 |
