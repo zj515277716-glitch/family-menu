@@ -2,13 +2,13 @@
 > 本文件由主Agent维护。任何时刻只允许一个活动任务卡（DEC-003）。
 
 ## 当前状态
-- 当前阶段：STEP-01 工程基线（WP-00）（开发中）
-- main HEAD：1983795；回滚tag：rollback-before-step-01 -> 1983795
-- 阻塞/外部依赖：无
-- 下一个人工决策点：STEP-01 交付审核（M1：各包启动、DB连通）
+- 当前阶段：STEP-01 工程基线（WP-00）（待用户审核）
+- main HEAD：270a05a；回滚tag：rollback-before-step-01 -> 1983795
+- 阻塞/外部依赖：本机无 Docker（AC8/AC12 DB 连通需 CI 环境补验）
+- 下一个人工决策点：用户审核 STEP-01 交付（AC1-AC7/AC9-AC11 通过；AC8 环境限制；AC12 部分）
 
 ## 当前任务卡：STEP-01 工程基线（对应 WP-00）
-状态: 开发中    回环计数: 0/3
+状态: 待用户审核    回环计数: 0/3（fm-tester 独立测试通过 + fm-reviewer 五维度审查通过）
 执行者: fm-dev    审查者: fm-reviewer（只读）
 需求来源: 实施方案第五章（仓库结构）+ 第八章8.1（STEP-01/M1）+ 第九章9.4（环境策略）+ 附录C（.env.example）+ DEC-001（版本号）    基线提交: main@1983795    回滚点: rollback-before-step-01
 
@@ -107,7 +107,7 @@
 | STEP | 对应WP | 内容 | 状态 |
 |---|---|---|---|
 | STEP-00 | - | 协作框架四件套 | 已合并 |
-| STEP-01 | WP-00 | 工程基线（monorepo骨架+本地PG18 Docker+CI） | 进行中 |
+| STEP-01 | WP-00 | 工程基线（monorepo骨架+本地PG18 Docker+CI） | 待用户审核 |
 | STEP-02 | WP-01 | 契约冻结（shared zod schema，v0.1） | 未开始 |
 | STEP-03 | WP-02 | 数据层（schema.prisma+migration+seed） | 未开始 |
 | STEP-04 | WP-03/06 | 推荐引擎+清单合并器 | 未开始 |
