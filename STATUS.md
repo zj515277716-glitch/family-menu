@@ -2,13 +2,13 @@
 > 本文件由主Agent维护。任何时刻只允许一个活动任务卡（DEC-003）。
 
 ## 当前状态
-- 当前阶段：STEP-00 协作框架初始化（待用户审核）
-- main HEAD：3fda0aa；回滚tag：rollback-before-step-00 -> 2c80703
+- 当前阶段：STEP-00 协作框架初始化（已合并）
+- main HEAD：1a599cc；回滚tag：rollback-before-step-00 -> 2c80703
 - 阻塞/外部依赖：无
-- 下一个人工决策点：用户审核 STEP-00 交付（批准后方可启动 STEP-01）
+- 下一个人工决策点：STEP-01 开工指令（用户说"执行 STEP-01"即建卡派发）
 
 ## 当前任务卡：STEP-00 协作框架初始化
-状态: 待用户审核    回环计数: 0/3
+状态: 已合并（用户 2026-08-06 审核通过）    回环计数: 0/3
 执行者: 队长（SOLO Coder，引导例外--四件套未建立时队长可亲自创建文档）    审查者: fm-reviewer（只读）
 需求来源: 用户 STEP-00 启动指令 + 实施方案附录A/B/D    基线提交: main@2c80703    回滚点: rollback-before-step-00
 
@@ -75,7 +75,7 @@ docs/plan/实施方案.md（只读战略副本）@2c80703；.trae/rules/project_
 ## 总任务拆解
 | STEP | 对应WP | 内容 | 状态 |
 |---|---|---|---|
-| STEP-00 | - | 协作框架四件套 | 待用户审核 |
+| STEP-00 | - | 协作框架四件套 | 已合并 |
 | STEP-01 | WP-00 | 工程基线（monorepo骨架+本地PG18 Docker+CI） | 未开始 |
 | STEP-02 | WP-01 | 契约冻结（shared zod schema，v0.1） | 未开始 |
 | STEP-03 | WP-02 | 数据层（schema.prisma+migration+seed） | 未开始 |
