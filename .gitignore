@@ -1,0 +1,18 @@
+node_modules/
+dist/
+coverage/
+.env
+.env.local
+.env.*.local
+.turbo/
+*.log
+.DS_Store
+Thumbs.db
+.taro/
+.DS_Store
+
+# Prisma 7 生成产物（通过 prisma generate 重新生成）
+apps/api/src/generated/
+
+# SWC 编译器插件（平台特定二进制，Taro 编译时自动下载）
+.swc/

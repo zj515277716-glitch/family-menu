@@ -71,11 +71,30 @@
 用户批准前不合并、不启动下一 STEP（DEC-005）。
 
 ## 完成报告（fm-dev 填写）
-- AC自检: [ ]AC1...（逐条[✓]/[✗]）
-- 交付物: <路径@commit>
-- 测试结果: <覆盖率/用例通过数/exit code>
-- 新增依赖及理由: <列出>
+- AC自检:
+  - [✓] AC1 pnpm-workspace.yaml + 根 package.json（统一 scripts）建立，pnpm install 成功（exit 0）
+  - [✓] AC2 tsconfig.base.json（strict:true）建立，各子包 tsconfig 继承
+  - [✓] AC3 packages/{shared,engine,list-merger} 骨架建立，pnpm -r build 成功（exit 0）
+  - [✓] AC4 apps/api 骨架：Fastify server.ts 启动监听 3000；prisma 目录+依赖就绪；db.ts PrismaClient 单例（Prisma 7 driver adapter）
+  - [✓] AC5 apps/h5 骨架：Taro 4+React 配置，pnpm dev:h5 可启动，编译目标 h5，HTTP 200 可访问
+  - [✓] AC6 apps/admin 占位（package.json + 空目录）
+  - [✓] AC7 tools/content-pipeline 骨架（package.json + src/ 目录结构）
+  - [✗] AC8 docker-compose.yml 建立（PG18 配置正确），但本机无 Docker 无法验证 docker compose up -d db（环境限制，非代码缺陷）
+  - [✓] AC9 .env.example 建立；.gitignore 建立且 .env 不入库（git check-ignore 确认）；CLAUDE.md -> AGENTS.md 指针
+  - [✓] AC10 pnpm verify（lint+build+test）跑通，lint 零 error，exit 0
+  - [✓] AC11 CI 脚本 .github/workflows/ci.yml 建立（PG18 service + pnpm 11.20 + node 22.23.2 + lint+build+test）
+  - [△] AC12 部分：apps/api 启动成功，PrismaClient 正确实例化，/health/db 端点正确处理连接失败；DB 连通无法本机验证（无 Docker/PostgreSQL）。apps/h5 启动可访问（HTTP 200）
+- 交付物: 全部 monorepo 骨架文件（52 files changed, 15665 insertions）commit hash 见 git log
+- 测试结果: pnpm verify exit 0（lint 零 error；apps/api build: prisma generate + tsc 成功；apps/h5 build: webpack 编译成功；test 2/2 通过 duration 235ms）；dev:api HTTP 200 /health；dev:h5 HTTP 200 可访问
+- 新增依赖及理由:
+  - @types/node ^22.0.0（apps/api devDep）: tsconfig.json 指定 types:["node"]，需此类型定义
+  - dotenv ^16.4.0（apps/api dep）: Prisma 7 不自动加载 .env，需 dotenv 显式加载 DATABASE_URL
+  - @pmmmwh/react-refresh-webpack-plugin ^0.5.15（apps/h5 devDep）: Taro 4 plugin-framework-react 在 --watch 模式下 require 此插件，缺失则 dev:h5 崩溃
 - 遗留与下一步建议:
+  1. AC8 [✗] Docker PG18 验证: 本机无 Docker，需在 CI 或有 Docker 的环境中验证。docker-compose.yml 和 CI 脚本配置正确（PG18 + 健康检查）
+  2. AC12 DB 连通 [△]: Prisma 7 配置正确（prisma generate 成功，PrismaClient 正确实例化），需在 DB 可用环境中完成连通验证
+  3. Node.js v24.19.0 vs DEC-001 要求 22.23.2: 向后兼容不阻塞，建议 CI 严格使用 22.23.2（CI 脚本已配置）
+  4. PowerShell 执行策略 Restricted: 复合命令被阻止，CI 在 Ubuntu 上运行无此问题
 
 ## 审查报告（fm-reviewer 填写，任何✗=打回，回环+1）
 - [ ] 契约一致性（结构符合第五章；依赖版本符合 DEC-001）

@@ -1,0 +1,4 @@
+# 备案通过后启用域名+自动HTTPS
+# family-menu.example.com {
+#   reverse_proxy api:3000
+# }

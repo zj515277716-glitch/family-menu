@@ -1,0 +1,30 @@
+{
+  "name": "family-menu",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev:api": "pnpm --filter @family-menu/api dev",
+    "dev:h5": "pnpm --filter @family-menu/h5 dev:h5",
+    "dev:admin": "pnpm --filter @family-menu/admin dev",
+    "test": "vitest run",
+    "test:taboo": "vitest run --project engine",
+    "db:migrate": "pnpm --filter @family-menu/api prisma migrate dev",
+    "db:seed": "pnpm --filter @family-menu/api prisma db seed",
+    "verify": "pnpm lint && pnpm build && pnpm test",
+    "lint": "eslint .",
+    "build": "pnpm -r build"
+  },
+  "devDependencies": {
+    "@typescript-eslint/eslint-plugin": "^8.0.0",
+    "@typescript-eslint/parser": "^8.0.0",
+    "eslint": "^9.0.0",
+    "typescript": "^5.7.0",
+    "vitest": "^4.1.10"
+  },
+  "packageManager": "pnpm@11.20.0",
+  "engines": {
+    "node": ">=22.0.0",
+    "pnpm": ">=11.0.0"
+  }
+}

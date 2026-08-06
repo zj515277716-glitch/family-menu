@@ -1,0 +1,24 @@
+packages:
+  - "packages/*"
+  - "apps/*"
+  - "tools/*"
+
+onlyBuiltDependencies:
+  - "@parcel/watcher"
+  - "@swc/core"
+  - "@tarojs/binding"
+  - "@tarojs/cli"
+  - core-js-pure
+  - core-js
+  - esbuild
+
+allowBuilds:
+  "@parcel/watcher": true
+  "@swc/core": true
+  "@tarojs/binding": true
+  "@tarojs/cli": true
+  core-js-pure: true
+  core-js: true
+  esbuild: true
+  "@prisma/engines": false
+  prisma: false

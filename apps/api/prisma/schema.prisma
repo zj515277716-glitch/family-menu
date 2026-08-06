@@ -1,0 +1,15 @@
+// apps/api/prisma/schema.prisma
+// STEP-03 将实现完整的数据模型（Family/Dish/Menu/Plan 等）
+// 当前为最小占位 -- 仅声明 generator + datasource，不定义 model
+//
+// Prisma 7 破坏性变更：datasource 块不再支持 url 属性
+// 连接 URL 迁移到 prisma.config.ts 中配置（见该文件）
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
