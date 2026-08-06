@@ -2,13 +2,13 @@
 > 本文件由主Agent维护。任何时刻只允许一个活动任务卡（DEC-003）。
 
 ## 当前状态
-- 当前阶段：STEP-02 契约冻结（WP-01）（待用户审核）
-- main HEAD：236b938；回滚tag：rollback-before-step-02 -> c9f9f79
+- 当前阶段：STEP-02 契约冻结（WP-01）（已合并，契约 v0.1 冻结）
+- main HEAD：f68f4f0；回滚tag：rollback-before-step-02 -> c9f9f79；契约冻结tag：v0.1
 - 阻塞/外部依赖：无
-- 下一个人工决策点：STEP-02 交付审核 + 契约 v0.1 冻结批准
+- 下一个人工决策点：等待用户"执行 STEP-03"指令启动数据层
 
 ## 当前任务卡：STEP-02 契约冻结（对应 WP-01）
-状态: 待用户审核    回环计数: 0/3
+状态: 已合并（契约 v0.1 冻结）    回环计数: 0/3
 执行者: fm-dev    审查者: fm-reviewer（只读）
 需求来源: 实施方案第三章3.2（数据模型）+ 第五章仓库结构（shared目录）+ 5.1 API路由清单 + 1.2 F1-F7 + 1.3 YAGNI + DEC-001    基线提交: main@c9f9f79    回滚点: rollback-before-step-02
 
@@ -100,7 +100,7 @@ packages/shared 全部 zod schema + 类型 + 常量，冻结 v0.1。定义数据
 |---|---|---|---|
 | STEP-00 | - | 协作框架四件套 | 已合并 |
 | STEP-01 | WP-00 | 工程基线（monorepo骨架+本地PG18 Docker+CI） | 已合并 |
-| STEP-02 | WP-01 | 契约冻结（shared zod schema，v0.1） | 待用户审核 |
+| STEP-02 | WP-01 | 契约冻结（shared zod schema，v0.1） | 已合并 |
 | STEP-03 | WP-02 | 数据层（schema.prisma+migration+seed） | 未开始 |
 | STEP-04 | WP-03/06 | 推荐引擎+清单合并器 | 未开始 |
 | STEP-05 | WP-04 | API（Fastify路由+口令鉴权+契约测试） | 未开始 |
