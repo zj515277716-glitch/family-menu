@@ -2,13 +2,13 @@
 > 本文件由主Agent维护。任何时刻只允许一个活动任务卡（DEC-003）。
 
 ## 当前状态
-- 当前阶段：STEP-04 推荐引擎+清单合并器（WP-03/06）（待用户审核）
-- main HEAD：28053c8；回滚tag：rollback-before-step-04 -> 7ad971c；契约冻结tag：v0.1
+- 当前阶段：STEP-04 推荐引擎+清单合并器（WP-03/06）（已合并）
+- main HEAD：7d2e1a3；回滚tag：rollback-before-step-04 -> 7ad971c；契约冻结tag：v0.1
 - 阻塞/外部依赖：无
-- 下一个人工决策点：STEP-04 交付审核（M2 里程碑：禁忌集100%阻断）
+- 下一个人工决策点：STEP-05 启动指令（或 UI 设计前置对齐）
 
 ## 当前任务卡：STEP-04 推荐引擎+清单合并器（对应 WP-03/06）
-状态: 待用户审核    回环计数: 1/3
+状态: 已合并    回环计数: 1/3
 执行者: fm-dev    审查者: fm-reviewer（只读）
 需求来源: 实施方案第四章（推荐引擎设计 4.1-4.4）+ 第五章仓库结构（engine/list-merger 目录）+ 7.2 WP-03 任务卡示例 + 7.1 WP-03/WP-06 + 8.1 STEP-04 + DEC-006（零LLM）+ STEP-02 契约 v0.1    基线提交: main@7ad971c    回滚点: rollback-before-step-04
 
@@ -98,7 +98,7 @@
 | STEP-01 | WP-00 | 工程基线（monorepo骨架+本地PG18 Docker+CI） | 已合并 |
 | STEP-02 | WP-01 | 契约冻结（shared zod schema，v0.1） | 已合并 |
 | STEP-03 | WP-02 | 数据层（schema.prisma+migration+seed） | 已合并 |
-| STEP-04 | WP-03/06 | 推荐引擎+清单合并器 | 待用户审核 |
+| STEP-04 | WP-03/06 | 推荐引擎+清单合并器 | 已合并 |
 | STEP-05 | WP-04 | API（Fastify路由+口令鉴权+契约测试） | 未开始 |
 | STEP-06 | WP-05 | H5前端（5页面走通） | 未开始 |
 | STEP-07 | WP-07 | 内容管线CLI | 未开始 |
