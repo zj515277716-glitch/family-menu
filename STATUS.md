@@ -2,13 +2,13 @@
 > 本文件由主Agent维护。任何时刻只允许一个活动任务卡（DEC-003）。
 
 ## 当前状态
-- 当前阶段：STEP-03 数据层（WP-02）（待用户审核）
-- main HEAD：67aa6c9；回滚tag：rollback-before-step-03 -> b82fdcc；契约冻结tag：v0.1
-- 阻塞/外部依赖：AC12 真实 PG migration+seed 验证需 CI 补验（本机无 Docker/PostgreSQL）
-- 下一个人工决策点：STEP-03 交付审核
+- 当前阶段：STEP-03 数据层（WP-02）（已合并）
+- main HEAD：90cd33f；回滚tag：rollback-before-step-03 -> b82fdcc；契约冻结tag：v0.1
+- 阻塞/外部依赖：AC12 真实 PG migration+seed 验证需 CI 补验
+- 下一个人工决策点：等待用户"执行 STEP-04"指令启动推荐引擎+清单合并器
 
 ## 当前任务卡：STEP-03 数据层（对应 WP-02）
-状态: 待用户审核    回环计数: 0/3
+状态: 已合并    回环计数: 0/3
 执行者: fm-dev    审查者: fm-reviewer（只读）
 需求来源: 实施方案第三章3.2（Prisma Schema 12 model+8 enum）+ 第五章仓库结构（apps/api/prisma/{schema.prisma,seed.ts,migrations/}）+ 7.1 WP-02（10菜/4套）+ 8.1 STEP-03 + DEC-001（Prisma 7 适配）+ STEP-02 契约 v0.1    基线提交: main@b82fdcc    回滚点: rollback-before-step-03
 
@@ -108,7 +108,7 @@ apps/api/prisma/schema.prisma 实现 3.2 全部数据模型（12 model + 8 enum�
 | STEP-00 | - | 协作框架四件套 | 已合并 |
 | STEP-01 | WP-00 | 工程基线（monorepo骨架+本地PG18 Docker+CI） | 已合并 |
 | STEP-02 | WP-01 | 契约冻结（shared zod schema，v0.1） | 已合并 |
-| STEP-03 | WP-02 | 数据层（schema.prisma+migration+seed） | 待用户审核 |
+| STEP-03 | WP-02 | 数据层（schema.prisma+migration+seed） | 已合并 |
 | STEP-04 | WP-03/06 | 推荐引擎+清单合并器 | 未开始 |
 | STEP-05 | WP-04 | API（Fastify路由+口令鉴权+契约测试） | 未开始 |
 | STEP-06 | WP-05 | H5前端（5页面走通） | 未开始 |
