@@ -88,14 +88,15 @@ export function diversify(
       pickedIndex = 0;
     }
 
-    result.push(picked);
     remaining.splice(pickedIndex, 1);
     const pickedMenu = menuMap.get(picked.menuId);
     for (const p of getMenuProteins(pickedMenu)) usedProteins.add(p);
     usedStyles.add(getMenuStyle(pickedMenu));
-    if (!picked.reasons.includes('与已选菜单错开主蛋白/风格')) {
-      picked.reasons.push('与已选菜单错开主蛋白/风格');
-    }
+    // 不修改输入对象（纯函数不可变），创建新对象添加错开说明
+    const diversifiedReasons = picked.reasons.includes('与已选菜单错开主蛋白/风格')
+      ? picked.reasons
+      : [...picked.reasons, '与已选菜单错开主蛋白/风格'];
+    result.push({ ...picked, reasons: diversifiedReasons });
   }
 
   return result;

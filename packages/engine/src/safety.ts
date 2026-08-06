@@ -40,6 +40,114 @@ export interface SafetyFilterResult {
   filtered: FilterTrace[];
 }
 
+/** 检查成分未确认（存在 HARD 食材禁忌时，菜品 ingredients 为空 -> 保守过滤） */
+function checkUnconfirmedIngredients(
+  menu: MenuView,
+  hasHardIngredient: boolean,
+): FilterTrace | null {
+  if (!hasHardIngredient) return null;
+  const unconfirmed = menu.dishes.find((d) => d.ingredients.length === 0);
+  if (!unconfirmed) return null;
+  return {
+    menuId: menu.id,
+    stage: 'safety',
+    rule: `菜品「${unconfirmed.name}」成分未确认，保守过滤（存在 HARD 食材禁忌）`,
+  };
+}
+
+/** HARD+INGREDIENT 检查：菜品食材（含 optional）命中禁忌成分 -> 过滤（支持别名归一） */
+function checkIngredientScope(
+  ex: ExclusionView,
+  menu: MenuView,
+  ingredientNameSets: Map<string, Set<string>>,
+): { blocked: boolean; reason: string } {
+  const nameSet = ingredientNameSets.get(ex.id);
+  if (!nameSet) return { blocked: false, reason: '' };
+  for (const dish of menu.dishes) {
+    for (const ing of dish.ingredients) {
+      if (
+        ingredientHitsExclusion(
+          ing.ingredientId,
+          ing.ingredientName,
+          ing.aliases,
+          nameSet,
+        )
+      ) {
+        return {
+          blocked: true,
+          reason: `含${ing.ingredientName}，命中 HARD 食材禁忌#${ex.id}`,
+        };
+      }
+    }
+  }
+  return { blocked: false, reason: '' };
+}
+
+/** HARD+DISH 检查：菜单含目标菜品 -> 过滤 */
+function checkDishScope(
+  ex: ExclusionView,
+  menu: MenuView,
+): { blocked: boolean; reason: string } {
+  if (!ex.targetId) return { blocked: false, reason: '' };
+  for (const dish of menu.dishes) {
+    if (dish.id === ex.targetId) {
+      return {
+        blocked: true,
+        reason: `含菜品「${dish.name}」，命中 HARD 菜品禁忌#${ex.id}`,
+      };
+    }
+  }
+  return { blocked: false, reason: '' };
+}
+
+/** HARD+TAG 检查：菜品 flavorTags 或食材 category 命中标签 -> 过滤 */
+function checkTagScope(
+  ex: ExclusionView,
+  menu: MenuView,
+): { blocked: boolean; reason: string } {
+  const tag = ex.targetTag;
+  if (!tag) return { blocked: false, reason: '' };
+  for (const dish of menu.dishes) {
+    if (dish.flavorTags.includes(tag)) {
+      return {
+        blocked: true,
+        reason: `菜品「${dish.name}」标签含「${tag}」，命中 HARD 标签禁忌#${ex.id}`,
+      };
+    }
+    for (const ing of dish.ingredients) {
+      if (ing.category === tag) {
+        return {
+          blocked: true,
+          reason: `食材「${ing.ingredientName}」品类为「${tag}」，命中 HARD 标签禁忌#${ex.id}`,
+        };
+      }
+    }
+  }
+  return { blocked: false, reason: '' };
+}
+
+/** HARD 禁忌逐条检查（按 exclusion 顺序遍历 INGREDIENT/DISH/TAG 三种 scope） */
+function checkHardExclusions(
+  menu: MenuView,
+  hardExclusions: ExclusionView[],
+  ingredientNameSets: Map<string, Set<string>>,
+): { blocked: boolean; reason: string } {
+  for (const ex of hardExclusions) {
+    let result: { blocked: boolean; reason: string };
+    if (ex.scope === 'INGREDIENT') {
+      result = checkIngredientScope(ex, menu, ingredientNameSets);
+    } else if (ex.scope === 'DISH') {
+      result = checkDishScope(ex, menu);
+    } else if (ex.scope === 'TAG') {
+      result = checkTagScope(ex, menu);
+    } else {
+      continue;
+    }
+    if (result.blocked) return result;
+  }
+  return { blocked: false, reason: '' };
+}
+
 /**
  * 第一层安全过滤（4.1 第 269 行）。
  * - HARD+INGREDIENT：菜品食材（含 optional）命中禁忌成分 -> 过滤（支持别名归一：番茄/西红柿）
@@ -61,74 +169,18 @@ export function safetyFilter(
 
   for (const menu of library) {
     // 1. 成分未确认检查（仅当存在 HARD 食材禁忌时，保守过滤）
-    if (hasHardIngredient) {
-      const unconfirmed = menu.dishes.find((d) => d.ingredients.length === 0);
-      if (unconfirmed) {
-        filtered.push({
-          menuId: menu.id,
-          stage: 'safety',
-          rule: `菜品「${unconfirmed.name}」成分未确认，保守过滤（存在 HARD 食材禁忌）`,
-        });
-        continue;
-      }
+    const unconfirmedTrace = checkUnconfirmedIngredients(menu, hasHardIngredient);
+    if (unconfirmedTrace) {
+      filtered.push(unconfirmedTrace);
+      continue;
     }
 
-    // 2. HARD 禁忌逐条检查
-    let blocked = false;
-    let reason = '';
-
-    for (const ex of hardExclusions) {
-      if (blocked) break;
-
-      if (ex.scope === 'INGREDIENT') {
-        const nameSet = ingredientNameSets.get(ex.id);
-        if (!nameSet) continue;
-        for (const dish of menu.dishes) {
-          for (const ing of dish.ingredients) {
-            if (
-              ingredientHitsExclusion(
-                ing.ingredientId,
-                ing.ingredientName,
-                ing.aliases,
-                nameSet,
-              )
-            ) {
-              blocked = true;
-              reason = `含${ing.ingredientName}，命中 HARD 食材禁忌#${ex.id}`;
-              break;
-            }
-          }
-          if (blocked) break;
-        }
-      } else if (ex.scope === 'DISH') {
-        if (!ex.targetId) continue;
-        for (const dish of menu.dishes) {
-          if (dish.id === ex.targetId) {
-            blocked = true;
-            reason = `含菜品「${dish.name}」，命中 HARD 菜品禁忌#${ex.id}`;
-            break;
-          }
-        }
-      } else if (ex.scope === 'TAG') {
-        const tag = ex.targetTag;
-        if (!tag) continue;
-        for (const dish of menu.dishes) {
-          if (dish.flavorTags.includes(tag)) {
-            blocked = true;
-            reason = `菜品「${dish.name}」标签含「${tag}」，命中 HARD 标签禁忌#${ex.id}`;
-            break;
-          }
-          for (const ing of dish.ingredients) {
-            if (ing.category === tag) {
-              blocked = true;
-              reason = `食材「${ing.ingredientName}」品类为「${tag}」，命中 HARD 标签禁忌#${ex.id}`;
-              break;
-            }
-          }
-          if (blocked) break;
-        }
-      }
-    }
+    // 2. HARD 禁忌逐条检查（INGREDIENT/DISH/TAG）
+    const { blocked, reason } = checkHardExclusions(
+      menu,
+      hardExclusions,
+      ingredientNameSets,
+    );
 
     if (blocked) {
       filtered.push({ menuId: menu.id, stage: 'safety', rule: reason });

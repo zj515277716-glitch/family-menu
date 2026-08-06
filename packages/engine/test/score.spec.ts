@@ -718,19 +718,28 @@ describe('性能测试（AC12）', () => {
     return menus;
   }
 
-  it('千套菜单 recommend 单次调用 < 50ms', () => {
+  it('千套菜单 recommend 调用性能 < 50ms（AC12）', () => {
     const library = generateLargeLibrary(1000);
-    const start = Date.now();
-    recommend({
+    const input = {
       rules: F.FAMILY_RULE,
       exclusions: [],
       context: F.CONTEXT_60MIN,
       library,
       history: [],
-    });
-    const elapsed = Date.now() - start;
-    // coverage 插桩有额外开销（~2x），阈值放宽至 200ms 保证 CI 通过；
-    // 非 coverage 模式实际 <50ms（pnpm test:taboo 输出已验证）
-    expect(elapsed).toBeLessThan(200);
+    };
+    // 预热 JIT（首次调用包含 V8 编译开销，不计时）
+    recommend(input);
+    // 多次运行取最小值（减少机器负载波动干扰，反映代码真实性能）
+    let minElapsed = Infinity;
+    for (let i = 0; i < 3; i++) {
+      const start = performance.now();
+      recommend(input);
+      const elapsed = performance.now() - start;
+      if (elapsed < minElapsed) minElapsed = elapsed;
+    }
+    // AC12 要求 <50ms；coverage 插桩有 ~2x 额外开销，放宽至 200ms 保证 CI 通过
+    // 非 coverage 模式严格断言 <50ms（vitest.config.ts 通过 VITEST_COVERAGE 环境变量传递）
+    const threshold = process.env.VITEST_COVERAGE === '1' ? 200 : 50;
+    expect(minElapsed).toBeLessThan(threshold);
   });
 });
