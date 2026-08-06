@@ -33,3 +33,7 @@
   通过：①禁写保留读②SOLO Coder派发-回收③上下文隔离，记录见trae-base-test）；
   队长=SOLO Coder（项目规则约束"只派发不亲自读写"）；reviewer锁只读；跨模型
   审查仅在M1–M4 gate由Claude Code执行一次；跨工具人工中转不进STEP内流程。
+- DEC-010 视觉定稿：主题色方案 A 番茄暖橙（主色 #FF6B35）。
+  2026-08-07 用户审核 UI 设计文档时选定。fm-ui 产出 3 套候选（A 番茄暖橙 /
+  B 红烧暖红 / C 蜜糖琥珀），用户选 A（食欲感最强、与高频食材色彩呼应）。
+  docs/design/theme-tokens.ts 中 themeA 为定稿方案，STEP-06 前端直接引用。
