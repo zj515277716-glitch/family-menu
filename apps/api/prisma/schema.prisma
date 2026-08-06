@@ -1,9 +1,12 @@
 // apps/api/prisma/schema.prisma
-// STEP-03 将实现完整的数据模型（Family/Dish/Menu/Plan 等）
-// 当前为最小占位 -- 仅声明 generator + datasource，不定义 model
+// 家庭晚餐规划工具 - 数据模型（12 model + 8 enum）
+// 对齐实施方案 3.2（第92-256行）+ STEP-02 契约 v0.1
 //
-// Prisma 7 破坏性变更：datasource 块不再支持 url 属性
-// 连接 URL 迁移到 prisma.config.ts 中配置（见该文件）
+// Prisma 7 适配（DEC-001）：
+//   - generator: prisma-client（非 prisma-client-js）
+//   - datasource: 无 url 属性（URL 在 prisma.config.ts 中配置）
+//   - 运行时: @prisma/adapter-pg + pg Pool（driver adapter，见 db.ts）
+//   - Prisma 7 不自动加载 .env，需 dotenv 显式加载（见 prisma.config.ts / db.ts）
 
 generator client {
   provider = "prisma-client"
@@ -12,4 +15,213 @@ generator client {
 
 datasource db {
   provider = "postgresql"
+}
+
+// ───── 家庭与规则 ─────
+
+model Family {
+  id         String          @id @default(cuid())
+  name       String
+  rule       FamilyRule?
+  exclusions ExclusionRule[]
+  plans      Plan[]
+  events     Event[]
+  createdAt  DateTime        @default(now())
+}
+
+model FamilyRule {
+  id            String   @id @default(cuid())
+  familyId      String   @unique
+  family        Family   @relation(fields: [familyId], references: [id])
+  defaultPeople Int      @default(4)
+  timeBudgets   Int[]    // 常用时长档，如 [30, 60]
+  equipment     String[] // wok/rice_cooker/steamer/air_fryer
+  cuisines      String[] // 如 湘菜/家常
+  updatedAt     DateTime @updatedAt
+}
+
+// 硬软分离（文件③7.4 核心修正）：HARD=过敏/绝对禁忌(过滤)，SOFT=不喜欢(降权)
+model ExclusionRule {
+  id        String         @id @default(cuid())
+  familyId  String
+  family    Family         @relation(fields: [familyId], references: [id])
+  scope     ExclusionScope // INGREDIENT | DISH | TAG
+  targetId  String?        // ingredientId 或 dishId
+  targetTag String?        // scope=TAG 时用，如 "内脏"
+  severity  Severity       // HARD | SOFT
+  note      String?        // "爸爸不吃腊肉"
+}
+
+enum Severity {
+  HARD
+  SOFT
+}
+
+enum ExclusionScope {
+  INGREDIENT
+  DISH
+  TAG
+}
+
+// ───── 内容资产（核心壁垒）─────
+
+model Ingredient {
+  id          String           @id @default(cuid())
+  name        String           @unique
+  aliases     String[]         // 别名归一：西红柿=番茄
+  category    String           // 蔬菜/肉类/水产/蛋奶/调料/主食
+  defaultUnit String           // g/个/块...
+  dishes      DishIngredient[]
+  subsFrom    Substitution[]   @relation("from")
+  subsTo      Substitution[]   @relation("to")
+}
+
+model Substitution {
+  id           String     @id @default(cuid())
+  ingredientId String
+  substituteId String
+  ratio        Float      @default(1)
+  note         String?
+  from         Ingredient @relation("from", fields: [ingredientId], references: [id])
+  to           Ingredient @relation("to", fields: [substituteId], references: [id])
+}
+
+model Dish {
+  id            String           @id @default(cuid())
+  name          String
+  mealRole      MealRole         // MAIN | SIDE | SOUP | STAPLE
+  cuisine       String?
+  flavorTags    String[]         // 清淡/微辣/酸甜...
+  spicyLevel    Int              @default(0)
+  splitFlavor   Boolean          @default(false) // 可拆分调味（儿童清淡/成人辣）
+  activeMinutes Int              // 动手时间
+  totalMinutes  Int              // 含炖煮等待
+  equipment     String[]
+  steps         Json             // [{order, text, parallel?}]
+  status        ContentStatus    @default(DRAFT)   // DRAFT->TESTED->PUBLISHED
+  origin        ContentOrigin    @default(LLM_DRAFT)
+  licenseNote   String?          // 内容授权台账字段
+  ingredients   DishIngredient[]
+  menus         MenuDish[]
+  cookLogs      CookLog[]
+}
+
+enum MealRole {
+  MAIN
+  SIDE
+  SOUP
+  STAPLE
+}
+
+enum ContentStatus {
+  DRAFT
+  TESTED
+  PUBLISHED
+}
+
+enum ContentOrigin {
+  LLM_DRAFT
+  MANUAL
+}
+
+model DishIngredient {
+  id           String     @id @default(cuid())
+  dishId       String
+  ingredientId String
+  qty          Float
+  unit         String
+  optional     Boolean    @default(false)
+  dish         Dish       @relation(fields: [dishId], references: [id])
+  ingredient   Ingredient @relation(fields: [ingredientId], references: [id])
+}
+
+// ───── 菜单（"一套饭"是一等对象，文件③7.2）─────
+
+model Menu {
+  id                 String        @id @default(cuid())
+  name               String        // "番茄牛腩套餐"
+  scene              MenuScene     // WEEKDAY_FAST | WEEKEND | CLEARANCE | BUDGET
+  serves             Int           @default(4)
+  totalActiveMinutes Int           // 并行工序后的真实总工时（≠单菜相加）
+  prepSequence       Json          // [{minute, action}] 备菜顺序
+  status             ContentStatus @default(DRAFT)
+  dishes             MenuDish[]
+  cookLogs           CookLog[]
+}
+
+enum MenuScene {
+  WEEKDAY_FAST
+  WEEKEND
+  CLEARANCE
+  BUDGET
+}
+
+model MenuDish {
+  menuId String
+  dishId String
+  sort   Int
+  menu   Menu   @relation(fields: [menuId], references: [id])
+  dish   Dish   @relation(fields: [dishId], references: [id])
+
+  @@id([menuId, dishId])
+}
+
+// 试做记录：菜单从DRAFT升级TESTED/PUBLISHED的唯一通道（DEC-006 内容管线）
+model CookLog {
+  id            String   @id @default(cuid())
+  menuId        String?
+  dishId        String?
+  cookedAt      DateTime @default(now())
+  actualMinutes Int?
+  result        String   // success | partial | fail
+  failPoints    String?
+  willRepeat    Boolean?
+  menu          Menu?    @relation(fields: [menuId], references: [id])
+  dish          Dish?    @relation(fields: [dishId], references: [id])
+}
+
+// ───── 运行数据 ─────
+
+model Plan {
+  id           String     @id @default(cuid())
+  familyId     String
+  family       Family     @relation(fields: [familyId], references: [id])
+  planDate     DateTime
+  context      Json       // {people, timeBudgetMin, mustUse: string[]}
+  candidates   Json       // 3套候选快照：[{menuId, score, reasons, breakdown}]
+  lockedMenuId String?
+  shoppingList Json?      // 合并后清单快照 + 勾选状态
+  status       PlanStatus @default(PROPOSED)
+  events       Event[]
+  createdAt    DateTime   @default(now())
+}
+
+enum PlanStatus {
+  PROPOSED
+  LOCKED
+  COOKED
+  SKIPPED
+}
+
+// 行为事件=隐式反馈源（④推翻清单#4），也是未来商业验证的埋点
+model Event {
+  id        String    @id @default(cuid())
+  familyId  String
+  planId    String?
+  type      EventType
+  payload   Json?     // swap时记 {reason: "太麻烦"}
+  createdAt DateTime  @default(now())
+  family    Family    @relation(fields: [familyId], references: [id])
+  plan      Plan?     @relation(fields: [planId], references: [id])
+}
+
+enum EventType {
+  GENERATE
+  VIEW
+  LOCK
+  SWAP_MENU
+  SWAP_DISH
+  COOKED
+  NOT_COOKED
+  REPEAT
 }
