@@ -25,6 +25,9 @@ jobs:
           --health-timeout 5s
           --health-retries 5
 
+    env:
+      DATABASE_URL: postgresql://app:app_password@localhost:5432/family_menu
+
     steps:
       - uses: actions/checkout@v4
 
@@ -45,10 +48,12 @@ jobs:
 
       - name: Build
         run: pnpm build
-        env:
-          DATABASE_URL: postgresql://app:app_password@localhost:5432/family_menu
 
-      - name: Test
+      - name: Run database migrations
+        run: pnpm --filter @family-menu/api prisma migrate deploy
+
+      - name: Seed database
+        run: pnpm --filter @family-menu/api prisma db seed
+
+      - name: Test (contract + seed + taboo + engine)
         run: pnpm test
-        env:
-          DATABASE_URL: postgresql://app:app_password@localhost:5432/family_menu

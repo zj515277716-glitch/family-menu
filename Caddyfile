@@ -1,4 +1,22 @@
-# 备案通过后启用域名+自动HTTPS
+# family-menu Caddyfile
+# 对齐实施方案第84行：Caddy(443, 备案后) / 直连IP:3000(过渡期)
+# 对齐实施方案第677行：Caddyfile已备好，备案通过改DNS+起caddy即可
+
+# ── 过渡期：IP直连（HTTP :80 -> api:3000） ──
+# ECS 部署后直接访问 http://<ECS公网IP> 即可使用
+# Caddy 在 docker-compose prod profile 中与 api 同网络，用服务名 api 访问
+:80 {
+	reverse_proxy api:3000
+}
+
+# ── 备案后：域名 + 自动 HTTPS ──
+# 启用步骤：
+#   1. 域名 ICP 备案通过
+#   2. DNS A 记录指向 ECS 公网 IP
+#   3. 注释上方 :80 块，取消下方注释并替换域名
+#   4. 重启 Caddy：docker compose --profile prod restart caddy
+#   5. Caddy 自动申请 Let's Encrypt 证书并启用 HTTPS(443)
+#
 # family-menu.example.com {
-#   reverse_proxy api:3000
+# 	reverse_proxy api:3000
 # }
