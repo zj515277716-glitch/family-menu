@@ -6,12 +6,14 @@ import Taro from '@tarojs/taro'
 import { View, Text, Image, ScrollView } from '@tarojs/components'
 import { NavBar, Tag, Rate, Button, Popup, Input } from '@nutui/nutui-react-taro'
 import { ArrowLeft } from '@nutui/icons-react-taro'
-import { api } from '../../api/client'
+import { api, isMockMode } from '../../api/client'
+import { mockMenuMap } from '../../api/mock'
 import { useStore } from '../../store'
 import EmptyState from '../../components/EmptyState'
-import type { CandidateView, DishSnapshot } from '../../types'
+import type { Candidate, CandidateView, DishSnapshot, MenuSnapshot } from '../../types'
 import emptyImage from '../../assets/asset-candidates-empty@2x.png'
 import lockSuccessImage from '../../assets/asset-candidates-lock-success@2x.png'
+import dishPlaceholderImage from '../../assets/asset-common-dish-placeholder@2x.png'
 import './index.css'
 
 const MEAL_ROLE_LABELS: Record<string, string> = {
@@ -22,8 +24,32 @@ const MEAL_ROLE_LABELS: Record<string, string> = {
 }
 const QUICK_REASONS = ['太麻烦', '食材不够', '不喜欢', '其他']
 
+/**
+ * 换菜后将 swapPlan 返回的 Plan.candidates（不含 menu 详情）合并 menu 快照，
+ * 更新候选显示（对齐 wireframes 第227行「返回新候选替换该卡」）。
+ * menu 详情优先复用旧候选已有快照；Mock 模式下从 mockMenuMap 补充；真 API 降级为 undefined。
+ */
+function mergeCandidates(
+  newCandidates: Candidate[],
+  oldCandidates: CandidateView[],
+): CandidateView[] {
+  const menuMap: Record<string, MenuSnapshot | undefined> = {}
+  oldCandidates.forEach((c) => {
+    if (c.menu) menuMap[c.menuId] = c.menu
+  })
+  if (isMockMode) {
+    Object.keys(mockMenuMap).forEach((id) => {
+      if (!menuMap[id]) menuMap[id] = mockMenuMap[id]
+    })
+  }
+  return newCandidates.map((c) => ({
+    ...c,
+    menu: menuMap[c.menuId],
+  }))
+}
+
 export default function CandidatesPage() {
-  const { candidates, currentPlanId, setLockedMenu } = useStore()
+  const { candidates, currentPlanId, setLockedMenu, setCandidates } = useStore()
   const tonightContext = useStore((s) => s.tonightContext)
   const [loading, setLoading] = useState(false)
   const [swapPopupVisible, setSwapPopupVisible] = useState(false)
@@ -54,7 +80,8 @@ export default function CandidatesPage() {
   async function handleSwapMenu() {
     setLoading(true)
     try {
-      await api.swapPlan(currentPlanId!, '全换', '整套换')
+      const plan = await api.swapPlan(currentPlanId!, '全换', '整套换')
+      setCandidates(mergeCandidates(plan.candidates, candidates))
       Taro.showToast({ title: '已换一套', icon: 'success' })
     } catch (e) {
       console.error('[Candidates] swapMenu error', e)
@@ -77,7 +104,8 @@ export default function CandidatesPage() {
     }
     setLoading(true)
     try {
-      await api.swapPlan(currentPlanId!, '单菜换', swapReason, swapDish?.id)
+      const plan = await api.swapPlan(currentPlanId!, '单菜换', swapReason, swapDish?.id)
+      setCandidates(mergeCandidates(plan.candidates, candidates))
       Taro.showToast({ title: '已换菜', icon: 'success' })
       setSwapPopupVisible(false)
     } catch (e) {
@@ -148,13 +176,20 @@ export default function CandidatesPage() {
               <View className="fm-dish-list">
                 {c.menu.dishes.map((d) => (
                   <View key={d.id} className="fm-dish-item">
-                    <Text className="fm-dish-name">{d.name}</Text>
-                    <View className="fm-dish-tags">
-                      <Tag type="primary">{MEAL_ROLE_LABELS[d.mealRole] || d.mealRole}</Tag>
-                      {d.cuisine && <Tag>{d.cuisine}</Tag>}
-                      {d.flavorTags.map((f) => (
-                        <Tag key={f}>{f}</Tag>
-                      ))}
+                    <Image
+                      src={dishPlaceholderImage}
+                      mode="aspectFill"
+                      className="fm-dish-placeholder"
+                    />
+                    <View className="fm-dish-info">
+                      <Text className="fm-dish-name">{d.name}</Text>
+                      <View className="fm-dish-tags">
+                        <Tag type="primary">{MEAL_ROLE_LABELS[d.mealRole] || d.mealRole}</Tag>
+                        {d.cuisine && <Tag>{d.cuisine}</Tag>}
+                        {d.flavorTags.map((f) => (
+                          <Tag key={f}>{f}</Tag>
+                        ))}
+                      </View>
                     </View>
                     <Text className="fm-dish-swap" onClick={() => openSwapDish(d)}>
                       换

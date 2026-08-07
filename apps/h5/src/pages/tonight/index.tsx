@@ -17,6 +17,7 @@ import { useStore } from '../../store'
 import CustomTabBar from '../../components/CustomTabBar'
 import { TIME_BUDGETS } from '@family-menu/shared'
 import heroImage from '../../assets/asset-tonight-hero@2x.png'
+import logoImage from '../../assets/asset-common-logo@2x.png'
 import './index.css'
 
 export default function TonightPage() {
@@ -80,6 +81,7 @@ export default function TonightPage() {
   return (
     <View className="fm-page tonight-page">
       <View className="fm-page-header">
+        <Image src={logoImage} mode="aspectFit" className="fm-logo" />
         <Text className="fm-page-title">今晚吃什么</Text>
       </View>
 

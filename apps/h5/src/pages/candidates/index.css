@@ -62,14 +62,28 @@
 .fm-dish-item {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 12px;
   padding: 8px 0;
+}
+
+.fm-dish-placeholder {
+  width: 72px;
+  height: 72px;
+  border-radius: 8px;
+  flex-shrink: 0;
+}
+
+.fm-dish-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
 }
 
 .fm-dish-name {
   font-size: 28px;
   color: #2B2118;
-  min-width: 120px;
 }
 
 .fm-dish-tags {

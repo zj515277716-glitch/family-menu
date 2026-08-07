@@ -71,7 +71,7 @@ export default function PlanPage() {
         <NavBar
           title="采购清单"
           back={<ArrowLeft width={16} height={16} />}
-          onBackClick={() => Taro.navigateBack()}
+          onBackClick={() => Taro.reLaunch({ url: '/pages/tonight/index' })}
         />
         <EmptyState
           image={emptyImage}
@@ -99,7 +99,7 @@ export default function PlanPage() {
       <NavBar
         title={`${lockedMenu.name}·已锁定`}
         back={<ArrowLeft width={16} height={16} />}
-        onBackClick={() => Taro.navigateBack()}
+        onBackClick={() => Taro.reLaunch({ url: '/pages/tonight/index' })}
       />
 
       <Tabs value={activeTab} onChange={(v) => setActiveTab(v as string | number)}>
