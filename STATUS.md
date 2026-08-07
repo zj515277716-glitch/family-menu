@@ -2,7 +2,7 @@
 > 本文件由主Agent维护。任何时刻只允许一个活动任务卡（DEC-003）。
 
 ## 当前状态
-- 当前阶段：STEP-08 部署+集成验收（WP-09/10）（待用户审核）
+- 当前阶段：STEP-08 部署+集成验收（WP-09/10）（已合并）
 - main HEAD：5be260c；回滚tag：rollback-before-step-08 -> 5be260c；契约冻结tag：v0.2
 - 阻塞/外部依赖：本机无 Docker/PostgreSQL/ECS（DB集成测试+e2e冒烟需CI/用户补验）
 - 下一个人工决策点：STEP-08 交付审核（最终里程碑 M4）
@@ -114,4 +114,4 @@
 | STEP-05 | WP-04 | API（Fastify路由+口令鉴权+契约测试） | 已合并 |
 | STEP-06 | WP-05 | H5前端（5页面走通+契约v0.2遗留修复） | 已合并 |
 | STEP-07 | WP-07 | 内容管线CLI（coverage/draft/import三段） | 已合并 |
-| STEP-08 | WP-09/10 | 部署+集成验收 | 进行中 |
+| STEP-08 | WP-09/10 | 部署+集成验收 | 已合并 |
