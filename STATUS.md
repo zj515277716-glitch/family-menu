@@ -2,7 +2,7 @@
 > 本文件由主Agent维护。任何时刻只允许一个活动任务卡（DEC-003）。
 
 ## 当前状态
-- 当前阶段：STEP-07 内容管线CLI（WP-07）（待用户审核）
+- 当前阶段：STEP-07 内容管线CLI（WP-07）（已合并）
 - main HEAD：7cdea44；回滚tag：rollback-before-step-07 -> 7cdea44；契约冻结tag：v0.2
 - 阻塞/外部依赖：无
 - 下一个人工决策点：STEP-07 交付审核
@@ -118,5 +118,5 @@
 | UI设计 | - | 前置UI设计 | 已完成 |
 | STEP-05 | WP-04 | API（Fastify路由+口令鉴权+契约测试） | 已合并 |
 | STEP-06 | WP-05 | H5前端（5页面走通+契约v0.2遗留修复） | 已合并 |
-| STEP-07 | WP-07 | 内容管线CLI（coverage/draft/import三段） | 进行中 |
+| STEP-07 | WP-07 | 内容管线CLI（coverage/draft/import三段） | 已合并 |
 | STEP-08 | WP-09/10 | 部署+集成验收 | 未开始 |
