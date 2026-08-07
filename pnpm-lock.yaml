@@ -218,10 +218,43 @@ importers:
       '@family-menu/shared':
         specifier: workspace:*
         version: link:../../packages/shared
+      '@prisma/adapter-pg':
+        specifier: ^7.7.0
+        version: 7.9.1
+      '@prisma/client':
+        specifier: ^7.7.0
+        version: 7.9.1(prisma@7.9.1(@types/react-dom@18.3.0)(@types/react@18.3.31)(magicast@0.5.4)(react-dom@18.3.0(react@18.3.0))(react@18.3.0)(typescript@5.7.2))(typescript@5.7.2)
+      commander:
+        specifier: ^15.0.0
+        version: 15.0.0
+      dotenv:
+        specifier: ^16.4.0
+        version: 16.4.5
+      openai:
+        specifier: ^7.4.0
+        version: 7.4.0(ws@8.21.2)(zod@4.4.3)
+      pg:
+        specifier: ^8.13.0
+        version: 8.22.0
+      zod:
+        specifier: ^4.4.3
+        version: 4.4.3
     devDependencies:
+      '@types/node':
+        specifier: ^22.0.0
+        version: 22.20.1
+      '@types/pg':
+        specifier: ^8.11.0
+        version: 8.20.4
+      tsx:
+        specifier: ^4.19.0
+        version: 4.23.7
       typescript:
         specifier: ^5.7.0
         version: 5.7.2
+      vitest:
+        specifier: ^4.1.10
+        version: 4.1.10(@types/node@22.20.1)(@vitest/coverage-v8@4.1.10)(jsdom@24.0.0(supports-color@8.0.0))(vite@8.2.0(@types/node@22.20.1)(esbuild@0.28.1)(jiti@2.7.0)(less@4.8.1(supports-color@8.0.0))(sass@1.102.0)(stylus@0.64.0(supports-color@8.0.0))(terser@5.49.2)(tsx@4.23.7)(yaml@2.9.0))
 
 packages:
 
@@ -3433,6 +3466,10 @@ packages:
     resolution: {integrity: sha512-FQN4MRfuJeHf7cBbBMJFXhKSDq+2kAArBlmRBvcvFE5BB1HZKXtSFASDhdlz9zOYwxh8lDdnvmMOe/+5cdoEdg==}
     engines: {node: '>= 0.8'}
 
+  commander@15.0.0:
+    resolution: {integrity: sha512-z67u4ZhzCL/Tydu1lJARtEZYWbWaN7oYLHbsuzocr6y4N6WZAagG3RQ4FW61V1/0+jImpj293XfrcYnd1qxtPg==}
+    engines: {node: '>=22.12.0'}
+
   commander@2.19.0:
     resolution: {integrity: sha512-6tvAOO+D6OENvRAh524Dh9jcfKTYDQAqvqezbCW82xj5X0pSrcpxtvRKHLG0yBY6SD7PSDrJaj+0AiOcKVd1Xg==}
 
@@ -5985,6 +6022,27 @@ packages:
   open@8.4.2:
     resolution: {integrity: sha512-7x81NCL719oNbsq/3mh+hVrAWmFuEYUqrq/Iw3kUzH8ReypT9QQ0BLoJS7/G9k6N81XjW4qHWtjWwe/9eLy1EQ==}
     engines: {node: '>=12'}
+
+  openai@7.4.0:
+    resolution: {integrity: sha512-+C9Muit5x8j9R8ej8ZzVgKcrVDtqFqTy9gxFdov0EItLgU68zrJtF9ZeT0cyqJQW9S3PCJkdFgADtRGquRBtew==}
+    engines: {node: '>=22.0.0'}
+    peerDependencies:
+      '@aws-sdk/credential-provider-node': '>=3.972.0 <4'
+      '@smithy/hash-node': '>=4.3.0 <5'
+      '@smithy/signature-v4': '>=5.4.0 <6'
+      ws: ^8.18.0
+      zod: ^3.25 || ^4.0
+    peerDependenciesMeta:
+      '@aws-sdk/credential-provider-node':
+        optional: true
+      '@smithy/hash-node':
+        optional: true
+      '@smithy/signature-v4':
+        optional: true
+      ws:
+        optional: true
+      zod:
+        optional: true
 
   openapi-types@12.1.3:
     resolution: {integrity: sha512-N4YtSYJqghVu4iek2ZUvcN/0aqH1kRDuNqzcycDxhOUpg7GdvLa2F3DgS6yBNhInhv2r/6I0Flkn7CqL8+nIcw==}
@@ -9404,7 +9462,7 @@ snapshots:
       '@jest/schemas': 29.6.3
       '@types/istanbul-lib-coverage': 2.0.6
       '@types/istanbul-reports': 3.0.4
-      '@types/node': 26.1.2
+      '@types/node': 22.20.1
       '@types/yargs': 17.0.35
       chalk: 4.0.0
 
@@ -10514,14 +10572,14 @@ snapshots:
 
   '@types/fs-extra@8.1.5':
     dependencies:
-      '@types/node': 26.1.2
+      '@types/node': 22.20.1
 
   '@types/geojson@7946.0.16': {}
 
   '@types/glob@7.2.0':
     dependencies:
       '@types/minimatch': 6.0.0
-      '@types/node': 26.1.2
+      '@types/node': 22.20.1
 
   '@types/hast@3.0.5':
     dependencies:
@@ -10554,7 +10612,7 @@ snapshots:
 
   '@types/keyv@3.1.4':
     dependencies:
-      '@types/node': 26.1.2
+      '@types/node': 22.20.1
 
   '@types/lodash.debounce@4.0.9':
     dependencies:
@@ -10586,7 +10644,7 @@ snapshots:
 
   '@types/postcss-url@10.0.4':
     dependencies:
-      '@types/node': 26.1.2
+      '@types/node': 22.20.1
       postcss: 8.5.25
 
   '@types/prop-types@15.7.15': {}
@@ -10606,7 +10664,7 @@ snapshots:
 
   '@types/responselike@1.0.3':
     dependencies:
-      '@types/node': 26.1.2
+      '@types/node': 22.20.1
 
   '@types/retry@0.12.5': {}
 
@@ -11724,6 +11782,8 @@ snapshots:
   combined-stream@1.0.8:
     dependencies:
       delayed-stream: 1.0.0
+
+  commander@15.0.0: {}
 
   commander@2.19.0: {}
 
@@ -13774,7 +13834,7 @@ snapshots:
   jest-util@29.7.0:
     dependencies:
       '@jest/types': 29.6.3
-      '@types/node': 26.1.2
+      '@types/node': 22.20.1
       chalk: 4.0.0
       ci-info: 3.2.0
       graceful-fs: 4.2.11
@@ -13782,13 +13842,13 @@ snapshots:
 
   jest-worker@27.4.5:
     dependencies:
-      '@types/node': 26.1.2
+      '@types/node': 22.20.1
       merge-stream: 2.0.0
       supports-color: 8.0.0
 
   jest-worker@29.7.0:
     dependencies:
-      '@types/node': 26.1.2
+      '@types/node': 22.20.1
       jest-util: 29.7.0
       merge-stream: 2.0.0
       supports-color: 8.0.0
@@ -14540,6 +14600,11 @@ snapshots:
       define-lazy-prop: 2.0.0
       is-docker: 2.2.1
       is-wsl: 2.2.0
+
+  openai@7.4.0(ws@8.21.2)(zod@4.4.3):
+    optionalDependencies:
+      ws: 8.21.2
+      zod: 4.4.3
 
   openapi-types@12.1.3: {}
 

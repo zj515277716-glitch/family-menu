@@ -5,7 +5,7 @@ const isCoverageRun = process.argv.includes('--coverage');
 
 export default defineConfig({
   test: {
-    include: ['packages/*/test/**/*.spec.ts', 'apps/*/test/**/*.spec.ts'],
+    include: ['packages/*/test/**/*.spec.ts', 'apps/*/test/**/*.spec.ts', 'tools/*/test/**/*.spec.ts'],
     env: {
       VITEST_COVERAGE: isCoverageRun ? '1' : '0',
     },

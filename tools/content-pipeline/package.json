@@ -11,14 +11,34 @@
       "types": "./dist/index.d.ts"
     }
   },
+  "bin": {
+    "fm-coverage": "./dist/cli/coverage.js",
+    "fm-draft": "./dist/cli/draft.js",
+    "fm-import": "./dist/cli/import.js"
+  },
   "scripts": {
     "build": "tsc -p tsconfig.json",
-    "lint": "eslint src"
+    "lint": "eslint src",
+    "test": "vitest run",
+    "coverage": "tsx src/cli/coverage.ts",
+    "draft": "tsx src/cli/draft.ts",
+    "import": "tsx src/cli/import.ts"
   },
   "dependencies": {
-    "@family-menu/shared": "workspace:*"
+    "@family-menu/shared": "workspace:*",
+    "@prisma/adapter-pg": "^7.7.0",
+    "@prisma/client": "^7.7.0",
+    "commander": "^15.0.0",
+    "dotenv": "^16.4.0",
+    "openai": "^7.4.0",
+    "pg": "^8.13.0",
+    "zod": "^4.4.3"
   },
   "devDependencies": {
-    "typescript": "^5.7.0"
+    "@types/node": "^22.0.0",
+    "@types/pg": "^8.11.0",
+    "tsx": "^4.19.0",
+    "typescript": "^5.7.0",
+    "vitest": "^4.1.10"
   }
 }
