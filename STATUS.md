@@ -2,14 +2,14 @@
 > 本文件由主Agent维护。任何时刻只允许一个活动任务卡（DEC-003）。
 
 ## 当前状态
-- 当前阶段：STEP-06 H5前端（WP-05）（开发中）
+- 当前阶段：STEP-06 H5前端（WP-05）（待用户审核）
 - main HEAD：a01fdb5；回滚tag：rollback-before-step-06 -> a01fdb5；契约冻结tag：v0.1
 - 阻塞/外部依赖：无
 - 下一个人工决策点：STEP-06 交付审核（M3 里程碑：手机上五步流程跑通）
 - 30%检查点：前两个页面（setup+tonight）完成后队长做非正式review（第504行）
 
 ## 当前任务卡：STEP-06 H5前端（对应 WP-05）
-状态: 开发中    回环计数: 0/3
+状态: 待用户审核    回环计数: 0/3
 执行者: fm-dev    审查者: fm-reviewer（只读）
 需求来源: 实施方案第372-382行目录结构 + 第568行WP-05 + 第611行STEP-06 + 第504行30%检查点 + 第639行前端冒烟 + 第65行Taro4+React18+NutUI + 第694行编译目标h5 + DEC-006零LLM + DEC-010主题色定稿 + STEP-02契约v0.1 + STEP-05 API 10路由 + UI设计文档（wireframes/interaction-flow/theme-tokens/assets-spec）    基线提交: main@a01fdb5    回滚点: rollback-before-step-06
 
