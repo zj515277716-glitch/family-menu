@@ -37,3 +37,32 @@
   2026-08-07 用户审核 UI 设计文档时选定。fm-ui 产出 3 套候选（A 番茄暖橙 /
   B 红烧暖红 / C 蜜糖琥珀），用户选 A（食欲感最强、与高频食材色彩呼应）。
   docs/design/theme-tokens.ts 中 themeA 为定稿方案，STEP-06 前端直接引用。
+- DEC-011 契约变更 v0.1->v0.2（STEP-06 契约缺口修复）：2026-08-07 队长批准。
+  背景：STEP-06 H5 前端审查发现 2 个契约缺口--
+  ①禁忌规则无 API 路由，前端无法通过 UI 持久化管理 ExclusionRule
+  （v0.1 仅 GET/PUT /api/family/rules，未含 exclusions）；
+  ②FeedbackRequestSchema 无 cookResult/failPoints 字段，前端收集的烹饪结果与失败原因
+  无法回传后端写入 CookLog。
+  变更内容（packages/shared/src/schemas/api.ts，仅本包）：
+  ①新增 GetExclusionsResponseSchema = z.array(ExclusionRuleSchema)
+  （GET /api/family/exclusions 响应）；
+  ②新增 PutExclusionsRequestSchema = z.array(ExclusionRuleSchema)
+  （PUT /api/family/exclusions 请求，全量替换，与 PUT /api/family/rules 同构）；
+  ③新增 CookResultSchema = z.enum(['success','partial','fail'])
+  （与 CookLogSchema.result 同值，FeedbackRequest 复用）；
+  ④FeedbackRequestSchema 增加 cookResult?: CookResultSchema、failPoints?: z.string()。
+  向后兼容性：变更①②③为纯新增 schema（无现有 schema 被修改）；变更④为新增 optional
+  字段，v0.1 调用方不传 cookResult/failPoints 仍通过校验。两项均向后兼容，无破坏性变更，
+  因此采用就地扩展而非新建 V2 schema（铁律"不得破坏消费者"未被触碰）。
+  影响范围（fm-dev 后续执行，本步不改）：
+  · apps/api/src/routes/family.ts：新增 GET/PUT /api/family/exclusions 两条路由（10->12 条）；
+  · apps/api/src/services/planService.ts：新增 getExclusions/putExclusions；
+    addFeedback 扩参 cookResult?/failPoints?，result=cooked 且 cookResult 有值时写 CookLog
+    （result/failPoints/actualMinutes/willRepeat）；
+  · apps/api/src/routes/plans.ts：feedback 路由透传 parsed.data.cookResult/failPoints；
+  · apps/h5：client.ts 新增 getExclusions/putExclusions 方法 + setup 页调 exclusions API
+    + history 页反馈表单传 cookResult/failPoints。
+  不改 prisma/schema.prisma（CookLog 已有 result/failPoints 字段，STEP-03 建表）。
+  实施方案 5.1 路由清单：新增 GET/PUT /api/family/exclusions 两条（原 10 条 -> 12 条），
+  契约变更记录在本条，不改实施方案正文。
+  冻结 tag：v0.2（代码合并后由队长打 tag；v0.1 保留可回滚）。

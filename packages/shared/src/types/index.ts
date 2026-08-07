@@ -40,12 +40,15 @@ import {
   PlanIdParamsSchema,
   SwapTypeSchema,
   FeedbackResultSchema,
+  CookResultSchema,
   PutFamilyRulesRequestSchema,
+  PutExclusionsRequestSchema,
   RecommendRequestSchema,
   SwapPlanRequestSchema,
   PatchShoppingListRequestSchema,
   FeedbackRequestSchema,
   FamilyRulesResponseSchema,
+  GetExclusionsResponseSchema,
   RecommendResponseSchema,
   PlanResponseSchema,
   PlanListResponseSchema,
@@ -91,12 +94,15 @@ export type EventPayload = z.infer<typeof EventPayloadSchema>;
 export type PlanIdParams = z.infer<typeof PlanIdParamsSchema>;
 export type SwapType = z.infer<typeof SwapTypeSchema>;
 export type FeedbackResult = z.infer<typeof FeedbackResultSchema>;
+export type CookResult = z.infer<typeof CookResultSchema>;
 export type PutFamilyRulesRequest = z.infer<typeof PutFamilyRulesRequestSchema>;
+export type PutExclusionsRequest = z.infer<typeof PutExclusionsRequestSchema>;
 export type RecommendRequest = z.infer<typeof RecommendRequestSchema>;
 export type SwapPlanRequest = z.infer<typeof SwapPlanRequestSchema>;
 export type PatchShoppingListRequest = z.infer<typeof PatchShoppingListRequestSchema>;
 export type FeedbackRequest = z.infer<typeof FeedbackRequestSchema>;
 export type FamilyRulesResponse = z.infer<typeof FamilyRulesResponseSchema>;
+export type GetExclusionsResponse = z.infer<typeof GetExclusionsResponseSchema>;
 export type RecommendResponse = z.infer<typeof RecommendResponseSchema>;
 export type PlanResponse = z.infer<typeof PlanResponseSchema>;
 export type PlanListResponse = z.infer<typeof PlanListResponseSchema>;

@@ -33,6 +33,9 @@ import {
   FeedbackRequestSchema,
   PatchShoppingListRequestSchema,
   PutFamilyRulesRequestSchema,
+  PutExclusionsRequestSchema,
+  GetExclusionsResponseSchema,
+  CookResultSchema,
   RecommendResponseSchema,
   // constants
   CATEGORIES,
@@ -356,6 +359,47 @@ describe('api schemas', () => {
     expect(FeedbackRequestSchema.safeParse({ result: 'cooked' }).success).toBe(true);
     expect(FeedbackRequestSchema.safeParse({ result: 'repeat', actualMinutes: 25 }).success).toBe(true);
     expect(FeedbackRequestSchema.safeParse({ result: 'done' }).success).toBe(false);
+  });
+
+  it('FeedbackRequestSchema v0.2 cookResult/failPoints 可选字段向后兼容', () => {
+    // 旧格式（无 cookResult/failPoints）仍通过--向后兼容
+    expect(FeedbackRequestSchema.safeParse({ result: 'cooked' }).success).toBe(true);
+    // 新字段 cookResult + failPoints 通过
+    expect(FeedbackRequestSchema.safeParse({
+      result: 'cooked', cookResult: 'partial', failPoints: '蛋老了',
+    }).success).toBe(true);
+    // cookResult 非法值拒绝
+    expect(FeedbackRequestSchema.safeParse({
+      result: 'cooked', cookResult: 'ok',
+    }).success).toBe(false);
+  });
+
+  it('CookResultSchema 枚举 success/partial/fail', () => {
+    expect(CookResultSchema.safeParse('success').success).toBe(true);
+    expect(CookResultSchema.safeParse('partial').success).toBe(true);
+    expect(CookResultSchema.safeParse('fail').success).toBe(true);
+    expect(CookResultSchema.safeParse('ok').success).toBe(false);
+  });
+
+  it('PutExclusionsRequestSchema 禁忌数组通过，非数组/非法元素拒绝', () => {
+    const valid = [
+      { id: 'e1', familyId: 'cm1', scope: 'INGREDIENT', targetId: 'i1', severity: 'HARD' },
+      { id: 'e2', familyId: 'cm1', scope: 'TAG', targetTag: '内脏', severity: 'SOFT' },
+    ];
+    expect(PutExclusionsRequestSchema.safeParse(valid).success).toBe(true);
+    // 非数组拒绝
+    expect(PutExclusionsRequestSchema.safeParse({ id: 'e1' }).success).toBe(false);
+    // 元素非法（severity 非法）拒绝
+    expect(PutExclusionsRequestSchema.safeParse([
+      { id: 'e1', familyId: 'cm1', scope: 'INGREDIENT', severity: 'CRITICAL' },
+    ]).success).toBe(false);
+  });
+
+  it('GetExclusionsResponseSchema 禁忌数组通过', () => {
+    const r = GetExclusionsResponseSchema.safeParse([
+      { id: 'e1', familyId: 'cm1', scope: 'INGREDIENT', targetId: 'i1', severity: 'HARD' },
+    ]);
+    expect(r.success).toBe(true);
   });
 
   it('PatchShoppingListRequestSchema 缺 checked 拒绝', () => {
