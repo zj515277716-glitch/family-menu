@@ -1,0 +1,66 @@
+/* apps/h5/src/pages/history/index.css */
+
+.history-page {
+  padding-bottom: 140px;
+}
+
+.fm-feedback-form {
+  margin-bottom: 8px;
+}
+
+.fm-feedback-title {
+  display: block;
+  font-size: 30px;
+  font-weight: 600;
+  color: #2B2118;
+  margin-bottom: 12px;
+}
+
+.fm-feedback-expand {
+  margin-top: 12px;
+}
+
+.fm-fail-reasons {
+  margin-top: 12px;
+}
+
+.fm-switch-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 12px;
+}
+
+.fm-switch-row .fm-label {
+  margin-bottom: 0;
+}
+
+.fm-history-scroll {
+  height: auto;
+  max-height: 600px;
+}
+
+.fm-history-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.fm-history-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 1;
+}
+
+.fm-history-date {
+  font-size: 26px;
+  color: #8C7B6B;
+  min-width: 80px;
+}
+
+.fm-history-name {
+  flex: 1;
+  font-size: 28px;
+  color: #2B2118;
+}

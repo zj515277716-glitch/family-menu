@@ -1,0 +1,88 @@
+/* apps/h5/src/pages/setup/index.css */
+/* setup 页专属样式（通用类见 app.css） */
+
+.setup-page {
+  padding-bottom: 140px;
+}
+
+.fm-page-header {
+  padding: 24px 16px 8px;
+}
+
+.fm-page-title {
+  font-size: 36px;
+  font-weight: 700;
+  color: #2B2118;
+}
+
+.fm-label {
+  display: block;
+  font-size: 26px;
+  color: #5A4A3C;
+  margin-bottom: 12px;
+  font-weight: 500;
+}
+
+.fm-row {
+  display: flex;
+  align-items: center;
+}
+
+.fm-checkbox-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.fm-tag-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.fm-exclusion-list {
+  margin-top: 12px;
+}
+
+.fm-exclusion-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 0;
+  border-bottom: 1px solid #F0E4D8;
+}
+
+.fm-exclusion-text {
+  flex: 1;
+  font-size: 26px;
+  color: #2B2118;
+}
+
+.fm-exclusion-del {
+  font-size: 24px;
+  color: #E63946;
+  padding: 4px 8px;
+}
+
+.fm-popup-content {
+  padding: 24px 16px;
+}
+
+.fm-popup-title {
+  display: block;
+  font-size: 32px;
+  font-weight: 600;
+  color: #2B2118;
+  margin-bottom: 16px;
+  text-align: center;
+}
+
+.fm-popup-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 24px;
+}
+
+.fm-popup-actions > view {
+  flex: 1;
+}

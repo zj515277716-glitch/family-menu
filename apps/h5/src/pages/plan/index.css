@@ -1,0 +1,116 @@
+/* apps/h5/src/pages/plan/index.css */
+
+.plan-page {
+  padding-bottom: 140px;
+}
+
+.fm-plan-scroll {
+  height: calc(100vh - 220px);
+}
+
+.fm-group {
+  margin: 12px;
+  background-color: #FFFFFF;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.fm-group-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 16px;
+  background-color: #FFF8F3;
+}
+
+.fm-group-title {
+  font-size: 28px;
+  font-weight: 600;
+  color: #2B2118;
+}
+
+.fm-group-count {
+  font-size: 24px;
+  color: #8C7B6B;
+}
+
+.fm-list-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  border-bottom: 1px solid #F0E4D8;
+}
+
+.fm-item-name {
+  flex: 1;
+  font-size: 28px;
+  color: #2B2118;
+}
+
+.fm-item-checked {
+  text-decoration: line-through;
+  color: #C9BCAE;
+}
+
+.fm-item-qty {
+  font-size: 26px;
+  color: #8C7B6B;
+}
+
+.fm-timeline {
+  padding: 24px 16px;
+}
+
+.fm-timeline-item {
+  display: flex;
+  position: relative;
+  padding-bottom: 24px;
+}
+
+.fm-timeline-dot {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background-color: #FF6B35;
+  margin-right: 16px;
+  margin-top: 6px;
+  flex-shrink: 0;
+  z-index: 1;
+}
+
+.fm-timeline-line {
+  position: absolute;
+  left: 7px;
+  top: 22px;
+  bottom: 0;
+  width: 2px;
+  background-color: #F0E4D8;
+}
+
+.fm-timeline-content {
+  flex: 1;
+}
+
+.fm-timeline-time {
+  display: block;
+  font-size: 26px;
+  color: #FF6B35;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.fm-timeline-action {
+  display: block;
+  font-size: 28px;
+  color: #2B2118;
+}
+
+.fm-timeline-total {
+  margin-top: 16px;
+  padding: 12px 16px;
+  background-color: #FFF1E6;
+  border-radius: 8px;
+  font-size: 24px;
+  color: #8C7B6B;
+}

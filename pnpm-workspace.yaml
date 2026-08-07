@@ -22,3 +22,4 @@ allowBuilds:
   esbuild: true
   "@prisma/engines": false
   prisma: false
+  '@nutui/nutui-react-taro': false

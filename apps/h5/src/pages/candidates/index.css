@@ -1,0 +1,148 @@
+/* apps/h5/src/pages/candidates/index.css */
+
+.candidates-page {
+  padding-bottom: 32px;
+}
+
+.fm-context-summary {
+  padding: 12px 16px;
+  font-size: 26px;
+  color: #8C7B6B;
+  background-color: #FFF1E6;
+}
+
+.fm-few-hint {
+  padding: 8px 16px;
+  font-size: 24px;
+  color: #FFA000;
+  background-color: #FFF8E1;
+}
+
+.fm-candidates-scroll {
+  height: calc(100vh - 180px);
+}
+
+.candidate-card {
+  position: relative;
+}
+
+.fm-recommend-badge {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+}
+
+.fm-menu-name {
+  display: block;
+  font-size: 32px;
+  font-weight: 600;
+  color: #2B2118;
+  margin-bottom: 8px;
+}
+
+.fm-menu-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.fm-score {
+  font-size: 26px;
+  color: #FF6B35;
+  font-weight: 600;
+}
+
+.fm-dish-list {
+  border-top: 1px solid #F0E4D8;
+  padding-top: 12px;
+  margin-bottom: 12px;
+}
+
+.fm-dish-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 0;
+}
+
+.fm-dish-name {
+  font-size: 28px;
+  color: #2B2118;
+  min-width: 120px;
+}
+
+.fm-dish-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  flex: 1;
+}
+
+.fm-dish-swap {
+  font-size: 24px;
+  color: #FF6B35;
+  padding: 4px 12px;
+  border: 1px solid #FF6B35;
+  border-radius: 8px;
+}
+
+.fm-reasons {
+  background-color: #FFF8F3;
+  border-radius: 8px;
+  padding: 12px;
+  margin-bottom: 12px;
+}
+
+.fm-reason-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 4px 0;
+}
+
+.fm-reason-check {
+  color: #2BA471;
+  font-weight: 600;
+}
+
+.fm-reason-text {
+  font-size: 26px;
+  color: #5A4A3C;
+  flex: 1;
+}
+
+.fm-card-actions {
+  display: flex;
+  gap: 12px;
+}
+
+.fm-card-actions > view {
+  flex: 1;
+}
+
+.fm-lock-success-mask {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 200;
+}
+
+.fm-lock-success-img {
+  width: 200px;
+  height: 200px;
+}
+
+.fm-lock-success-text {
+  color: #FFFFFF;
+  font-size: 32px;
+  font-weight: 600;
+  margin-top: 16px;
+}
