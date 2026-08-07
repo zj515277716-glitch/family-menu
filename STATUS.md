@@ -2,13 +2,13 @@
 > 本文件由主Agent维护。任何时刻只允许一个活动任务卡（DEC-003）。
 
 ## 当前状态
-- 当前阶段：STEP-07 内容管线CLI（WP-07）（开发中）
+- 当前阶段：STEP-07 内容管线CLI（WP-07）（待用户审核）
 - main HEAD：7cdea44；回滚tag：rollback-before-step-07 -> 7cdea44；契约冻结tag：v0.2
 - 阻塞/外部依赖：无
 - 下一个人工决策点：STEP-07 交付审核
 
 ## 当前任务卡：STEP-07 内容管线CLI（对应 WP-07）
-状态: 开发中    回环计数: 0/3
+状态: 待用户审核    回环计数: 0/3
 执行者: fm-dev    审查者: fm-reviewer（只读）
 需求来源: 实施方案第386-391行目录结构 + 第570行WP-07 + 第584-589行WP-07详细定义 + 第612行STEP-07 + 第70行豆包SDK + 第661行安全双保险 + 第695行产物只落DRAFT + 第703行铁律6 + DEC-006运行时零LLM + STEP-02契约v0.2(DishSchema) + STEP-03数据层(prisma)    基线提交: main@7cdea44    回滚点: rollback-before-step-07
 
