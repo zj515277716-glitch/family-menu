@@ -3,7 +3,7 @@
 
 ## 当前状态
 - 当前阶段：STEP-06 H5前端（WP-05）（待用户审核）
-- main HEAD：a01fdb5；回滚tag：rollback-before-step-06 -> a01fdb5；契约冻结tag：v0.1
+- main HEAD：a01fdb5；回滚tag：rollback-before-step-06 -> a01fdb5；契约冻结tag：v0.2
 - 阻塞/外部依赖：无
 - 下一个人工决策点：STEP-06 交付审核（M3 里程碑：手机上五步流程跑通）
 - 30%检查点：前两个页面（setup+tonight）完成后队长做非正式review（第504行）
