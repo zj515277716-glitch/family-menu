@@ -3,7 +3,12 @@
 // 路由薄：schema 校验 + 调 planService，逻辑在 services
 
 import type { FastifyPluginAsync } from 'fastify';
-import { PutFamilyRulesRequestSchema, FamilyRulesResponseSchema } from '@family-menu/shared';
+import {
+  PutFamilyRulesRequestSchema,
+  FamilyRulesResponseSchema,
+  GetExclusionsResponseSchema,
+  PutExclusionsRequestSchema,
+} from '@family-menu/shared';
 import { planService } from '../services/planService.js';
 
 export const familyRoutes: FastifyPluginAsync = async (app) => {
@@ -31,5 +36,22 @@ export const familyRoutes: FastifyPluginAsync = async (app) => {
     }
     const updated = await planService.updateFamilyRules(parsed.data);
     return FamilyRulesResponseSchema.parse(updated);
+  });
+
+  // GET /api/family/exclusions - 读全部禁忌规则（ExclusionRule）
+  app.get('/family/exclusions', async () => {
+    const exclusions = await planService.getExclusions();
+    return GetExclusionsResponseSchema.parse(exclusions);
+  });
+
+  // PUT /api/family/exclusions - 写禁忌规则（全量替换，语义同 PUT /api/family/rules）
+  app.put('/family/exclusions', async (request, reply) => {
+    // 请求过 PutExclusionsRequestSchema 校验（z.array(ExclusionRuleSchema)）
+    const parsed = PutExclusionsRequestSchema.safeParse(request.body);
+    if (!parsed.success) {
+      return reply.code(400).send({ error: 'Validation error', details: parsed.error.issues });
+    }
+    const updated = await planService.putExclusions(parsed.data);
+    return GetExclusionsResponseSchema.parse(updated);
   });
 };

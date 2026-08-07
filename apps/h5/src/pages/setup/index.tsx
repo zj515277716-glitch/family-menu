@@ -57,13 +57,20 @@ export default function SetupPage() {
 
   async function loadRule() {
     try {
-      const rule = await api.getFamilyRules()
+      // 并行加载家庭规则与禁忌规则（v0.2：禁忌持久化到 /api/family/exclusions）
+      const [rule, exclusionsData] = await Promise.all([
+        api.getFamilyRules(),
+        api.getExclusions(),
+      ])
       if (rule) {
         setFamilyRule(rule)
         setDefaultPeople(rule.defaultPeople)
         setTimeBudgets(rule.timeBudgets)
         setEquipment(rule.equipment)
         setCuisines(rule.cuisines)
+      }
+      if (exclusionsData && exclusionsData.length > 0) {
+        setExclusions(exclusionsData)
       }
     } catch (e) {
       console.error('[Setup] loadRule error', e)
@@ -91,6 +98,8 @@ export default function SetupPage() {
         updatedAt: new Date(),
       }
       const updated = await api.putFamilyRules(rule)
+      // 持久化禁忌规则（v0.2：全量替换 /api/family/exclusions）
+      await api.putExclusions(exclusions)
       setFamilyRule(updated)
       resetTonightContext(updated)
       Taro.showToast({ title: '规则已保存', icon: 'success' })

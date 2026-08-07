@@ -6,11 +6,14 @@ import { recommend } from '@family-menu/engine';
 import { mergeShoppingList, type ShoppingList } from '@family-menu/list-merger';
 import type {
   Candidate,
+  CookResult,
+  ExclusionRule,
   FamilyRule,
   FeedbackResult,
   Plan,
   PlanContext,
   PlanStatus,
+  PutExclusionsRequest,
   SwapType,
 } from '@family-menu/shared';
 import { prisma } from '../db.js';
@@ -143,6 +146,34 @@ export const planService = {
       },
     });
     return updated as unknown as FamilyRule;
+  },
+
+  // ── F1: 禁忌规则（ExclusionRule，v0.2 新增） ──
+
+  async getExclusions(): Promise<ExclusionRule[]> {
+    const rules = await prisma.exclusionRule.findMany({ where: { familyId: FAMILY_ID } });
+    // ExclusionRule 字段（id/familyId/scope/targetId/targetTag/severity/note）与 Prisma 行一致
+    return rules as unknown as ExclusionRule[];
+  },
+
+  async putExclusions(rules: PutExclusionsRequest): Promise<ExclusionRule[]> {
+    // 全量替换：事务内 deleteMany + createMany（与 PUT /api/family/rules 全量写入语义同构）
+    // familyId 强制覆盖为 FAMILY_ID，防止跨家庭写入
+    await prisma.$transaction([
+      prisma.exclusionRule.deleteMany({ where: { familyId: FAMILY_ID } }),
+      prisma.exclusionRule.createMany({
+        data: rules.map((r) => ({
+          id: r.id,
+          familyId: FAMILY_ID,
+          scope: r.scope,
+          targetId: r.targetId,
+          targetTag: r.targetTag,
+          severity: r.severity,
+          note: r.note,
+        })),
+      }),
+    ]);
+    return this.getExclusions();
   },
 
   // ── F2/F3: 推荐 ──
@@ -355,6 +386,8 @@ export const planService = {
     planId: string,
     result: FeedbackResult,
     actualMinutes?: number,
+    cookResult?: CookResult,
+    failPoints?: string,
   ): Promise<Plan> {
     const plan = await prisma.plan.findUnique({ where: { id: planId } });
     if (!plan) {
@@ -377,6 +410,20 @@ export const planService = {
         payload: actualMinutes !== undefined ? { actualMinutes } : undefined,
       },
     });
+
+    // 烹饪结果落 CookLog（DEC-011：result=cooked 且 cookResult 有值时写）
+    // CookLog model 无 familyId 字段（schema.prisma 事实源，边界禁改），任务卡示例的 familyId 此处不传
+    // menuId 用 ?? null（CookLog.menuId 可选，避免空字符串违反外键约束）
+    if (result === 'cooked' && cookResult) {
+      await prisma.cookLog.create({
+        data: {
+          menuId: plan.lockedMenuId ?? null,
+          result: cookResult,
+          failPoints: failPoints ?? null,
+          actualMinutes: actualMinutes ?? null,
+        },
+      });
+    }
 
     return toPlan(updated as PlanRow);
   },

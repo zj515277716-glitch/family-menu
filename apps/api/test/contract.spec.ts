@@ -5,8 +5,10 @@
 
 import { describe, it, expect, beforeAll, afterAll, beforeEach, vi } from 'vitest';
 import type { FastifyInstance } from 'fastify';
+import type { ExclusionRule } from '@family-menu/shared';
 import {
   FamilyRulesResponseSchema,
+  GetExclusionsResponseSchema,
   RecommendResponseSchema,
   PlanResponseSchema,
   PlanListResponseSchema,
@@ -27,6 +29,8 @@ vi.mock('../src/services/planService.js', () => {
     planService: {
       getFamilyRules: vi.fn(),
       updateFamilyRules: vi.fn(),
+      getExclusions: vi.fn(),
+      putExclusions: vi.fn(),
       generateRecommendation: vi.fn(),
       lockPlan: vi.fn(),
       swapPlan: vi.fn(),
@@ -56,6 +60,24 @@ const mockFamilyRule = {
   cuisines: ['家常'],
   updatedAt: new Date('2026-08-06T00:00:00Z'),
 };
+
+const mockExclusions: ExclusionRule[] = [
+  {
+    id: 'ex-test-1',
+    familyId: 'seed-family',
+    scope: 'INGREDIENT',
+    targetId: 'ing-cilantro',
+    severity: 'HARD',
+    note: '爸爸不吃香菜',
+  },
+  {
+    id: 'ex-test-2',
+    familyId: 'seed-family',
+    scope: 'TAG',
+    targetTag: '内脏',
+    severity: 'SOFT',
+  },
+];
 
 const mockCandidates = [
   { menuId: 'menu-1', score: 0.85, reasons: ['家常快手', '食材复用'], breakdown: { historyAcceptance: 0.9 } },
@@ -199,6 +221,68 @@ describe('API contract tests', () => {
         url: '/api/family/rules',
         cookies: { access_token: 'test-token' },
         body: { id: 'x', familyId: 'x', equipment: [], cuisines: [], updatedAt: '2026-08-06T00:00:00.000Z' },
+      });
+      expect(response.statusCode).toBe(400);
+    });
+  });
+
+  // ── F1: GET/PUT /api/family/exclusions（v0.2 新增，禁忌持久化） ──
+
+  describe('GET /api/family/exclusions', () => {
+    it('returns 200 with valid GetExclusionsResponse', async () => {
+      vi.mocked(planService.getExclusions).mockResolvedValue(mockExclusions);
+      const response = await app.inject({
+        method: 'GET',
+        url: '/api/family/exclusions',
+        cookies: { access_token: 'test-token' },
+      });
+      expect(response.statusCode).toBe(200);
+      const body = parseResponse(response.body);
+      expect(() => GetExclusionsResponseSchema.parse(body)).not.toThrow();
+    });
+
+    it('returns 200 with empty list', async () => {
+      vi.mocked(planService.getExclusions).mockResolvedValue([]);
+      const response = await app.inject({
+        method: 'GET',
+        url: '/api/family/exclusions',
+        cookies: { access_token: 'test-token' },
+      });
+      expect(response.statusCode).toBe(200);
+      expect(JSON.parse(response.body)).toEqual([]);
+    });
+  });
+
+  describe('PUT /api/family/exclusions', () => {
+    it('returns 200 with valid request body', async () => {
+      vi.mocked(planService.putExclusions).mockResolvedValue(mockExclusions);
+      const response = await app.inject({
+        method: 'PUT',
+        url: '/api/family/exclusions',
+        cookies: { access_token: 'test-token' },
+        body: mockExclusions,
+      });
+      expect(response.statusCode).toBe(200);
+      const body = parseResponse(response.body);
+      expect(() => GetExclusionsResponseSchema.parse(body)).not.toThrow();
+    });
+
+    it('returns 400 with invalid body (scope not enum)', async () => {
+      const response = await app.inject({
+        method: 'PUT',
+        url: '/api/family/exclusions',
+        cookies: { access_token: 'test-token' },
+        body: [{ id: 'x', familyId: 'x', scope: 'INVALID', severity: 'HARD' }],
+      });
+      expect(response.statusCode).toBe(400);
+    });
+
+    it('returns 400 with non-array body', async () => {
+      const response = await app.inject({
+        method: 'PUT',
+        url: '/api/family/exclusions',
+        cookies: { access_token: 'test-token' },
+        body: { id: 'x' },
       });
       expect(response.statusCode).toBe(400);
     });

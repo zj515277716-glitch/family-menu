@@ -100,6 +100,8 @@ export const planRoutes: FastifyPluginAsync = async (app) => {
       params.data.id,
       parsed.data.result,
       parsed.data.actualMinutes,
+      parsed.data.cookResult,
+      parsed.data.failPoints,
     );
     return PlanResponseSchema.parse(plan);
   });

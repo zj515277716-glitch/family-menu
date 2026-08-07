@@ -1,7 +1,7 @@
 // apps/h5/src/api/mock.ts
 // Mock 数据：对齐 wireframes.md 示例（番茄牛腩套餐等），用于"先 Mock 后真 API"开发模式
 // 真 API 模式（TARO_APP_API_BASE_URL 已配置）下不引用本文件数据
-import type { FamilyRule, Plan } from '@family-menu/shared'
+import type { ExclusionRule, FamilyRule, Plan } from '@family-menu/shared'
 import type {
   CandidateView,
   MenuSnapshot,
@@ -84,6 +84,27 @@ export const mockFamilyRule: FamilyRule = {
   cuisines: ['湘菜', '家常'],
   updatedAt: new Date('2026-08-01T00:00:00Z'),
 }
+
+// ───── 禁忌规则（ExclusionRule，v0.2 新增） ─────
+
+export const mockExclusions: ExclusionRule[] = [
+  {
+    id: 'ex-mock-001',
+    familyId: 'seed-family',
+    scope: 'INGREDIENT',
+    targetId: 'ing-cilantro',
+    severity: 'HARD',
+    note: '爸爸不吃香菜',
+  },
+  {
+    id: 'ex-mock-002',
+    familyId: 'seed-family',
+    scope: 'TAG',
+    targetTag: '内脏',
+    severity: 'SOFT',
+    note: '孩子不喜欢',
+  },
+]
 
 // ───── 候选（CandidateView，含 menu 详情） ─────
 
@@ -207,6 +228,8 @@ function delay<T>(data: T, ms = 100): Promise<T> {
 export const mockApi = {
   getFamilyRules: (): Promise<FamilyRule | null> => delay(mockFamilyRule),
   putFamilyRules: (rule: FamilyRule): Promise<FamilyRule> => delay({ ...rule, updatedAt: new Date() }),
+  getExclusions: (): Promise<ExclusionRule[]> => delay(mockExclusions),
+  putExclusions: (rules: ExclusionRule[]): Promise<ExclusionRule[]> => delay(rules),
   recommend: (): Promise<RecommendResult> => delay(mockRecommendResult),
   lockPlan: (planId: string, menuId: string): Promise<Plan> =>
     delay({ ...mockPlan, id: planId, lockedMenuId: menuId, status: 'LOCKED' }),
@@ -214,8 +237,17 @@ export const mockApi = {
     delay({ ...mockPlan, id: planId, status: 'PROPOSED' }),
   getShoppingList: (): Promise<ShoppingListData> => delay(mockShoppingList),
   patchShoppingList: (list: ShoppingListData): Promise<ShoppingListData> => delay(list),
-  addFeedback: (planId: string, result: string, actualMinutes?: number): Promise<Plan> => {
+  addFeedback: (
+    planId: string,
+    result: string,
+    actualMinutes?: number,
+    cookResult?: string,
+    failPoints?: string,
+  ): Promise<Plan> => {
+    // Mock 不写 CookLog，仅占位保持签名与真 API 一致
     void actualMinutes
+    void cookResult
+    void failPoints
     return delay({ ...mockPlan, id: planId, status: result === 'not_cooked' ? 'SKIPPED' : 'COOKED' })
   },
   listPlans: (): Promise<Plan[]> => delay(mockPlanList),

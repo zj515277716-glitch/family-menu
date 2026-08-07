@@ -1,9 +1,11 @@
 // apps/h5/src/api/client.ts
 // API client：由 shared 契约约束的 Taro.request 封装（H5 模式下底层用 fetch）
-// 10 条 API 路由对应方法，ACCESS_TOKEN cookie 鉴权（H5 同源自动带 cookie）
+// 12 条 API 路由对应方法，ACCESS_TOKEN cookie 鉴权（H5 同源自动带 cookie）
 // 先 Mock 后真 API：TARO_APP_API_BASE_URL 未配置时走 Mock，配置后走真 API
 import Taro from '@tarojs/taro'
 import type {
+  CookResult,
+  ExclusionRule,
   FamilyRule,
   FeedbackResult,
   Plan,
@@ -54,7 +56,7 @@ async function request<T>(
   return res.data as T
 }
 
-// ───── 10 条 API 路由方法 ─────
+// ───── 12 条 API 路由方法 ─────
 
 export const api = {
   // 1. GET /api/family/rules -> FamilyRule（404 表示未设置，返回 null）
@@ -69,7 +71,19 @@ export const api = {
     return request<FamilyRule>('/api/family/rules', { method: 'PUT', data: rule })
   },
 
-  // 3. POST /api/recommend <- PlanContext -> { candidates, planId }
+  // 3. GET /api/family/exclusions -> ExclusionRule[]（v0.2 新增，禁忌持久化）
+  getExclusions(): Promise<ExclusionRule[]> {
+    if (USE_MOCK) return mockApi.getExclusions()
+    return request<ExclusionRule[]>('/api/family/exclusions', { method: 'GET' })
+  },
+
+  // 4. PUT /api/family/exclusions <- ExclusionRule[] -> ExclusionRule[]（全量替换）
+  putExclusions(rules: ExclusionRule[]): Promise<ExclusionRule[]> {
+    if (USE_MOCK) return mockApi.putExclusions(rules)
+    return request<ExclusionRule[]>('/api/family/exclusions', { method: 'PUT', data: rules })
+  },
+
+  // 5. POST /api/recommend <- PlanContext -> { candidates, planId }
   recommend(context: PlanContext): Promise<RecommendResult> {
     if (USE_MOCK) return mockApi.recommend()
     return request<RecommendResult>('/api/recommend', {
@@ -78,7 +92,7 @@ export const api = {
     })
   },
 
-  // 4. POST /api/plans/:id/lock <- { menuId } -> Plan
+  // 6. POST /api/plans/:id/lock <- { menuId } -> Plan
   lockPlan(planId: string, menuId: string): Promise<Plan> {
     if (USE_MOCK) return mockApi.lockPlan(planId, menuId)
     return request<Plan>(`/api/plans/${planId}/lock`, {
@@ -87,7 +101,7 @@ export const api = {
     })
   },
 
-  // 5. POST /api/plans/:id/swap <- { reason, swapType, dishId? } -> Plan
+  // 7. POST /api/plans/:id/swap <- { reason, swapType, dishId? } -> Plan
   swapPlan(
     planId: string,
     swapType: SwapType,
@@ -101,7 +115,7 @@ export const api = {
     })
   },
 
-  // 6. GET /api/plans/:id/shopping-list -> ShoppingListData
+  // 8. GET /api/plans/:id/shopping-list -> ShoppingListData
   getShoppingList(planId: string): Promise<ShoppingListData> {
     if (USE_MOCK) return mockApi.getShoppingList()
     return request<ShoppingListData>(`/api/plans/${planId}/shopping-list`, {
@@ -109,7 +123,7 @@ export const api = {
     })
   },
 
-  // 7. PATCH /api/plans/:id/shopping-list <- { itemId, checked } -> ShoppingListData
+  // 9. PATCH /api/plans/:id/shopping-list <- { itemId, checked } -> ShoppingListData
   patchShoppingList(
     planId: string,
     itemId: string,
@@ -135,26 +149,29 @@ export const api = {
     })
   },
 
-  // 8. POST /api/plans/:id/feedback <- { result, actualMinutes? } -> Plan
+  // 10. POST /api/plans/:id/feedback <- { result, actualMinutes?, cookResult?, failPoints? } -> Plan
   addFeedback(
     planId: string,
     result: FeedbackResult,
     actualMinutes?: number,
+    cookResult?: CookResult,
+    failPoints?: string,
   ): Promise<Plan> {
-    if (USE_MOCK) return mockApi.addFeedback(planId, result, actualMinutes)
+    if (USE_MOCK)
+      return mockApi.addFeedback(planId, result, actualMinutes, cookResult, failPoints)
     return request<Plan>(`/api/plans/${planId}/feedback`, {
       method: 'POST',
-      data: { result, actualMinutes },
+      data: { result, actualMinutes, cookResult, failPoints },
     })
   },
 
-  // 9. GET /api/plans -> Plan[]
+  // 11. GET /api/plans -> Plan[]
   listPlans(): Promise<Plan[]> {
     if (USE_MOCK) return mockApi.listPlans()
     return request<Plan[]>('/api/plans', { method: 'GET' })
   },
 
-  // 10. POST /api/plans/:id/repeat -> Plan
+  // 12. POST /api/plans/:id/repeat -> Plan
   repeatPlan(planId: string): Promise<Plan> {
     if (USE_MOCK) return mockApi.repeatPlan()
     return request<Plan>(`/api/plans/${planId}/repeat`, { method: 'POST' })

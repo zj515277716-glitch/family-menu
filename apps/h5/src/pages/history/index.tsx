@@ -81,7 +81,12 @@ export default function HistoryPage() {
     }
     try {
       const minutes = actualMinutes ? Number(actualMinutes) : undefined
-      await api.addFeedback(feedbackPlanId, result, minutes)
+      // cookResult/failPoints 仅在 result=cooked 时回传（后端据此写 CookLog，DEC-011）
+      // cookResult=success 时不传 failPoints（失败原因仅 partial/fail 有意义）
+      const cookResultVal = result === 'cooked' ? cookResult : undefined
+      const failPointsVal =
+        result === 'cooked' && cookResult !== 'success' ? failReason : undefined
+      await api.addFeedback(feedbackPlanId, result, minutes, cookResultVal, failPointsVal)
       setFeedbackSuccess(true)
       setActualMinutes('')
       setWillRepeat(false)
