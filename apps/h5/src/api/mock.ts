@@ -234,7 +234,13 @@ export const mockApi = {
   lockPlan: (planId: string, menuId: string): Promise<Plan> =>
     delay({ ...mockPlan, id: planId, lockedMenuId: menuId, status: 'LOCKED' }),
   swapPlan: (planId: string): Promise<Plan> =>
-    delay({ ...mockPlan, id: planId, status: 'PROPOSED' }),
+    // 模拟"整套换"：返回轮换后的候选（含 menu 详情，对齐真 API 行为）
+    delay({
+      ...mockPlan,
+      id: planId,
+      status: 'PROPOSED',
+      candidates: [...mockCandidates].reverse(),
+    }),
   getShoppingList: (): Promise<ShoppingListData> => delay(mockShoppingList),
   patchShoppingList: (list: ShoppingListData): Promise<ShoppingListData> => delay(list),
   addFeedback: (

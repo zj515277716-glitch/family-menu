@@ -44,7 +44,8 @@ function mergeCandidates(
   }
   return newCandidates.map((c) => ({
     ...c,
-    menu: menuMap[c.menuId],
+    // 优先使用 API 返回的 menu 详情（swapPlan 已含 menu），降级到旧候选/mock 快照
+    menu: (c as CandidateView).menu ?? menuMap[c.menuId],
   }))
 }
 
@@ -71,7 +72,7 @@ export default function CandidatesPage() {
           title="今晚没有符合条件的候选"
           desc="可放宽情境或检查禁忌设置"
           btnText="回今晚调整"
-          onBtnClick={() => Taro.navigateBack()}
+          onBtnClick={() => Taro.reLaunch({ url: '/pages/tonight/index' })}
         />
       </View>
     )

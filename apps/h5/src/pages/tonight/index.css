@@ -4,6 +4,11 @@
   padding-bottom: 140px;
 }
 
+/* TabBar 页：fm-bottom-bar 上移避开 CustomTabBar（~50px + safe-area） */
+.tonight-page .fm-bottom-bar {
+  bottom: calc(50px + env(safe-area-inset-bottom));
+}
+
 .tonight-page .fm-page-header {
   display: flex;
   align-items: center;
