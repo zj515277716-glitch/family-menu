@@ -8,11 +8,10 @@ import './app.css'
 
 class App extends Component<PropsWithChildren> {
   componentDidMount() {
-    // H5 模式设置 ACCESS_TOKEN cookie（口令鉴权，对齐 STEP-05 API）
-    // 生产环境由 TARO_APP_ACCESS_TOKEN 注入；开发 Mock 模式不调 API 无需鉴权
+    // H5 模式设置 access_token cookie（口令鉴权，对齐 STEP-05 API）
     const token = process.env.TARO_APP_ACCESS_TOKEN || 'change-me'
     if (typeof document !== 'undefined') {
-      document.cookie = `ACCESS_TOKEN=${token}; path=/`
+      document.cookie = `access_token=${token}; path=/`
     }
   }
 

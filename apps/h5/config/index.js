@@ -18,6 +18,7 @@ module.exports = defineConfig(async (merge) => {
     plugins: [],
     defineConstants: {
       'process.env.TARO_APP_API_BASE_URL': JSON.stringify(process.env.TARO_APP_API_BASE_URL || ''),
+      'process.env.TARO_APP_ACCESS_TOKEN': JSON.stringify(process.env.TARO_APP_ACCESS_TOKEN || ''),
     },
     copy: { patterns: [], options: {} },
     framework: 'react',
