@@ -71,6 +71,7 @@ services:
       - "8443:443"
     volumes:
       - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - ./h5-dist:/srv/h5:ro
       - caddy_data:/data
       - caddy_config:/config
     depends_on:

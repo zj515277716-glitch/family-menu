@@ -1,12 +1,24 @@
 # family-menu Caddyfile
-# 对齐实施方案第84行：Caddy(443, 备案后) / 直连IP:3000(过渡期)
+# 对齐实施方案第84行：Caddy(443, 备案后) / 直连IP(过渡期)
 # 对齐实施方案第677行：Caddyfile已备好，备案通过改DNS+起caddy即可
 
-# ── 过渡期：IP直连（HTTP :80 -> api:3000） ──
-# ECS 部署后直接访问 http://<ECS公网IP> 即可使用
-# Caddy 在 docker-compose prod profile 中与 api 同网络，用服务名 api 访问
+# ── 过渡期：IP直连（Caddy 托管 H5 静态文件 + 反向代理 API） ──
+# ECS 部署后直接访问 http://<ECS公网IP>:8080 即可使用
 :80 {
-	reverse_proxy api:3000
+	# API 反向代理
+	handle /api/* {
+		reverse_proxy api:3000
+	}
+	handle /health* {
+		reverse_proxy api:3000
+	}
+
+	# H5 静态文件托管
+	handle {
+		root * /srv/h5
+		file_server
+		try_files {path} /index.html
+	}
 }
 
 # ── 备案后：域名 + 自动 HTTPS ──
@@ -18,5 +30,15 @@
 #   5. Caddy 自动申请 Let's Encrypt 证书并启用 HTTPS(443)
 #
 # family-menu.example.com {
-# 	reverse_proxy api:3000
+# 	handle /api/* {
+# 		reverse_proxy api:3000
+# 	}
+# 	handle /health* {
+# 		reverse_proxy api:3000
+# 	}
+# 	handle {
+# 		root * /srv/h5
+# 		file_server
+# 		try_files {path} /index.html
+# 	}
 # }
