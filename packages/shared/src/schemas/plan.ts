@@ -41,6 +41,7 @@ export const CandidateSchema = z.object({
   score: z.number(),
   reasons: z.array(z.string()),
   breakdown: CandidateBreakdownSchema.optional(),
+  menu: z.unknown().optional(),
 });
 
 /**

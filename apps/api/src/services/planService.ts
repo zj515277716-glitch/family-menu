@@ -205,6 +205,7 @@ export const planService = {
       score: sm.score,
       reasons: sm.reasons,
       breakdown: sm.breakdown,
+      menu: library.find((m) => m.id === sm.menuId),
     }));
 
     const plan = await prisma.plan.create({
