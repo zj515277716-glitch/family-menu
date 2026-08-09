@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev:h5": "taro build --type h5 --watch",
-    "build:h5": "taro build --type h5",
+    "build:h5": "taro build --type h5 && node ../../gen-index.cjs",
     "build": "taro build --type h5",
     "lint": "eslint src"
   },
