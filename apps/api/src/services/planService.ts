@@ -270,16 +270,54 @@ export const planService = {
     const candidates = plan.candidates as Candidate[];
 
     if (swapType === '全换') {
-      // 取下一个候选作为新 lockedMenuId
-      const currentIdx = candidates.findIndex(
-        (c) => c.menuId === plan.lockedMenuId,
-      );
-      const nextIdx = (currentIdx + 1) % candidates.length;
-      const newMenuId = candidates[nextIdx]?.menuId ?? plan.lockedMenuId ?? '';
+      // 重新推荐，排除当前候选的 menuId
+      const context = plan.context as PlanContext;
+      const excludeMenuIds = candidates.map((c) => c.menuId);
+
+      const [rules, exclusions, library, history] = await Promise.all([
+        loadFamilyRuleView(FAMILY_ID),
+        loadExclusionViews(FAMILY_ID),
+        loadMenuViews(),
+        loadEventViews(FAMILY_ID),
+      ]);
+
+      const result = recommend({
+        rules,
+        exclusions,
+        context: {
+          people: context.people,
+          timeBudgetMin: context.timeBudgetMin as 15 | 30 | 60,
+          mustUseIngredients: context.mustUse,
+        },
+        library,
+        history,
+      });
+
+      // 过滤掉当前候选，取新的 3 套
+      const newCandidates: Candidate[] = result.candidates
+        .filter((sm) => !excludeMenuIds.includes(sm.menuId))
+        .slice(0, 3)
+        .map((sm) => ({
+          menuId: sm.menuId,
+          score: sm.score,
+          reasons: sm.reasons,
+          breakdown: sm.breakdown,
+          menu: library.find((m) => m.id === sm.menuId),
+        }));
+
+      // 如果新候选不足，保留旧候选补充
+      const finalCandidates = newCandidates.length > 0
+        ? newCandidates
+        : candidates;
+
+      const newMenuId = finalCandidates[0]?.menuId ?? plan.lockedMenuId ?? '';
 
       const updated = await prisma.plan.update({
         where: { id: planId },
-        data: { lockedMenuId: newMenuId },
+        data: {
+          candidates: finalCandidates as unknown as object,
+          lockedMenuId: newMenuId,
+        },
       });
 
       await prisma.event.create({
