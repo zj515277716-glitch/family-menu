@@ -35,6 +35,7 @@ services:
         COPY apps/ ./apps/
         COPY tools/ ./tools/
         RUN pnpm install --frozen-lockfile
+        ENV DATABASE_URL="postgresql://placeholder:placeholder@localhost:5432/placeholder"
         RUN pnpm --filter @family-menu/shared build \
             && pnpm --filter @family-menu/engine build \
             && pnpm --filter @family-menu/list-merger build \
