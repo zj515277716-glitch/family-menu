@@ -294,7 +294,7 @@ export const planService = {
       });
 
       // 过滤掉当前候选，取新的 3 套
-      const newCandidates: Candidate[] = result.candidates
+      const freshCandidates: Candidate[] = result.candidates
         .filter((sm) => !excludeMenuIds.includes(sm.menuId))
         .slice(0, 3)
         .map((sm) => ({
@@ -305,10 +305,23 @@ export const planService = {
           menu: library.find((m) => m.id === sm.menuId),
         }));
 
-      // 如果新候选不足，保留旧候选补充
-      const finalCandidates = newCandidates.length > 0
-        ? newCandidates
-        : candidates;
+      // 如果排除后候选不足 3 套，用原始候选打乱顺序补充
+      let finalCandidates: Candidate[];
+      if (freshCandidates.length >= 3) {
+        finalCandidates = freshCandidates;
+      } else {
+        // 合并新候选 + 旧候选打乱，去重
+        const seen = new Set(freshCandidates.map((c) => c.menuId));
+        const shuffled = [...candidates].sort(() => Math.random() - 0.5);
+        for (const c of shuffled) {
+          if (!seen.has(c.menuId)) {
+            freshCandidates.push(c);
+            seen.add(c.menuId);
+          }
+          if (freshCandidates.length >= 3) break;
+        }
+        finalCandidates = freshCandidates;
+      }
 
       const newMenuId = finalCandidates[0]?.menuId ?? plan.lockedMenuId ?? '';
 
