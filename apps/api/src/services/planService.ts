@@ -270,7 +270,7 @@ export const planService = {
     const candidates = plan.candidates as Candidate[];
 
     if (swapType === '全换') {
-      // 重新推荐，排除当前候选的 menuId
+      // 直接从 DB 查所有 PUBLISHED Menu，排除当前候选
       const context = plan.context as PlanContext;
       const excludeMenuIds = candidates.map((c) => c.menuId);
 
@@ -281,6 +281,7 @@ export const planService = {
         loadEventViews(FAMILY_ID),
       ]);
 
+      // 用推荐引擎获取所有评分候选（不只 top 3）
       const result = recommend({
         rules,
         exclusions,
@@ -293,7 +294,7 @@ export const planService = {
         history,
       });
 
-      // 过滤掉当前候选，取新的 3 套
+      // 从所有候选中排除当前的，取新的 3 套
       const freshCandidates: Candidate[] = result.candidates
         .filter((sm) => !excludeMenuIds.includes(sm.menuId))
         .slice(0, 3)
@@ -305,20 +306,38 @@ export const planService = {
           menu: library.find((m) => m.id === sm.menuId),
         }));
 
-      // 如果排除后候选不足 3 套，用原始候选打乱顺序补充
       let finalCandidates: Candidate[];
       if (freshCandidates.length >= 3) {
         finalCandidates = freshCandidates;
       } else {
-        // 合并新候选 + 旧候选打乱，去重
+        // 候选不足 3 套：从 DB 查所有 PUBLISHED Menu 补充（放宽时间限制）
+        const allMenus = library.filter(
+          (m) => m.status === 'PUBLISHED' && !excludeMenuIds.includes(m.id),
+        );
         const seen = new Set(freshCandidates.map((c) => c.menuId));
-        const shuffled = [...candidates].sort(() => Math.random() - 0.5);
-        for (const c of shuffled) {
-          if (!seen.has(c.menuId)) {
-            freshCandidates.push(c);
-            seen.add(c.menuId);
+        for (const m of allMenus) {
+          if (!seen.has(m.id)) {
+            freshCandidates.push({
+              menuId: m.id,
+              score: 0.5,
+              reasons: ['替换候选'],
+              breakdown: { historyAcceptance: 0.5, timeDifficulty: 0.8, ingredientReuse: 0.5, preferenceCoverage: 0.5, recentDiversity: 0.5, categoryDiversity: 0.5 },
+              menu: m,
+            });
+            seen.add(m.id);
           }
           if (freshCandidates.length >= 3) break;
+        }
+        // 如果还不够 3 套，用旧候选打乱补充
+        if (freshCandidates.length < 3) {
+          const shuffled = [...candidates].sort(() => Math.random() - 0.5);
+          for (const c of shuffled) {
+            if (!seen.has(c.menuId)) {
+              freshCandidates.push(c);
+              seen.add(c.menuId);
+            }
+            if (freshCandidates.length >= 3) break;
+          }
         }
         finalCandidates = freshCandidates;
       }
