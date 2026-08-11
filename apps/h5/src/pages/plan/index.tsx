@@ -156,56 +156,17 @@ export default function PlanPage() {
           </View>
         </TabPane>
 
-        <TabPane value="dishes" title="菜品做法">
-          <ScrollView scrollY className="fm-plan-scroll">
-            {lockedMenu.dishes.map((dish, idx) => (
-              <View key={idx} className="fm-dish-detail">
-                <View className="fm-dish-header">
-                  <Text className="fm-dish-name">{dish.name}</Text>
-                  <Text className="fm-dish-meta">{dish.activeMinutes}分钟·{dish.cuisine}</Text>
-                </View>
 
-                <View className="fm-dish-section">
-                  <Text className="fm-dish-section-title">食材用量</Text>
-                  {dish.ingredients.map((ing, i) => (
-                    <View key={i} className="fm-dish-ing">
-                      <Text className="fm-dish-ing-name">{ing.ingredientName}</Text>
-                      <Text className="fm-dish-ing-qty">{ing.qty}{ing.unit}</Text>
-                    </View>
-                  ))}
-                </View>
-
-                <View className="fm-dish-section">
-                  <Text className="fm-dish-section-title">烹饪步骤</Text>
-                  {dish.steps.map((step, i) => (
-                    <View key={i} className="fm-dish-step">
-                      <Text className="fm-dish-step-num">{step.order}</Text>
-                      <View className="fm-dish-step-content">
-                        <Text className="fm-dish-step-text">{step.text}</Text>
-                        {step.parallel && (
-                          <Text className="fm-dish-step-tag">可并行</Text>
-                        )}
-                      </View>
-                    </View>
-                  ))}
-                </View>
-
-                {dish.flavorTags.length > 0 && (
-                  <View className="fm-dish-tags">
-                    {dish.flavorTags.map((tag) => (
-                      <Text key={tag} className="fm-dish-tag">{tag}</Text>
-                    ))}
-                  </View>
-                )}
-              </View>
-            ))}
-          </ScrollView>
-        </TabPane>
       </Tabs>
 
       <View className="fm-bottom-bar">
         <Button type="primary" block onClick={goFeedback}>
           做完了，去反馈
+        </Button>
+      </View>
+      <View className="fm-bottom-bar-secondary">
+        <Button plain block onClick={() => Taro.navigateTo({ url: '/pages/dish/index' })}>
+          查看菜品做法
         </Button>
       </View>
     </View>
