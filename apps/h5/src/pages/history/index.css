@@ -11,24 +11,24 @@
 .fm-feedback-title {
   display: block;
   font-size: 30px;
-  font-weight: 600;
-  color: #2B2118;
-  margin-bottom: 12px;
+  font-weight: 700;
+  color: var(--fm-title);
+  margin-bottom: 14px;
 }
 
 .fm-feedback-expand {
-  margin-top: 12px;
+  margin-top: 14px;
 }
 
 .fm-fail-reasons {
-  margin-top: 12px;
+  margin-top: 14px;
 }
 
 .fm-switch-row {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-top: 12px;
+  margin-top: 14px;
 }
 
 .fm-switch-row .fm-label {
@@ -55,12 +55,12 @@
 
 .fm-history-date {
   font-size: 26px;
-  color: #8C7B6B;
+  color: var(--fm-text-secondary);
   min-width: 80px;
 }
 
 .fm-history-name {
   flex: 1;
   font-size: 28px;
-  color: #2B2118;
+  color: var(--fm-title);
 }

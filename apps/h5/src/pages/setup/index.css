@@ -1,25 +1,24 @@
 /* apps/h5/src/pages/setup/index.css */
-/* setup 页专属样式（通用类见 app.css） */
 
 .setup-page {
   padding-bottom: 140px;
 }
 
 .fm-page-header {
-  padding: 24px 16px 8px;
+  padding: 28px 20px 12px;
 }
 
 .fm-page-title {
-  font-size: 36px;
+  font-size: 38px;
   font-weight: 700;
-  color: #2B2118;
+  color: var(--fm-title);
 }
 
 .fm-label {
   display: block;
   font-size: 26px;
-  color: #5A4A3C;
-  margin-bottom: 12px;
+  color: var(--fm-text);
+  margin-bottom: 14px;
   font-weight: 500;
 }
 
@@ -41,46 +40,46 @@
 }
 
 .fm-exclusion-list {
-  margin-top: 12px;
+  margin-top: 14px;
 }
 
 .fm-exclusion-item {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 8px 0;
-  border-bottom: 1px solid #F0E4D8;
+  gap: 10px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--fm-border);
 }
 
 .fm-exclusion-text {
   flex: 1;
   font-size: 26px;
-  color: #2B2118;
+  color: var(--fm-title);
 }
 
 .fm-exclusion-del {
   font-size: 24px;
-  color: #E63946;
-  padding: 4px 8px;
+  color: #E85D5D;
+  padding: 4px 10px;
 }
 
 .fm-popup-content {
-  padding: 24px 16px;
+  padding: 28px 20px;
 }
 
 .fm-popup-title {
   display: block;
   font-size: 32px;
-  font-weight: 600;
-  color: #2B2118;
-  margin-bottom: 16px;
+  font-weight: 700;
+  color: var(--fm-title);
+  margin-bottom: 18px;
   text-align: center;
 }
 
 .fm-popup-actions {
   display: flex;
   gap: 12px;
-  margin-top: 24px;
+  margin-top: 28px;
 }
 
 .fm-popup-actions > view {

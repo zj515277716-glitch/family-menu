@@ -4,7 +4,6 @@
   padding-bottom: 140px;
 }
 
-/* TabBar 页：fm-bottom-bar 上移避开 CustomTabBar（~50px + safe-area） */
 .tonight-page .fm-bottom-bar {
   bottom: calc(50px + env(safe-area-inset-bottom));
 }
@@ -13,7 +12,7 @@
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 16px;
+  padding: 20px 16px 12px;
 }
 
 .fm-logo {
@@ -25,6 +24,6 @@
 .fm-hero {
   width: 100%;
   height: 240px;
-  border-radius: 12px;
+  border-radius: 20px;
   margin: 0 0 8px;
 }

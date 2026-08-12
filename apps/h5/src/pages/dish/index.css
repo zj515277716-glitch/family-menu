@@ -9,9 +9,10 @@
 }
 
 .fm-dish-detail {
-  margin: 12px;
+  margin: 12px 16px;
   background-color: #FFFFFF;
-  border-radius: 12px;
+  border-radius: 20px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
   overflow: hidden;
 }
 
@@ -19,32 +20,32 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 16px;
-  background-color: #FFF8F3;
+  padding: 18px 20px;
+  background-color: var(--fm-primary-light);
 }
 
 .fm-dish-name {
   font-size: 32px;
-  font-weight: 600;
-  color: #2B2118;
+  font-weight: 700;
+  color: var(--fm-title);
 }
 
 .fm-dish-meta {
   font-size: 24px;
-  color: #8C7B6B;
+  color: var(--fm-text-secondary);
 }
 
 .fm-dish-section {
-  padding: 16px;
-  border-bottom: 1px solid #F0E4D8;
+  padding: 18px 20px;
+  border-bottom: 1px solid var(--fm-border);
 }
 
 .fm-dish-section-title {
   display: block;
   font-size: 26px;
   font-weight: 600;
-  color: #8C7B6B;
-  margin-bottom: 12px;
+  color: var(--fm-primary);
+  margin-bottom: 14px;
 }
 
 .fm-dish-ing {
@@ -55,25 +56,26 @@
 
 .fm-dish-ing-name {
   font-size: 28px;
-  color: #2B2118;
+  color: var(--fm-title);
 }
 
 .fm-dish-ing-qty {
   font-size: 28px;
-  color: #FF6B35;
+  color: var(--fm-primary);
+  font-weight: 500;
 }
 
 .fm-dish-step {
   display: flex;
-  gap: 12px;
-  padding: 8px 0;
+  gap: 14px;
+  padding: 10px 0;
 }
 
 .fm-dish-step-num {
   width: 40px;
   height: 40px;
   border-radius: 50%;
-  background-color: #FF6B35;
+  background-color: var(--fm-primary);
   color: #FFFFFF;
   font-size: 24px;
   text-align: center;
@@ -88,33 +90,33 @@
 .fm-dish-step-text {
   display: block;
   font-size: 28px;
-  color: #2B2118;
+  color: var(--fm-title);
   line-height: 1.6;
 }
 
 .fm-dish-step-tag {
   display: inline-block;
-  margin-top: 4px;
-  padding: 2px 12px;
+  margin-top: 6px;
+  padding: 3px 14px;
   background-color: #E8F5E9;
   color: #4CAF50;
   font-size: 22px;
-  border-radius: 4px;
+  border-radius: 12px;
 }
 
 .fm-dish-tags {
   display: flex;
   gap: 8px;
-  padding: 12px 16px;
+  padding: 14px 20px;
   flex-wrap: wrap;
 }
 
 .fm-dish-tag {
-  padding: 4px 16px;
-  background-color: #FFF1E6;
-  color: #FF6B35;
+  padding: 4px 18px;
+  background-color: var(--fm-primary-light);
+  color: var(--fm-primary);
   font-size: 24px;
-  border-radius: 12px;
+  border-radius: 20px;
 }
 
 .fm-dish-bottom {
@@ -124,6 +126,6 @@
   right: 0;
   padding: 12px 16px calc(12px + env(safe-area-inset-bottom));
   background-color: #FFFFFF;
-  border-top: 1px solid #F0E4D8;
+  border-top: 1px solid var(--fm-border);
   z-index: 100;
 }
