@@ -27,3 +27,29 @@
   border-radius: 20px;
   margin: 0 0 8px;
 }
+
+/* TP-02 空手说明卡（e-final 屏⑥：PD-001 硬要求 + C-7 空手文案） */
+.fm-empty-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 12px;
+}
+
+.fm-empty-emoji {
+  font-size: 80px;
+  line-height: 1.2;
+}
+
+.fm-empty-title {
+  font-size: 32px;
+  font-weight: 700;
+  color: var(--fm-title);
+}
+
+.fm-empty-text {
+  font-size: 24px;
+  color: var(--fm-text-secondary);
+  line-height: 1.6;
+}

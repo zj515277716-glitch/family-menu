@@ -89,9 +89,15 @@ export const FamilyRulesResponseSchema = FamilyRuleSchema;
  */
 export const GetExclusionsResponseSchema = z.array(ExclusionRuleSchema);
 
-/** POST /api/recommend 响应（3 套候选+理由） */
+/**
+ * POST /api/recommend 响应（3 套候选+理由）。
+ * v0.3（TP-02/PD-012）：新增 optional unmetMustUse —— 必消食材硬过滤空手信号：
+ * 非空 = 这些必消食材无法被任何菜单消耗，本次空手（candidates 为空数组、不建 Plan）；
+ * 正常推荐时字段缺省或为空数组。向后兼容：optional 缺省不影响 v0.2 调用方（先例同 FeedbackRequestSchema.cookResult）。
+ */
 export const RecommendResponseSchema = z.object({
   candidates: z.array(CandidateSchema),
+  unmetMustUse: z.array(z.string()).optional(),
 });
 
 /** 单个计划响应（lock/swap/feedback/repeat） */

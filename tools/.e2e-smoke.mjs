@@ -76,6 +76,21 @@ async function main() {
     `status=${r5.status} 分组=${groups.length} 条目=${items} [${cats}]`
   )
 
+  // 6. TP-02 空手场景（C-7）：必消"苦瓜"菜库里没有 → 200 + candidates=[] + unmetMustUse 原文回传，不建 Plan
+  const r6 = await call('POST', '/api/recommend', {
+    body: { people: 4, timeBudgetMin: 30, mustUse: ['苦瓜'] },
+  })
+  step(
+    'POST /api/recommend 空手（C-7：不建 Plan，unmetMustUse 原文回传）',
+    r6.status === 200 &&
+      Array.isArray(r6.data?.candidates) &&
+      r6.data.candidates.length === 0 &&
+      Array.isArray(r6.data?.unmetMustUse) &&
+      r6.data.unmetMustUse.includes('苦瓜') &&
+      r6.data?.planId === undefined,
+    `status=${r6.status} candidates=${r6.data?.candidates?.length ?? '?'} unmetMustUse=${JSON.stringify(r6.data?.unmetMustUse)} planId=${r6.data?.planId ?? 'undefined'}`
+  )
+
   console.log(`\n== 结果: ${pass} PASS / ${fail} FAIL ==`)
   process.exit(fail === 0 ? 0 : 1)
 }

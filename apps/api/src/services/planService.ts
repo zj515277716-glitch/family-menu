@@ -121,6 +121,40 @@ async function loadEventViews(familyId: string) {
   return events.map(toEventView);
 }
 
+// ── 内部辅助：mustUse 用户原文 -> ingredientId 稳定映射（TP-02） ──
+
+/**
+ * mustUse 用户原文 -> ingredientId 稳定映射。
+ * 匹配顺序：trim -> name 精确 -> aliases 精确 -> 大小写不敏感；
+ * 未映射的原文原样透传（引擎按 ingredientId 匹配不到 -> 必然空手，unmetMustUse 回传原文）。
+ */
+async function resolveMustUseIds(
+  rawNames: string[],
+): Promise<{ ids: string[]; idToRaw: Map<string, string> }> {
+  const ids: string[] = [];
+  const idToRaw = new Map<string, string>();
+  if (rawNames.length === 0) {
+    return { ids, idToRaw };
+  }
+  const ingredients = await prisma.ingredient.findMany();
+  const byKey = new Map<string, string>(); // 小写 name/alias -> ingredientId
+  for (const ing of ingredients) {
+    for (const key of [ing.name, ...ing.aliases]) {
+      const normalized = key.trim().toLowerCase();
+      if (normalized && !byKey.has(normalized)) {
+        byKey.set(normalized, ing.id);
+      }
+    }
+  }
+  for (const raw of rawNames) {
+    const trimmed = raw.trim();
+    const id = byKey.get(trimmed.toLowerCase()) ?? trimmed;
+    ids.push(id);
+    idToRaw.set(id, trimmed);
+  }
+  return { ids, idToRaw };
+}
+
 // ───── planService ─────
 
 export const planService = {
@@ -180,12 +214,13 @@ export const planService = {
 
   async generateRecommendation(
     context: PlanContext,
-  ): Promise<{ candidates: Candidate[]; planId: string }> {
-    const [rules, exclusions, library, history] = await Promise.all([
+  ): Promise<{ candidates: Candidate[]; planId?: string; unmetMustUse?: string[] }> {
+    const [rules, exclusions, library, history, mustUseResolved] = await Promise.all([
       loadFamilyRuleView(FAMILY_ID),
       loadExclusionViews(FAMILY_ID),
       loadMenuViews(),
       loadEventViews(FAMILY_ID),
+      resolveMustUseIds(context.mustUse),
     ]);
 
     const result = recommend({
@@ -194,7 +229,7 @@ export const planService = {
       context: {
         people: context.people,
         timeBudgetMin: context.timeBudgetMin as 15 | 30 | 60,
-        mustUseIngredients: context.mustUse,
+        mustUseIngredients: mustUseResolved.ids,
       },
       library,
       history,
@@ -207,6 +242,17 @@ export const planService = {
       breakdown: sm.breakdown,
       menu: library.find((m) => m.id === sm.menuId),
     }));
+
+    // 空手（PD-001/C-7）：没有任何方案能消耗全部必消 -> 不建 Plan、不写 Event、
+    // 不改今晚设置；返回无法消耗的必消食材原文，供前端渲染空手说明页
+    if (candidates.length === 0) {
+      return {
+        candidates,
+        unmetMustUse: result.unsatisfiableMustUse.map(
+          (id) => mustUseResolved.idToRaw.get(id) ?? id,
+        ),
+      };
+    }
 
     const plan = await prisma.plan.create({
       data: {
@@ -516,7 +562,12 @@ export const planService = {
     }
 
     const context = original.context as PlanContext;
-    const { planId: newPlanId } = await this.generateRecommendation(context);
+    const recommendation = await this.generateRecommendation(context);
+    // 复做遇到空手情境（TP-02 硬过滤）：无新 Plan 可建 -> 如实报 404
+    if (recommendation.planId === undefined) {
+      throw new NotFoundError(`无法复做：该情境下没有能消耗必消食材的方案`);
+    }
+    const newPlanId = recommendation.planId;
 
     const newPlan = await prisma.plan.findUnique({ where: { id: newPlanId } });
     if (!newPlan) {

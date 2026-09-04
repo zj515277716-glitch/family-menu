@@ -10,7 +10,7 @@
 
 ## 已证实的断裂点（代码证据见 [evidence/BASELINE-2026-09-04.md](./evidence/BASELINE-2026-09-04.md)）
 
-1. **必消食材失效**：前端传中文名原文，引擎按 ingredientId 匹配，必不命中，且无任何提示。
+1. **必消食材失效**：前端传中文名原文，引擎按 ingredientId 匹配，必不命中，且无任何提示。——**TP-02 已修复**（中文名→ID 稳定映射 + 引擎硬过滤 + 空手原文回传，见 [evidence/TP-02-2026-09-04.md](./evidence/TP-02-2026-09-04.md)）
 2. **单菜换是假动作**：API 只记一笔事件并原样返回，前端却弹"已换菜"成功提示。
 3. **整套换无菜可换**：种子菜库 4 套菜单、仅 3 套 PUBLISHED；推荐时三套全上，整套换只会打乱旧菜重排。
 4. **反馈学习断链**：Event 表无 menuId 字段，映射层丢弃反馈内容，历史接受度（权重 0.35，最大维度）恒取中性值。
@@ -41,7 +41,9 @@
 - 已完成：[产品确认书](./PRODUCT-CONFIRMATION.md) **A/B/C 全文定稿**（PD-001~012）；UI 基准锁定（PD-011）；功能行为与验收 13 条确认通过，含 3 处默认行为拍板（PD-012）。
 - 已完成：**TP-01 运行与生产安全基线**（2026-09-04，证据见 [evidence/TP-01-2026-09-04.md](./evidence/TP-01-2026-09-04.md)）——本机真实 PostgreSQL（PG 17.5 @ 127.0.0.1:54329）建立，H5 移除 Mock 兜底与令牌硬编码，类型检查修复，并修复了脚手架缺失 `src/index.html` 导致页面打不开的问题。基线 6 个切片任务全部完成。
 - **TP-01 完成标志已达成**：本机前端（:10086）→ API（:3000）→ 真实数据库（:54329）整条链打通，验证 6/6 + 7/7 全绿，禁忌集 66/66。
-- 进行中：按 [TECHNICAL-PLAN.md](./docs/ai-rebuild/TECHNICAL-PLAN.md) 切片序列执行，下一切片 **TP-02**。
+- 已完成：**TP-02 必消食材切片**（2026-09-04，证据见 [evidence/TP-02-2026-09-04.md](./evidence/TP-02-2026-09-04.md)）——中文名→ingredientId 稳定映射（name/aliases 归一）；引擎必消从加分项改**硬过滤**（feasibilityFilter 两轮过滤，PD-001：用不上的方案直接不出现）；契约 v0.3 新增 optional `unmetMustUse`（DEC-012）；空手场景全链路（API 空手不建 Plan/不写 Event + 前端空手卡片屏⑥文案 + C-3 必消已用上横幅）。
+- **TP-02 完成标志已达成**：输入「番茄」→ 推荐/不推荐判定可证据复现（e2e 7/7 含空手用例）；输入「苦瓜」→ 200+`{candidates:[], unmetMustUse:["苦瓜"]}`+不建 Plan；单测 166/166 + 禁忌 69/69 + h5 类型检查全绿。
+- 进行中：按 [TECHNICAL-PLAN.md](./docs/ai-rebuild/TECHNICAL-PLAN.md) 切片序列执行，下一切片 **TP-03（换菜）**；TP-03 开工须一并处理 swapPlan 必消原文映射缺失（TP-02 卡外发现，见 evidence 第 5 节）。
 - 边界：UI 基准 = [e-final.html](./docs/ai-rebuild/ui/e-final.html) + [design-spec.md](./docs/ai-rebuild/ui/design-spec.md)，UI 改动须先改确认书 B 节再动代码；预览 http://localhost:8888/docs/ai-rebuild/ui/e-final.html。
 
-下一步：TP-02 → 依次推进至 TP-08（TP-07 前单独询问服务器/域名/备案）。
+下一步：TP-03 → 依次推进至 TP-08（TP-07 前单独询问服务器/域名/备案）。

@@ -427,6 +427,27 @@ describe('api schemas', () => {
     });
     expect(r.success).toBe(true);
   });
+
+  it('RecommendResponseSchema 带unmetMustUse通过（v0.3 空手信号）', () => {
+    const r = RecommendResponseSchema.safeParse({
+      candidates: [],
+      unmetMustUse: ['苦瓜'],
+    });
+    expect(r.success).toBe(true);
+    if (r.success) {
+      expect(r.data.unmetMustUse).toEqual(['苦瓜']);
+    }
+  });
+
+  it('RecommendResponseSchema 缺省unmetMustUse通过（向后兼容 v0.2）', () => {
+    const r = RecommendResponseSchema.safeParse({
+      candidates: [{ menuId: 'm1', score: 0.9, reasons: ['快'] }],
+    });
+    expect(r.success).toBe(true);
+    if (r.success) {
+      expect(r.data.unmetMustUse).toBeUndefined();
+    }
+  });
 });
 
 // ───── constants ─────

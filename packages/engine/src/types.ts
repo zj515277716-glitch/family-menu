@@ -134,6 +134,8 @@ export interface FilterTrace {
 
 /** recommend 返回类型，对齐 4.2 */
 export interface RecommendResult {
-  candidates: ScoredMenu[]; // 恰好 3 套（不足时如实返回并说明）
+  candidates: ScoredMenu[]; // 恰好 3 套（不足时如实返回并说明；必消无法消耗时为空）
   filtered: FilterTrace[];
+  /** 没有任何可达菜单能消耗的必消食材（ingredientId）——非空即注定空手（PD-001） */
+  unsatisfiableMustUse: string[];
 }

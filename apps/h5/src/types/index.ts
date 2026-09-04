@@ -89,8 +89,13 @@ export interface ShoppingListData {
 
 // ───── API 响应扩展类型 ─────
 
-/** POST /api/recommend 响应（契约 {candidates} + 额外 planId，STEP-05 设计假设#2） */
+/**
+ * POST /api/recommend 响应（契约 RecommendResponse + 额外 planId，STEP-05 设计假设#2）。
+ * TP-02/PD-012（契约 v0.3）：planId 改为可选 —— 必消食材无方案时空手返回（candidates=[] 且不建 Plan）；
+ * unmetMustUse 非空时为无法消耗的必消食材原文（渲染 C-7 空手文案 + 「去掉『X』再试」按钮）。
+ */
 export interface RecommendResult {
   candidates: CandidateView[]
-  planId: string
+  planId?: string
+  unmetMustUse?: string[]
 }

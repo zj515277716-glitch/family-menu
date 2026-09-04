@@ -31,6 +31,8 @@ export default function TonightPage() {
   } = useStore()
   const [mustUseInput, setMustUseInput] = useState('')
   const [loading, setLoading] = useState(false)
+  // TP-02 空手状态：保存 API 回传的"消耗不了的必消食材"（用户原文）；null=非空手
+  const [emptyReason, setEmptyReason] = useState<string[] | null>(null)
 
   // 首次启动检测：无 FamilyRule -> 强制跳 setup（wireframes 第32行）
   useEffect(() => {
@@ -61,12 +63,20 @@ export default function TonightPage() {
     setTonightMustUse(tonightContext.mustUse.filter((x) => x !== item))
   }
 
-  async function handleRecommend() {
+  // TP-02：推荐 + 空手处理（C-7）。candidates 为空时不跳转，页内展示空手说明
+  async function runRecommend(mustUse: string[]) {
     setLoading(true)
     try {
-      const result = await api.recommend(tonightContext)
+      const result = await api.recommend({ ...tonightContext, mustUse })
+      if (result.candidates.length === 0) {
+        // 空手（PD-001）：unmetMustUse = 消耗不了的必消原文；可能为空（必消能分别被
+        // 不同菜单消耗、但没有一整套同时用上全部——DEC-012 兜底场景）
+        setEmptyReason(result.unmetMustUse ?? [])
+        return
+      }
+      setEmptyReason(null)
       setCandidates(result.candidates)
-      setCurrentPlanId(result.planId)
+      setCurrentPlanId(result.planId ?? null)
       Taro.navigateTo({ url: '/pages/candidates/index' })
     } catch (e) {
       console.error('[Tonight] recommend error', e)
@@ -74,6 +84,23 @@ export default function TonightPage() {
     } finally {
       setLoading(false)
     }
+  }
+
+  async function handleRecommend() {
+    await runRecommend(tonightContext.mustUse)
+  }
+
+  // 空手卡片「去掉X再试」：移除消耗不了的必消，按剩余必消重新推荐
+  function handleRetryWithoutUnmet() {
+    if (!emptyReason || emptyReason.length === 0) return
+    const remaining = tonightContext.mustUse.filter((x) => !emptyReason.includes(x))
+    setTonightMustUse(remaining)
+    runRecommend(remaining)
+  }
+
+  // 空手卡片「返回修改必消食材」：关闭卡片回到表单
+  function handleBackToEdit() {
+    setEmptyReason(null)
   }
 
   const mustUseFull = tonightContext.mustUse.length >= 3
@@ -141,6 +168,40 @@ export default function TonightPage() {
           </Text>
         )}
       </View>
+
+      {emptyReason && (
+        <View className="fm-card fm-empty-card">
+          <Text className="fm-empty-emoji">🤔</Text>
+          {emptyReason.length > 0 ? (
+            <>
+              <Text className="fm-empty-title">
+                {`今晚没有能用上「${emptyReason.join('、')}」的做法`}
+              </Text>
+              <Text className="fm-empty-text">
+                {`必消食材是硬要求，用不上的方案不会推荐。现在的菜库里暂时没有用上${emptyReason.join('、')}的菜，我们不会随便给你一套凑数的菜单。`}
+              </Text>
+              <Button
+                type="primary"
+                block
+                loading={loading}
+                onClick={handleRetryWithoutUnmet}
+              >
+                {`去掉「${emptyReason.join('、')}」再试`}
+              </Button>
+            </>
+          ) : (
+            <>
+              <Text className="fm-empty-title">今晚没有找到合适的搭配</Text>
+              <Text className="fm-empty-text">
+                这些食材没能同时出现在同一套菜单里，我们不会随便给你一套凑数的菜单。可以试试调整必消食材或时间。
+              </Text>
+            </>
+          )}
+          <Button block style={{ marginTop: '12px' }} onClick={handleBackToEdit}>
+            返回修改必消食材
+          </Button>
+        </View>
+      )}
 
       <View className="fm-bottom-bar">
         <Button type="primary" block loading={loading} onClick={handleRecommend}>

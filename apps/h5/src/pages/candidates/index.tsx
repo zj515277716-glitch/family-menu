@@ -137,6 +137,12 @@ export default function CandidatesPage() {
         onBackClick={() => Taro.navigateBack()}
       />
 
+      {tonightContext.mustUse.length > 0 && (
+        <View className="fm-mustuse-banner">
+          <Text>{`✓ 必消食材已用上：${tonightContext.mustUse.join('、')}`}</Text>
+        </View>
+      )}
+
       <View className="fm-context-summary">
         <Text>
           {tonightContext.people}人 · {tonightContext.timeBudgetMin}分钟 ·

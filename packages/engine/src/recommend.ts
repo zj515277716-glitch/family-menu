@@ -1,5 +1,5 @@
 // packages/engine/src/recommend.ts
-// 推荐主函数：串联四层管道（safety -> feasibility -> score -> diversify），输出 {candidates, filtered}
+// 推荐主函数：串联四层管道（safety -> feasibility -> score -> diversify），输出 {candidates, filtered, unsatisfiableMustUse}
 import type { FilterTrace, RecommendInput, RecommendResult, ScoredMenu } from './types.js';
 import { safetyFilter } from './safety.js';
 import { feasibilityFilter } from './feasibility.js';
@@ -15,7 +15,7 @@ export function recommend(input: RecommendInput): RecommendResult {
   // 第一层：安全过滤（HARD 禁忌 + 成分未确认）
   const safetyResult = safetyFilter(input.library, input.exclusions);
 
-  // 第二层：可行性过滤（时长/器具硬过滤；mustUse 标记）
+  // 第二层：可行性过滤（时长/器具/mustUse 硬过滤，PD-001）
   const feasibilityResult = feasibilityFilter(
     safetyResult.passed,
     input.context,
@@ -46,5 +46,9 @@ export function recommend(input: RecommendInput): RecommendResult {
     }
   }
 
-  return { candidates, filtered };
+  return {
+    candidates,
+    filtered,
+    unsatisfiableMustUse: feasibilityResult.unsatisfiable,
+  };
 }

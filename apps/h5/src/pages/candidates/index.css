@@ -165,6 +165,16 @@
   height: 200px;
 }
 
+/* TP-02 C-3 必消已用上绿色横幅 */
+.fm-mustuse-banner {
+  padding: 10px 20px;
+  font-size: 22px;
+  color: #3C8C40;
+  background-color: #EAF7EA;
+  border-radius: 12px;
+  margin: 12px 16px;
+}
+
 .fm-lock-success-text {
   color: #FFFFFF;
   font-size: 32px;

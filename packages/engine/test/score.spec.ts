@@ -423,8 +423,8 @@ describe('feasibilityFilter', () => {
     expect(passed).toHaveLength(0);
   });
 
-  it('mustUse 无法消耗 -> 标记不过滤', () => {
-    const { passed, filtered, warnings } = feasibilityFilter(
+  it('mustUse 无法消耗 -> 硬过滤（PD-001）', () => {
+    const { passed, filtered, unsatisfiable } = feasibilityFilter(
       [F.MENU_PLAIN_RICE],
       {
         people: 4,
@@ -433,15 +433,18 @@ describe('feasibilityFilter', () => {
       },
       F.FAMILY_RULE,
     );
-    // ing-rice 可消耗，ing-tomato 不可消耗 -> warning
-    expect(filtered).toHaveLength(0);
-    expect(passed).toHaveLength(1);
-    expect(warnings).toHaveLength(1);
-    expect(warnings[0].message).toContain('ing-tomato');
+    // ing-rice 可消耗，ing-tomato 不可消耗 -> 整套菜单被过滤（不再只是标记）
+    expect(passed).toHaveLength(0);
+    expect(filtered).toHaveLength(1);
+    expect(filtered[0].stage).toBe('feasibility');
+    expect(filtered[0].rule).toContain('未能消耗必消食材');
+    expect(filtered[0].rule).toContain('ing-tomato');
+    // ing-rice 能被可达菜单消耗，ing-tomato 不能 -> unsatisfiable 只有 ing-tomato
+    expect(unsatisfiable).toEqual(['ing-tomato']);
   });
 
-  it('mustUse 全部可消耗 -> 无 warning', () => {
-    const { warnings } = feasibilityFilter(
+  it('mustUse 全部可消耗 -> 通过', () => {
+    const { passed, filtered, unsatisfiable } = feasibilityFilter(
       [F.MENU_PLAIN_RICE],
       {
         people: 4,
@@ -450,18 +453,38 @@ describe('feasibilityFilter', () => {
       },
       F.FAMILY_RULE,
     );
-    expect(warnings).toHaveLength(0);
+    expect(passed).toHaveLength(1);
+    expect(filtered).toHaveLength(0);
+    expect(unsatisfiable).toEqual([]);
+  });
+
+  it('必消食材只出现在超时菜单中 -> 按可达菜单判定 unsatisfiable', () => {
+    // MENU_LAWEI(40min) 含 ing-pork-belly 但超出 30min 预算；
+    // 可达集合中没有任何菜单含 ing-pork-belly -> 判定 unsatisfiable
+    const { passed, filtered, unsatisfiable } = feasibilityFilter(
+      [F.MENU_LAWEI, F.MENU_PLAIN_RICE],
+      {
+        people: 4,
+        timeBudgetMin: 30,
+        mustUseIngredients: ['ing-pork-belly'],
+      },
+      F.FAMILY_RULE,
+    );
+    expect(unsatisfiable).toEqual(['ing-pork-belly']);
+    expect(passed).toHaveLength(0);
+    // MENU_LAWEI 超时 + MENU_PLAIN_RICE 无法消耗必消
+    expect(filtered.map((f) => f.menuId)).toEqual(['menu-lawei', 'menu-plain-rice']);
   });
 
   it('正常通过', () => {
-    const { passed, filtered, warnings } = feasibilityFilter(
+    const { passed, filtered, unsatisfiable } = feasibilityFilter(
       [F.MENU_PLAIN_RICE],
       F.CONTEXT_60MIN,
       F.FAMILY_RULE,
     );
     expect(passed).toHaveLength(1);
     expect(filtered).toHaveLength(0);
-    expect(warnings).toHaveLength(0);
+    expect(unsatisfiable).toEqual([]);
   });
 });
 
@@ -668,6 +691,33 @@ describe('recommend 主函数集成', () => {
     for (let i = 1; i < result.candidates.length; i++) {
       expect(result.candidates[i].score).toBeLessThanOrEqual(result.candidates[i - 1].score);
     }
+  });
+
+  it('必消无法消耗 -> 空手 + unsatisfiableMustUse 透传（PD-001）', () => {
+    // 库中没有任何菜单含 ing-pork-belly -> 必消注定无法消耗
+    const result = recommend({
+      rules: F.FAMILY_RULE,
+      exclusions: [],
+      context: { people: 4, timeBudgetMin: 60, mustUseIngredients: ['ing-pork-belly'] },
+      library: [F.MENU_PLAIN_RICE, F.MENU_TOMATO_EGG],
+      history: [],
+    });
+    expect(result.candidates).toHaveLength(0);
+    expect(result.unsatisfiableMustUse).toEqual(['ing-pork-belly']);
+    expect(result.filtered.some((f) => f.rule.includes('未能消耗必消食材'))).toBe(true);
+  });
+
+  it('必消可消耗 -> 只返回用上必消的菜单', () => {
+    // MENU_PLAIN_RICE 不含番茄 -> 被硬过滤；只有 MENU_TOMATO_EGG 通过
+    const result = recommend({
+      rules: F.FAMILY_RULE,
+      exclusions: [],
+      context: { people: 4, timeBudgetMin: 60, mustUseIngredients: ['ing-tomato'] },
+      library: [F.MENU_PLAIN_RICE, F.MENU_TOMATO_EGG],
+      history: [],
+    });
+    expect(result.unsatisfiableMustUse).toEqual([]);
+    expect(result.candidates.map((c) => c.menuId)).toEqual(['menu-tomato-egg']);
   });
 });
 

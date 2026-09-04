@@ -66,3 +66,36 @@
   实施方案 5.1 路由清单：新增 GET/PUT /api/family/exclusions 两条（原 10 条 -> 12 条），
   契约变更记录在本条，不改实施方案正文。
   冻结 tag：v0.2（代码合并后由队长打 tag；v0.1 保留可回滚）。
+- DEC-012 契约变更 v0.2->v0.3（TP-02 必消食材切片，PD-012 自主开发授权）：2026-09-04 架构师（fm-arch）影响评估通过。
+  背景：PD-001 将必消食材从推荐加分项改为硬过滤（用不上的方案直接不出现）。engine 层已完成改造
+  （feasibilityFilter 返回 {passed, filtered, unsatisfiable}；RecommendResult 新增 unsatisfiableMustUse；
+  pnpm vitest run packages/shared/test/schemas.spec.ts packages/engine/test 实测 3 文件 112 用例全绿，
+  含禁忌集 taboo.spec）。空手场景按 C-7 需要"如实说明页"数据：无法消耗的必消食材原文
+  （渲染文案 + 「去掉『X』再试」按钮），且不生成菜单、不写 Event、不改今晚设置（C-7 保存语义）。
+  变更内容（packages/shared/src/schemas/api.ts，仅 RecommendResponseSchema）：
+  ①新增 optional 字段 unmetMustUse: z.array(z.string())——非空 = 空手信号（candidates 为空数组、
+  不建 Plan、不写 Event），元素为必消食材用户原文；正常推荐时字段缺省或为空数组。
+  ②语义钉死：响应层存"用户原文"（C-7 文案可直接渲染）；engine 的 unsatisfiableMustUse 为
+  ingredientId，API 层（后续切片）负责经 TP-02 的中文名->ingredientId 映射机制回译为原文。
+  向后兼容性：纯新增 optional 字段。zod v4 对象默认 strip 策略，全仓无 .strict()/.passthrough()
+  （已 grep 核实），旧调用方解析不受影响；正常场景响应与 v0.2 等价（字段缺省）；空手响应
+  （candidates=[]）是 v0.2 从未出现的新形态，无旧断言覆盖。就地扩展而非新建 V2 schema
+  （先例同 DEC-011：additive-optional 无破坏性，V2 只会徒增重复代码）。
+  影响范围（后续切片执行，本评估不改任何 .ts 代码）：
+  · apps/api/src/routes/recommend.ts：透传 unmetMustUse（该字段必须过 RecommendResponseSchema
+    parse，否则 strip 策略会将其剥掉——schema 变更是透传的前置条件）；
+  · apps/api/src/services/planService.ts：generateRecommendation 空手时不建 Plan/Event、
+    返回值需携带 unmetMustUse；边界补充——engine unsatisfiable 为空但候选为空（必消可分别被
+    不同菜单消耗、无单一菜单同时消耗全部）时 candidates 亦为空，前端按通用空手文案兜底
+    （C-7 的「去掉『X』再试」按钮仅在 unmetMustUse 非空时展示）；
+  · apps/h5/src/types/index.ts：RecommendResult 已同步 planId?: string + unmetMustUse?: string[]
+    （工作区未提交变更）；连锁点（已实测）：pages/tonight/index.tsx:69
+    setCurrentPlanId(result.planId) 在 strict 下报 TS2345（string|undefined 不可赋给
+    string|null），h5 typecheck 红——前端切片须改为 result.planId ?? null；
+    C-7 空手页按屏⑥落地；client.ts 无需改动（request<T> 直通）；
+  · 测试：packages/shared/test/schemas.spec.ts 建议补 unmetMustUse 传值/缺省两用例；
+    apps/api/test/contract.spec.ts 建议补空手响应（candidates=[] + unmetMustUse）用例。
+  不改 plan.ts（PlanContext.mustUse 本就是用户原文 string[]，请求侧零变更）；不改 prisma/schema.prisma。
+  冻结 tag：v0.3（代码合并后由队长打 tag；v0.2 保留可回滚）。
+  批准状态：架构师评估=批准（2026-09-04，影响面/兼容性/替代方案均已核）；shared schema 修改
+  由主控按本条执行并补测试；合入待用户批准（DEC-005）。

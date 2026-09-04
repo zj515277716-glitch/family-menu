@@ -323,6 +323,26 @@ describe('API contract tests', () => {
       });
       expect(response.statusCode).toBe(400);
     });
+
+    it('returns 200 with empty-hand response (candidates=[] + unmetMustUse, no planId)', async () => {
+      // TP-02 空手（PD-001/C-7）：无方案能消耗全部必消 -> 不建 Plan，返回 unmetMustUse
+      vi.mocked(planService.generateRecommendation).mockResolvedValue({
+        candidates: [],
+        unmetMustUse: ['苦瓜'],
+      });
+      const response = await app.inject({
+        method: 'POST',
+        url: '/api/recommend',
+        cookies: { access_token: 'test-token' },
+        body: { people: 4, timeBudgetMin: 30, mustUse: ['苦瓜'] },
+      });
+      expect(response.statusCode).toBe(200);
+      const body = parseResponse(response.body) as Record<string, unknown>;
+      expect(() => RecommendResponseSchema.parse(body)).not.toThrow();
+      expect(body.candidates).toEqual([]);
+      expect(body.unmetMustUse).toEqual(['苦瓜']);
+      expect(body.planId).toBeUndefined();
+    });
   });
 
   // ── F3: POST /api/plans/:id/lock（AC4） ──
