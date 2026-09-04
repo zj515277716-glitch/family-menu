@@ -1,7 +1,10 @@
 // packages/shared/src/schemas/api.ts
 // API 请求/响应契约，对齐实施方案 5.1 路由清单
 // v0.2（2026-08-07）：新增 ExclusionRule 路由契约 + FeedbackRequest 扩展 cookResult/failPoints
+// v0.4（2026-09-04，DEC-013/TP-03）：SwapPlanRequest reason 改 optional + 新增 newDishId 条件必填（superRefine）；
+//   新增 GET /api/plans/:id/swap-options 契约（SwapOptionsQuery/SwapOption/SwapOptionsResponse）
 import { z } from 'zod';
+import { MealRoleSchema } from './dish.js';
 import { FamilyRuleSchema, ExclusionRuleSchema } from './family.js';
 import { CandidateSchema, PlanContextSchema, PlanSchema, ShoppingListSchema } from './plan.js';
 
@@ -51,11 +54,63 @@ export const PutExclusionsRequestSchema = z.array(ExclusionRuleSchema);
 /** POST /api/recommend 请求体（今晚情境） */
 export const RecommendRequestSchema = PlanContextSchema;
 
-/** POST /api/plans/:id/swap 请求体 */
-export const SwapPlanRequestSchema = z.object({
-  reason: z.string(),
-  swapType: SwapTypeSchema,
-  dishId: z.string().optional(), // 单菜换时填
+/**
+ * POST /api/plans/:id/swap 请求体（v0.4，DEC-013）。
+ * reason 改为可选（PD-003：换菜原因可不填，服务端未填存 null）；
+ * 单菜换：dishId = 被换下的菜（语义钉死），newDishId = 换入的新菜，两者必填且不得相等；
+ * 全换：忽略 dishId/newDishId（v0.3 形态保留，「整套换」功能已推迟但契约枚举不动）。
+ * 行为收紧：v0.3 可过校验的畸形报文（单菜换缺双 id）v0.4 起 400 拒绝（杜绝假成功，非破坏性变更）。
+ */
+export const SwapPlanRequestSchema = z
+  .object({
+    reason: z.string().optional(),
+    swapType: SwapTypeSchema,
+    dishId: z.string().optional(), // 单菜换时必填（superRefine 校验）
+    newDishId: z.string().optional(), // 单菜换时必填（superRefine 校验）
+  })
+  .superRefine((data, ctx) => {
+    if (data.swapType === '单菜换') {
+      if (!data.dishId) {
+        ctx.addIssue({ code: 'custom', path: ['dishId'], message: '单菜换必须携带被换下的菜 dishId' });
+      }
+      if (!data.newDishId) {
+        ctx.addIssue({ code: 'custom', path: ['newDishId'], message: '单菜换必须携带新菜 newDishId' });
+      }
+      if (data.dishId && data.newDishId && data.dishId === data.newDishId) {
+        ctx.addIssue({ code: 'custom', path: ['newDishId'], message: 'newDishId 不能与 dishId 相同（换给自己无意义）' });
+      }
+    }
+  });
+
+/**
+ * GET /api/plans/:id/swap-options 查询参数（v0.4，DEC-013）：被换下的菜 dishId 必填。
+ */
+export const SwapOptionsQuerySchema = z.object({ dishId: z.string().min(1) });
+
+/**
+ * GET /api/plans/:id/swap-options 响应中的单个候选（v0.4，DEC-013）。
+ * 只出事实字段；「不用开火」等派生展示由前端按 equipment 计算（契约不出派生字段）。
+ */
+export const SwapOptionSchema = z.object({
+  dishId: z.string(),
+  name: z.string(),
+  mealRole: MealRoleSchema,
+  cuisine: z.string().optional(),
+  flavorTags: z.array(z.string()),
+  spicyLevel: z.number().int(),
+  activeMinutes: z.number().int(),
+  totalMinutes: z.number().int(),
+  equipment: z.array(z.string()),
+});
+
+/**
+ * GET /api/plans/:id/swap-options 响应（v0.4，DEC-013）。
+ * candidates 为空数组 = 该菜当前没有可换的候选（200 如实态而非错误，对齐确认书 C-6）。
+ */
+export const SwapOptionsResponseSchema = z.object({
+  dishId: z.string(),
+  mealRole: MealRoleSchema,
+  candidates: z.array(SwapOptionSchema),
 });
 
 /** PATCH /api/plans/:id/shopping-list 请求体（勾选状态） */

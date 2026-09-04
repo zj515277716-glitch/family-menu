@@ -1,15 +1,17 @@
 // apps/h5/src/pages/candidates/index.tsx
 // F3 三套候选（/pages/candidates，流式页 NavBar 带返回）
-// 对齐 wireframes.md 第150-234行：评分/理由/菜品详情/整套换/单菜换/锁定
+// 对齐 wireframes.md 第150-234行：评分/理由/菜品详情/锁定
+// TP-03（DEC-013）：换菜移除——换菜要求 LOCKED 状态的真实替换，入口在锁定后的
+// 今晚菜单页（pages/plan）；「整套换」功能明确推迟，删除假合并与假换菜（杜绝假成功）
 import { useState } from 'react'
 import Taro from '@tarojs/taro'
 import { View, Text, Image, ScrollView } from '@tarojs/components'
-import { NavBar, Tag, Rate, Button, Popup, Input } from '@nutui/nutui-react-taro'
+import { NavBar, Tag, Rate, Button } from '@nutui/nutui-react-taro'
 import { ArrowLeft } from '@nutui/icons-react-taro'
 import { api } from '../../api/client'
 import { useStore } from '../../store'
 import EmptyState from '../../components/EmptyState'
-import type { Candidate, CandidateView, DishSnapshot, MenuSnapshot } from '../../types'
+import type { CandidateView } from '../../types'
 import emptyImage from '../../assets/asset-candidates-empty@2x.png'
 import lockSuccessImage from '../../assets/asset-candidates-lock-success@2x.png'
 import dishPlaceholderImage from '../../assets/asset-common-dish-placeholder@2x.png'
@@ -21,35 +23,11 @@ const MEAL_ROLE_LABELS: Record<string, string> = {
   SOUP: '汤',
   STAPLE: '主食',
 }
-const QUICK_REASONS = ['太麻烦', '食材不够', '不喜欢', '其他']
-
-/**
- * 换菜后将 swapPlan 返回的 Plan.candidates（不含 menu 详情）合并 menu 快照，
- * 更新候选显示（对齐 wireframes 第227行「返回新候选替换该卡」）。
- * menu 详情优先复用旧候选已有快照；真 API 未返回时降级为 undefined。
- */
-function mergeCandidates(
-  newCandidates: Candidate[],
-  oldCandidates: CandidateView[],
-): CandidateView[] {
-  const menuMap: Record<string, MenuSnapshot | undefined> = {}
-  oldCandidates.forEach((c) => {
-    if (c.menu) menuMap[c.menuId] = c.menu
-  })
-  return newCandidates.map((c) => ({
-    ...c,
-    // 优先使用 API 返回的 menu 详情（swapPlan 已含 menu），降级到旧候选快照
-    menu: (c as CandidateView).menu ?? menuMap[c.menuId],
-  }))
-}
 
 export default function CandidatesPage() {
-  const { candidates, currentPlanId, setLockedMenu, setCandidates } = useStore()
+  const { candidates, currentPlanId, setLockedMenu } = useStore()
   const tonightContext = useStore((s) => s.tonightContext)
   const [loading, setLoading] = useState(false)
-  const [swapPopupVisible, setSwapPopupVisible] = useState(false)
-  const [swapDish, setSwapDish] = useState<DishSnapshot | null>(null)
-  const [swapReason, setSwapReason] = useState('')
   const [lockSuccess, setLockSuccess] = useState(false)
 
   // 0套空状态（无死胡同，wireframes 第234行）
@@ -70,45 +48,6 @@ export default function CandidatesPage() {
         />
       </View>
     )
-  }
-
-  async function handleSwapMenu() {
-    setLoading(true)
-    try {
-      const plan = await api.swapPlan(currentPlanId!, '全换', '整套换')
-      setCandidates(mergeCandidates(plan.candidates, candidates))
-      Taro.showToast({ title: '已换一套', icon: 'success' })
-    } catch (e) {
-      console.error('[Candidates] swapMenu error', e)
-      Taro.showToast({ title: '换菜失败，重试', icon: 'none' })
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  function openSwapDish(dish: DishSnapshot) {
-    setSwapDish(dish)
-    setSwapReason('')
-    setSwapPopupVisible(true)
-  }
-
-  async function confirmSwapDish() {
-    if (!swapReason.trim()) {
-      Taro.showToast({ title: '请填写换菜原因', icon: 'none' })
-      return
-    }
-    setLoading(true)
-    try {
-      const plan = await api.swapPlan(currentPlanId!, '单菜换', swapReason, swapDish?.id)
-      setCandidates(mergeCandidates(plan.candidates, candidates))
-      Taro.showToast({ title: '已换菜', icon: 'success' })
-      setSwapPopupVisible(false)
-    } catch (e) {
-      console.error('[Candidates] swapDish error', e)
-      Taro.showToast({ title: '换菜失败，重试', icon: 'none' })
-    } finally {
-      setLoading(false)
-    }
   }
 
   async function handleLock(candidate: CandidateView) {
@@ -192,9 +131,6 @@ export default function CandidatesPage() {
                         ))}
                       </View>
                     </View>
-                    <Text className="fm-dish-swap" onClick={() => openSwapDish(d)}>
-                      换
-                    </Text>
                   </View>
                 ))}
               </View>
@@ -210,9 +146,6 @@ export default function CandidatesPage() {
             </View>
 
             <View className="fm-card-actions">
-              <Button size="small" onClick={handleSwapMenu} loading={loading}>
-                整套换
-              </Button>
               <Button
                 type="primary"
                 size="small"
@@ -225,41 +158,6 @@ export default function CandidatesPage() {
           </View>
         ))}
       </ScrollView>
-
-      <Popup
-        visible={swapPopupVisible}
-        position="bottom"
-        round
-        onClose={() => setSwapPopupVisible(false)}
-      >
-        <View className="fm-popup-content">
-          <Text className="fm-popup-title">换菜：{swapDish?.name}</Text>
-          <Text className="fm-label">换菜原因（必填，用于推荐学习）</Text>
-          <View className="fm-tag-row">
-            {QUICK_REASONS.map((r) => (
-              <Tag
-                key={r}
-                type={swapReason === r ? 'primary' : 'default'}
-                onClick={() => setSwapReason(r)}
-              >
-                {r}
-              </Tag>
-            ))}
-          </View>
-          <Input
-            placeholder="或输入原因"
-            value={swapReason}
-            onChange={(v) => setSwapReason(v)}
-            style={{ marginTop: '12px' }}
-          />
-          <View className="fm-popup-actions">
-            <Button onClick={() => setSwapPopupVisible(false)}>取消</Button>
-            <Button type="primary" onClick={confirmSwapDish} loading={loading}>
-              确认换菜
-            </Button>
-          </View>
-        </View>
-      </Popup>
 
       {lockSuccess && (
         <View className="fm-lock-success-mask">

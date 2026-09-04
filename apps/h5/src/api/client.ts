@@ -10,7 +10,8 @@ import type {
   FeedbackResult,
   Plan,
   PlanContext,
-  SwapType,
+  SwapOptionsResponse,
+  SwapPlanRequest,
 } from '@family-menu/shared'
 import type {
   RecommendResult,
@@ -57,7 +58,7 @@ async function request<T>(
   return res.data as T
 }
 
-// ───── 12 条 API 路由方法 ─────
+// ───── 13 条 API 路由方法 ─────
 
 export const api = {
   // 1. GET /api/family/rules -> FamilyRule（404 表示未设置，返回 null）
@@ -96,17 +97,20 @@ export const api = {
     })
   },
 
-  // 7. POST /api/plans/:id/swap <- { reason, swapType, dishId? } -> Plan
-  swapPlan(
-    planId: string,
-    swapType: SwapType,
-    reason: string,
-    dishId?: string,
-  ): Promise<Plan> {
+  // 7. POST /api/plans/:id/swap <- SwapPlanRequest（v0.4：单菜换 dishId+newDishId 必填，reason 选填） -> Plan
+  swapPlan(planId: string, body: SwapPlanRequest): Promise<Plan> {
     return request<Plan>(`/api/plans/${planId}/swap`, {
       method: 'POST',
-      data: { reason, swapType, dishId },
+      data: body,
     })
+  },
+
+  // 13. GET /api/plans/:id/swap-options?dishId=xxx（TP-03/DEC-013；空候选=200+空数组，C-6 如实态）
+  getSwapOptions(planId: string, dishId: string): Promise<SwapOptionsResponse> {
+    return request<SwapOptionsResponse>(
+      `/api/plans/${planId}/swap-options?dishId=${encodeURIComponent(dishId)}`,
+      { method: 'GET' },
+    )
   },
 
   // 8. GET /api/plans/:id/shopping-list -> ShoppingListData

@@ -25,6 +25,20 @@ vi.mock('../src/services/planService.js', () => {
       this.name = 'NotFoundError';
     }
   }
+  class PlanStateError extends Error {
+    constructor(message: string) {
+      super(message);
+      this.name = 'PlanStateError';
+    }
+  }
+  class SwapRecheckError extends Error {
+    readonly details: unknown[];
+    constructor(message: string, details: unknown[] = []) {
+      super(message);
+      this.name = 'SwapRecheckError';
+      this.details = details;
+    }
+  }
   return {
     planService: {
       getFamilyRules: vi.fn(),
@@ -34,6 +48,7 @@ vi.mock('../src/services/planService.js', () => {
       generateRecommendation: vi.fn(),
       lockPlan: vi.fn(),
       swapPlan: vi.fn(),
+      getSwapOptions: vi.fn(),
       getShoppingList: vi.fn(),
       patchShoppingList: vi.fn(),
       addFeedback: vi.fn(),
@@ -41,6 +56,8 @@ vi.mock('../src/services/planService.js', () => {
       repeatPlan: vi.fn(),
     },
     NotFoundError,
+    PlanStateError,
+    SwapRecheckError,
   };
 });
 
@@ -399,13 +416,32 @@ describe('API contract tests', () => {
       expect(() => PlanResponseSchema.parse(body)).not.toThrow();
     });
 
-    it('returns 200 with valid SwapPlanRequest (单菜换)', async () => {
+    it('returns 200 with valid SwapPlanRequest (单菜换 v0.4：dishId+newDishId)', async () => {
       vi.mocked(planService.swapPlan).mockResolvedValue(mockPlan);
       const response = await app.inject({
         method: 'POST',
         url: '/api/plans/test-plan-id/swap',
         cookies: { access_token: 'test-token' },
-        body: { reason: '不吃辣', swapType: '单菜换', dishId: 'dish-1' },
+        body: { reason: '不吃辣', swapType: '单菜换', dishId: 'dish-1', newDishId: 'dish-2' },
+      });
+      expect(response.statusCode).toBe(200);
+      // 透传校验：newDishId 须传给 service（DEC-013 服务端复检）
+      expect(vi.mocked(planService.swapPlan)).toHaveBeenCalledWith(
+        'test-plan-id',
+        '单菜换',
+        'dish-1',
+        'dish-2',
+        '不吃辣',
+      );
+    });
+
+    it('returns 200 without reason (v0.4：reason 可选)', async () => {
+      vi.mocked(planService.swapPlan).mockResolvedValue(mockPlan);
+      const response = await app.inject({
+        method: 'POST',
+        url: '/api/plans/test-plan-id/swap',
+        cookies: { access_token: 'test-token' },
+        body: { swapType: '全换' },
       });
       expect(response.statusCode).toBe(200);
     });
@@ -420,14 +456,105 @@ describe('API contract tests', () => {
       expect(response.statusCode).toBe(400);
     });
 
-    it('returns 400 with missing reason', async () => {
+    it('returns 400 with 单菜换 missing newDishId (v0.4 条件必填)', async () => {
       const response = await app.inject({
         method: 'POST',
         url: '/api/plans/test-plan-id/swap',
         cookies: { access_token: 'test-token' },
-        body: { swapType: '全换' },
+        body: { reason: 'x', swapType: '单菜换', dishId: 'dish-1' },
       });
       expect(response.statusCode).toBe(400);
+    });
+
+    it('returns 400 with v0.3 legacy shape (单菜换不带 newDishId，行为收紧)', async () => {
+      const response = await app.inject({
+        method: 'POST',
+        url: '/api/plans/test-plan-id/swap',
+        cookies: { access_token: 'test-token' },
+        body: { reason: '不吃辣', swapType: '单菜换', dishId: 'dish-1' },
+      });
+      expect(response.statusCode).toBe(400);
+    });
+
+    it('returns 400 with dishId === newDishId (换给自己无意义)', async () => {
+      const response = await app.inject({
+        method: 'POST',
+        url: '/api/plans/test-plan-id/swap',
+        cookies: { access_token: 'test-token' },
+        body: { reason: 'x', swapType: '单菜换', dishId: 'dish-1', newDishId: 'dish-1' },
+      });
+      expect(response.statusCode).toBe(400);
+    });
+  });
+
+  // ── F3: GET /api/plans/:id/swap-options（TP-03/DEC-013） ──
+
+  describe('GET /api/plans/:id/swap-options', () => {
+    it('returns 200 with valid SwapOptionsResponse (有候选)', async () => {
+      vi.mocked(planService.getSwapOptions).mockResolvedValue({
+        dishId: 'dish-1',
+        mealRole: 'MAIN',
+        candidates: [
+          {
+            dishId: 'dish-2',
+            name: '番茄炒蛋',
+            mealRole: 'MAIN',
+            cuisine: '家常',
+            flavorTags: ['清淡'],
+            spicyLevel: 0,
+            activeMinutes: 15,
+            totalMinutes: 20,
+            equipment: ['wok'],
+          },
+        ],
+      });
+      const response = await app.inject({
+        method: 'GET',
+        url: '/api/plans/test-plan-id/swap-options?dishId=dish-1',
+        cookies: { access_token: 'test-token' },
+      });
+      expect(response.statusCode).toBe(200);
+      const body = JSON.parse(response.body) as Record<string, unknown>;
+      expect(body.dishId).toBe('dish-1');
+      expect(body.mealRole).toBe('MAIN');
+      expect(Array.isArray(body.candidates)).toBe(true);
+    });
+
+    it('returns 200 with empty candidates (C-6 空候选如实态)', async () => {
+      vi.mocked(planService.getSwapOptions).mockResolvedValue({
+        dishId: 'dish-1',
+        mealRole: 'MAIN',
+        candidates: [],
+      });
+      const response = await app.inject({
+        method: 'GET',
+        url: '/api/plans/test-plan-id/swap-options?dishId=dish-1',
+        cookies: { access_token: 'test-token' },
+      });
+      expect(response.statusCode).toBe(200);
+      const body = JSON.parse(response.body) as Record<string, unknown>;
+      expect(body.candidates).toEqual([]);
+    });
+
+    it('returns 400 without dishId query', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: '/api/plans/test-plan-id/swap-options',
+        cookies: { access_token: 'test-token' },
+      });
+      expect(response.statusCode).toBe(400);
+    });
+
+    it('returns 404 when dish not in tonight menu', async () => {
+      vi.mocked(planService.getSwapOptions).mockRejectedValue(
+        new NotFoundError('今晚菜单中没有这道菜：dish-x'),
+      );
+      const response = await app.inject({
+        method: 'GET',
+        url: '/api/plans/test-plan-id/swap-options?dishId=dish-x',
+        cookies: { access_token: 'test-token' },
+      });
+      expect(response.statusCode).toBe(404);
     });
   });
 

@@ -30,6 +30,8 @@ import {
   // api
   RecommendRequestSchema,
   SwapPlanRequestSchema,
+  SwapOptionsQuerySchema,
+  SwapOptionsResponseSchema,
   FeedbackRequestSchema,
   PatchShoppingListRequestSchema,
   PutFamilyRulesRequestSchema,
@@ -341,18 +343,74 @@ describe('api schemas', () => {
     expect(r.success).toBe(false);
   });
 
-  it('SwapPlanRequestSchema swapType=全换 通过，非法值拒绝', () => {
-    expect(SwapPlanRequestSchema.safeParse({
-      reason: '太麻烦', swapType: '全换',
-    }).success).toBe(true);
+  it('SwapPlanRequestSchema v0.4 全换通过（reason 可选），非法值拒绝', () => {
+    // 全换不带 reason 也通过（v0.4：reason 可选，PD-003）
+    expect(SwapPlanRequestSchema.safeParse({ swapType: '全换' }).success).toBe(true);
+    expect(SwapPlanRequestSchema.safeParse({ reason: '太麻烦', swapType: '全换' }).success).toBe(true);
     expect(SwapPlanRequestSchema.safeParse({
       reason: '太麻烦', swapType: 'all',
     }).success).toBe(false);
   });
 
-  it('SwapPlanRequestSchema 缺必填 reason 拒绝', () => {
-    const r = SwapPlanRequestSchema.safeParse({ swapType: '单菜换' });
-    expect(r.success).toBe(false);
+  it('SwapPlanRequestSchema v0.4 单菜换条件必填（DEC-013）', () => {
+    // 单菜换带双 id 且不等：通过（reason 可不填）
+    expect(SwapPlanRequestSchema.safeParse({
+      swapType: '单菜换', dishId: 'd1', newDishId: 'd2',
+    }).success).toBe(true);
+    expect(SwapPlanRequestSchema.safeParse({
+      swapType: '单菜换', dishId: 'd1', newDishId: 'd2', reason: '太麻烦',
+    }).success).toBe(true);
+    // 缺 dishId 拒绝
+    expect(SwapPlanRequestSchema.safeParse({ swapType: '单菜换', newDishId: 'd2' }).success).toBe(false);
+    // 缺 newDishId 拒绝
+    expect(SwapPlanRequestSchema.safeParse({ swapType: '单菜换', dishId: 'd1' }).success).toBe(false);
+    // 两个都缺拒绝
+    expect(SwapPlanRequestSchema.safeParse({ swapType: '单菜换' }).success).toBe(false);
+    // dishId === newDishId 拒绝（换给自己无意义）
+    expect(SwapPlanRequestSchema.safeParse({
+      swapType: '单菜换', dishId: 'd1', newDishId: 'd1',
+    }).success).toBe(false);
+    // 行为收紧：v0.3 旧形态（单菜换不带双 id、只带 reason）v0.4 起 400（DEC-013）
+    expect(SwapPlanRequestSchema.safeParse({ reason: '太麻烦', swapType: '单菜换' }).success).toBe(false);
+    // 全换不受条件约束：带/不带 dishId 均通过
+    expect(SwapPlanRequestSchema.safeParse({
+      swapType: '全换', dishId: 'd1', newDishId: 'd1',
+    }).success).toBe(true);
+  });
+
+  it('SwapOptionsQuerySchema dishId 必填非空（v0.4）', () => {
+    expect(SwapOptionsQuerySchema.safeParse({ dishId: 'd1' }).success).toBe(true);
+    expect(SwapOptionsQuerySchema.safeParse({ dishId: '' }).success).toBe(false);
+    expect(SwapOptionsQuerySchema.safeParse({}).success).toBe(false);
+  });
+
+  it('SwapOptionsResponseSchema 候选数组通过，空候选=如实态（C-6）', () => {
+    const validOption = {
+      dishId: 'd2', name: '红烧排骨', mealRole: 'MAIN',
+      cuisine: '家常', flavorTags: ['咸香'], spicyLevel: 1,
+      activeMinutes: 30, totalMinutes: 45, equipment: ['wok'],
+    };
+    // 有候选通过
+    expect(SwapOptionsResponseSchema.safeParse({
+      dishId: 'd1', mealRole: 'MAIN', candidates: [validOption],
+    }).success).toBe(true);
+    // 空候选（共 0 个）也是合法响应
+    const empty = SwapOptionsResponseSchema.safeParse({ dishId: 'd1', mealRole: 'MAIN', candidates: [] });
+    expect(empty.success).toBe(true);
+    if (empty.success) expect(empty.data.candidates).toEqual([]);
+    // 候选缺必填 name 拒绝
+    expect(SwapOptionsResponseSchema.safeParse({
+      dishId: 'd1', mealRole: 'MAIN',
+      candidates: [{
+        dishId: 'd2', mealRole: 'MAIN', flavorTags: [], spicyLevel: 0,
+        activeMinutes: 10, totalMinutes: 15, equipment: [],
+      }],
+    }).success).toBe(false);
+    // 候选 mealRole 非法值拒绝
+    expect(SwapOptionsResponseSchema.safeParse({
+      dishId: 'd1', mealRole: 'MAIN',
+      candidates: [{ ...validOption, mealRole: 'DESSERT' }],
+    }).success).toBe(false);
   });
 
   it('FeedbackRequestSchema result 枚举 cooked/not_cooked/repeat', () => {

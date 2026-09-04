@@ -6,6 +6,8 @@ import type { FastifyPluginAsync } from 'fastify';
 import {
   PlanIdParamsSchema,
   SwapPlanRequestSchema,
+  SwapOptionsQuerySchema,
+  SwapOptionsResponseSchema,
   PatchShoppingListRequestSchema,
   FeedbackRequestSchema,
   PlanResponseSchema,
@@ -47,9 +49,25 @@ export const planRoutes: FastifyPluginAsync = async (app) => {
       params.data.id,
       parsed.data.swapType,
       parsed.data.dishId,
+      parsed.data.newDishId,
       parsed.data.reason,
     );
     return PlanResponseSchema.parse(plan);
+  });
+
+  // ── F3: 换菜候选（TP-03/DEC-013） ──
+  // GET /api/plans/:id/swap-options?dishId=xxx（空候选=200+空数组，C-6 如实态）
+  app.get('/plans/:id/swap-options', async (request, reply) => {
+    const params = PlanIdParamsSchema.safeParse(request.params);
+    if (!params.success) {
+      return reply.code(400).send({ error: 'Invalid plan id' });
+    }
+    const query = SwapOptionsQuerySchema.safeParse(request.query);
+    if (!query.success) {
+      return reply.code(400).send({ error: 'Validation error', details: query.error.issues });
+    }
+    const result = await planService.getSwapOptions(params.data.id, query.data.dishId);
+    return SwapOptionsResponseSchema.parse(result);
   });
 
   // ── F4/F5: 获取采购清单 + 备菜顺序 ──

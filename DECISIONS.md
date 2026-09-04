@@ -99,3 +99,65 @@
   冻结 tag：v0.3（代码合并后由队长打 tag；v0.2 保留可回滚）。
   批准状态：架构师评估=批准（2026-09-04，影响面/兼容性/替代方案均已核）；shared schema 修改
   由主控按本条执行并补测试；合入待用户批准（DEC-005）。
+- DEC-013 契约变更 v0.3->v0.4（TP-03 换菜切片，PD-012 自主开发授权）：2026-09-04 架构师（fm-arch）
+  影响评估通过。
+  背景：TP-03 要求单菜换从「只写 SWAP_DISH 事件不改数据」的假动作改为真实替换并持久化
+  （TECHNICAL-PLAN 17-20 行），完成标志=换菜后界面、数据库、清单三者一致可复现、杜绝假成功；
+  换菜原因改选填（PD-003）；换菜需同类型候选挑选（带耗时/口味，e-final 屏③/④，
+  PRODUCT-CONFIRMATION C-5/C-6）。现状三缺口：SwapPlanRequestSchema.reason 必填违反 PD-003；
+  缺「换成哪道菜」字段（单菜换只知换出不知换入）；无换菜候选查询契约。
+  变更内容（packages/shared/src/schemas/api.ts）：
+  ①SwapPlanRequestSchema：reason 改 optional（PD-003）；新增 optional 字段 newDishId（换入菜）；
+  dishId 语义钉死为「被换下的菜（换出）」；条件必填用 .superRefine 表达——swapType=单菜换时
+  dishId/newDishId 必填且不得相等，全换忽略二者（保持 z.infer 为单一对象类型，不为推迟中的
+  全换路径引入 discriminatedUnion 联合类型改造成本）；
+  ②新增 SwapOptionsQuerySchema（GET /api/plans/:id/swap-options?dishId= 查询参数）；
+  ③新增 SwapOptionSchema（候选卡精简字段：dishId/name/mealRole/cuisine?/flavorTags/
+  spicyLevel/activeMinutes/totalMinutes/equipment——不复用 h5 本地 DishSnapshot（非 shared 契约），
+  不发「不用开火」布尔值，由前端按 equipment 派生）；
+  ④新增 SwapOptionsResponseSchema={dishId 回显, mealRole, candidates: SwapOption[]}；
+  空候选=200+空数组（屏④「共 0 个如实展示」），不是错误。候选排序：activeMinutes 升序、
+  同分按 name 字典序（证据可复现，同引擎先例）。
+  行为收紧声明：单菜换缺 dishId/newDishId 的报文 v0.3 可过校验并写假事件，v0.4 起 400——
+  该形态无合法业务（唯一前端恒带 dishId），属「杜绝假成功」的组成部分，非兼容性破坏。
+  向后兼容性：reason required->optional 为放松（原合法报文全部仍合法，planService 形参本为
+  reason?）；newDishId/新 schema 为纯新增；全换枚举值保留、全换分支代码不动。
+  zod v4 对象默认 strip、全仓无 .strict()/.passthrough()（已核实）。均无破坏性变更，
+  就地扩展而非新建 V2（先例同 DEC-011/DEC-012）。
+  架构裁决（与契约同版本生效）：
+  ·持久化：选「计划内快照」方案——快照即既有 plan.candidates[].menu（recommend 时已持久化的
+  完整 MenuView），单菜换=服务端复检过滤规则后原地重写锁定候选的 menu 快照（新菜继承被换菜
+  槽位）+联动重算 shoppingList+写 SWAP_DISH 事件 {dishId,newDishId,reason,oldDishName,
+  newDishName,regenerated:true}。否决 Plan 级 override（多读取点合并=新的假成功源+需迁移）与
+  copy-on-write（全局内容资产复制污染推荐池+迁移）。prisma/schema.prisma 零改动，纯 Json 内容演化。
+  ·候选过滤：engine 新增纯函数 filterSwapCandidates（safetyFilter 单菜合成复用 -> 器具 ->
+  dish 级时长 -> mustUse 联动：换后菜单必须仍覆盖全部必消，orphaned=必消-换后其他菜食材并集，
+  候选须接住 orphaned，否则不出现——PD-001 不因换菜被击穿）；feasibilityFilter 不复用
+  （mustUse 为菜单级全量覆盖检查，不适用单菜）。服务端对 newDishId 强制复检（400+FilterTrace
+  原因文案），UI 只见过滤后候选不构成豁免。
+  ·备菜顺序联动：确定性串行展开规则——按换后菜品序展开各菜 steps（每步分摊
+  max(1,ceil(activeMinutes/步数)) 分钟，时间线从 0 累加），steps 为空的菜以单条目
+  「做『菜名』」如实占位；换后 totalActiveMinutes=Σ 各菜 activeMinutes（串行估算，与原菜单
+  并行工时的口径差异在此声明）；不做自由文本工序的菜名匹配删除（不可测）。换菜才重算，
+  未换菜旧 Plan 不动。
+  ·清单联动：抽 computeShoppingList 内核，getShoppingList 改快照优先（快照缺失降级现 DB 路径）；
+  修复现存缺陷：每次 GET 以 checked:false 覆盖清空勾选——重算时按 ingredientId 保留勾选；
+  swap 时同步重算并写回 plan.shoppingList，换后 Plan 响应自带新清单（一次请求三一致）。
+  ·旧 Plan 兼容：无 menu 快照的计划首次换菜/查候选时从 DB Menu 懒水合一次；未换菜零影响。
+  影响范围（主控按本条执行，本评估不改任何代码）：
+  ·apps/api：routes/plans.ts（swap 透传 newDishId + 新增 GET swap-options）；planService.ts
+  （swapPlan 单菜换分支重写、新增 getSwapOptions、getShoppingList 抽内核快照优先+勾选保留、
+  新增 PlanStateError->409）；全换分支与 337 行 mustUse 原文未映射问题不动，记遗留；
+  ·apps/h5：client.ts（swapPlan 携 newDishId/reason? + 新增 getSwapOptions）；
+  candidates/index.tsx（删 reason 必填拦截、删 mergeCandidates 本地合并、弹窗重构为屏③
+  两态——候选卡+可选原因 chips / 共 0 个如实空态、失败文案「没换成」）；
+  ·packages/engine：新增 filterSwapCandidates 纯函数+单测（触碰引擎，铁律 8 必跑
+  pnpm test:taboo 100%，跑前停 API dev 进程防 CPU 抢占）；
+  ·不改 packages/shared/schemas/plan.ts（Candidate.menu 维持 z.unknown().optional()，
+  快照=engine MenuView 形状的语义钉死在本条）；不改 prisma/schema.prisma；
+  ·测试：schemas.spec.ts 改写反转用例（「缺 reason 通过」）+新增 newDishId 条件必填用例；
+  engine swap-candidates.spec.ts；api 真实 PG 集成（swap 三一致断言：candidates 快照/
+  shoppingList/Event payload）；e2e 手工清单落 evidence/。
+  冻结 tag：v0.4（代码合并后由队长打 tag；v0.3 保留可回滚）。
+  批准状态：架构师评估=批准（2026-09-04，持久化三方案对比/mustUse 联动口径/备菜顺序算法
+  均已裁决）；shared+engine 修改由主控按本条执行并补测试；合入待用户批准（DEC-005）。

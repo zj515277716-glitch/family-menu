@@ -45,6 +45,9 @@ import {
   PutExclusionsRequestSchema,
   RecommendRequestSchema,
   SwapPlanRequestSchema,
+  SwapOptionsQuerySchema,
+  SwapOptionSchema,
+  SwapOptionsResponseSchema,
   PatchShoppingListRequestSchema,
   FeedbackRequestSchema,
   FamilyRulesResponseSchema,
@@ -99,6 +102,9 @@ export type PutFamilyRulesRequest = z.infer<typeof PutFamilyRulesRequestSchema>;
 export type PutExclusionsRequest = z.infer<typeof PutExclusionsRequestSchema>;
 export type RecommendRequest = z.infer<typeof RecommendRequestSchema>;
 export type SwapPlanRequest = z.infer<typeof SwapPlanRequestSchema>;
+export type SwapOptionsQuery = z.infer<typeof SwapOptionsQuerySchema>;
+export type SwapOption = z.infer<typeof SwapOptionSchema>;
+export type SwapOptionsResponse = z.infer<typeof SwapOptionsResponseSchema>;
 export type PatchShoppingListRequest = z.infer<typeof PatchShoppingListRequestSchema>;
 export type FeedbackRequest = z.infer<typeof FeedbackRequestSchema>;
 export type FamilyRulesResponse = z.infer<typeof FamilyRulesResponseSchema>;

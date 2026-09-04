@@ -11,7 +11,7 @@
 ## 已证实的断裂点（代码证据见 [evidence/BASELINE-2026-09-04.md](./evidence/BASELINE-2026-09-04.md)）
 
 1. **必消食材失效**：前端传中文名原文，引擎按 ingredientId 匹配，必不命中，且无任何提示。——**TP-02 已修复**（中文名→ID 稳定映射 + 引擎硬过滤 + 空手原文回传，见 [evidence/TP-02-2026-09-04.md](./evidence/TP-02-2026-09-04.md)）
-2. **单菜换是假动作**：API 只记一笔事件并原样返回，前端却弹"已换菜"成功提示。
+2. **单菜换是假动作**：API 只记一笔事件并原样返回，前端却弹"已换菜"成功提示。——**TP-03 已修复**（真实替换并持久化：同类型候选挑选+换菜原因选填+清单与备菜顺序联动重算+服务端复检，见 [evidence/TP-03-2026-09-04.md](./evidence/TP-03-2026-09-04.md)）
 3. **整套换无菜可换**：种子菜库 4 套菜单、仅 3 套 PUBLISHED；推荐时三套全上，整套换只会打乱旧菜重排。
 4. **反馈学习断链**：Event 表无 menuId 字段，映射层丢弃反馈内容，历史接受度（权重 0.35，最大维度）恒取中性值。
 5. **Mock 自动兜底**：H5 未配置 API 地址即自动切换假数据演示模式（当前未配置任何 .env，即永远假数据）。
@@ -43,7 +43,9 @@
 - **TP-01 完成标志已达成**：本机前端（:10086）→ API（:3000）→ 真实数据库（:54329）整条链打通，验证 6/6 + 7/7 全绿，禁忌集 66/66。
 - 已完成：**TP-02 必消食材切片**（2026-09-04，证据见 [evidence/TP-02-2026-09-04.md](./evidence/TP-02-2026-09-04.md)）——中文名→ingredientId 稳定映射（name/aliases 归一）；引擎必消从加分项改**硬过滤**（feasibilityFilter 两轮过滤，PD-001：用不上的方案直接不出现）；契约 v0.3 新增 optional `unmetMustUse`（DEC-012）；空手场景全链路（API 空手不建 Plan/不写 Event + 前端空手卡片屏⑥文案 + C-3 必消已用上横幅）。
 - **TP-02 完成标志已达成**：输入「番茄」→ 推荐/不推荐判定可证据复现（e2e 7/7 含空手用例）；输入「苦瓜」→ 200+`{candidates:[], unmetMustUse:["苦瓜"]}`+不建 Plan；单测 166/166 + 禁忌 69/69 + h5 类型检查全绿。
-- 进行中：按 [TECHNICAL-PLAN.md](./docs/ai-rebuild/TECHNICAL-PLAN.md) 切片序列执行，下一切片 **TP-03（换菜）**；TP-03 开工须一并处理 swapPlan 必消原文映射缺失（TP-02 卡外发现，见 evidence 第 5 节）。
+- 已完成：**TP-03 换菜切片（真实替换）**（2026-09-04，证据见 [evidence/TP-03-2026-09-04.md](./evidence/TP-03-2026-09-04.md)）——契约 v0.4（DEC-013：reason 选填+newDishId+SwapOptions 三 schema）；engine `filterSwapCandidates` 五层过滤（安全>一切，PD-001 不因换菜被击穿）；API `GET /swap-options`（空候选=200+空数组）+ `swap` 服务端复检（400+中文原因）+ 锁定候选 menu 快照重写 + 清单/备菜顺序联动重算（勾选保留）；h5 删假合并+换菜弹窗两态（候选带耗时/口味+「共 N 个」如实展示+原因选填）。
+- **TP-03 完成标志已达成**：换菜后界面、数据库、清单三者一致——e2e 28 PASS / 0 FAIL 含 PG 直查三一致（库=界面、库=清单）+SWAP_DISH 事件落库；全量 258/258 + 禁忌 82/82 + h5 类型检查全绿。
+- 进行中：按 [TECHNICAL-PLAN.md](./docs/ai-rebuild/TECHNICAL-PLAN.md) 切片序列执行，下一切片 **TP-04（购物清单）**。
 - 边界：UI 基准 = [e-final.html](./docs/ai-rebuild/ui/e-final.html) + [design-spec.md](./docs/ai-rebuild/ui/design-spec.md)，UI 改动须先改确认书 B 节再动代码；预览 http://localhost:8888/docs/ai-rebuild/ui/e-final.html。
 
-下一步：TP-03 → 依次推进至 TP-08（TP-07 前单独询问服务器/域名/备案）。
+下一步：TP-04 → 依次推进至 TP-08（TP-07 前单独询问服务器/域名/备案；「整套换」在推迟清单，实施时须一并处理 swapPlan 全换分支 mustUse 原文映射）。

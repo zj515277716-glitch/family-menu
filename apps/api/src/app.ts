@@ -13,7 +13,7 @@ import { prisma } from './db.js';
 import { familyRoutes } from './routes/family.js';
 import { recommendRoutes } from './routes/recommend.js';
 import { planRoutes } from './routes/plans.js';
-import { NotFoundError } from './services/planService.js';
+import { NotFoundError, PlanStateError, SwapRecheckError } from './services/planService.js';
 
 // ───── auth 中间件插槽 ─────
 // 阶段1：ACCESS_TOKEN 口令鉴权（cookie）
@@ -53,6 +53,14 @@ export async function buildApp(): Promise<FastifyInstance> {
     // NotFoundError -> 404
     if (error instanceof NotFoundError) {
       return reply.code(404).send({ error: error.message });
+    }
+    // PlanStateError -> 409（状态不允许该操作，如未锁定就换菜，DEC-013）
+    if (error instanceof PlanStateError) {
+      return reply.code(409).send({ error: error.message });
+    }
+    // SwapRecheckError -> 400（换菜服务端复检拒绝，details 携带过滤轨迹，DEC-013）
+    if (error instanceof SwapRecheckError) {
+      return reply.code(400).send({ error: error.message, details: error.details });
     }
     // ZodError -> 400（响应 parse 失败，表示内部数据不符合契约）
     if (error instanceof Error && error.name === 'ZodError') {

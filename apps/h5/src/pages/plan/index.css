@@ -4,6 +4,176 @@
   padding-bottom: 200px;
 }
 
+/* ── TP-03：今晚菜单菜卡区（e-final 屏②） ── */
+
+.fm-menu-block {
+  margin: 12px 16px;
+  background-color: #FFFFFF;
+  border-radius: 20px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
+  padding: 18px 20px;
+}
+
+.fm-menu-block-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 14px;
+}
+
+.fm-menu-block-title {
+  font-size: 30px;
+  font-weight: 700;
+  color: var(--fm-title);
+}
+
+.fm-menu-block-meta {
+  font-size: 22px;
+  color: var(--fm-text-secondary);
+}
+
+.fm-menu-dish-card {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 0;
+  border-bottom: 1px solid var(--fm-border);
+}
+
+.fm-menu-dish-card:last-child {
+  border-bottom: none;
+  padding-bottom: 4px;
+}
+
+.fm-menu-dish-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+
+.fm-menu-dish-name-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.fm-menu-dish-name {
+  font-size: 28px;
+  font-weight: 600;
+  color: var(--fm-title);
+}
+
+.fm-menu-dish-meta {
+  font-size: 22px;
+  color: var(--fm-text-secondary);
+}
+
+.fm-menu-swap-btn {
+  flex-shrink: 0;
+  font-size: 22px;
+  color: var(--fm-primary);
+  padding: 6px 16px;
+  border: 1.5px solid var(--fm-primary);
+  border-radius: 20px;
+  background-color: var(--fm-primary-light);
+}
+
+/* ── TP-03：换菜弹窗（e-final 屏③有候选 / 屏④无候选） ── */
+
+.fm-swap-popup {
+  max-height: 75vh;
+  overflow-y: auto;
+}
+
+.fm-swap-sub {
+  display: block;
+  font-size: 22px;
+  color: var(--fm-text-secondary);
+  margin-bottom: 14px;
+}
+
+.fm-swap-cand-list {
+  max-height: 40vh;
+}
+
+.fm-swap-cand {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  border: 1.5px solid var(--fm-border);
+  border-radius: 16px;
+  padding: 14px 16px;
+  margin-bottom: 10px;
+  background-color: #FFFCF5;
+}
+
+.fm-swap-cand.on {
+  border-color: var(--fm-primary);
+  background-color: var(--fm-primary-light);
+}
+
+.fm-swap-cand-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.fm-swap-cand-name {
+  font-size: 26px;
+  font-weight: 600;
+  color: var(--fm-title);
+}
+
+.fm-swap-cand-meta {
+  font-size: 22px;
+  color: var(--fm-text-secondary);
+}
+
+.fm-swap-cand-pick {
+  flex-shrink: 0;
+  font-size: 22px;
+  color: var(--fm-primary);
+  font-weight: 600;
+}
+
+.fm-swap-hint {
+  display: block;
+  font-size: 22px;
+  color: var(--fm-text-secondary);
+  margin: 8px 0 14px;
+}
+
+/* 屏④空态卡 */
+.fm-swap-empty {
+  text-align: center;
+  padding: 24px 8px;
+}
+
+.fm-swap-empty-emoji {
+  display: block;
+  font-size: 48px;
+  margin-bottom: 10px;
+}
+
+.fm-swap-empty-title {
+  display: block;
+  font-size: 26px;
+  font-weight: 600;
+  color: var(--fm-title);
+  margin-bottom: 8px;
+}
+
+.fm-swap-empty-text {
+  display: block;
+  font-size: 24px;
+  color: var(--fm-text-secondary);
+  line-height: 1.6;
+}
+
 .fm-bottom-bar-secondary {
   position: fixed;
   bottom: 0;

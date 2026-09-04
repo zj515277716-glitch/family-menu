@@ -2,7 +2,8 @@
 // 引擎编排：调 engine.recommend + list-merger.mergeShoppingList + Prisma 持久化
 // 路由薄、逻辑在 services（AGENTS.md 铁律），planService 是 API 层核心业务逻辑
 
-import { recommend } from '@family-menu/engine';
+import { filterSwapCandidates, recommend } from '@family-menu/engine';
+import type { DishView, MenuView } from '@family-menu/engine';
 import { mergeShoppingList, type ShoppingList } from '@family-menu/list-merger';
 import type {
   Candidate,
@@ -10,14 +11,18 @@ import type {
   ExclusionRule,
   FamilyRule,
   FeedbackResult,
+  MealRole,
   Plan,
   PlanContext,
   PlanStatus,
+  PrepSequenceItem,
   PutExclusionsRequest,
+  SwapOptionsResponse,
   SwapType,
 } from '@family-menu/shared';
 import { prisma } from '../db.js';
 import {
+  toDishView,
   toEventView,
   toExclusionView,
   toFamilyRuleView,
@@ -31,6 +36,24 @@ export class NotFoundError extends Error {
   constructor(message: string) {
     super(message);
     this.name = 'NotFoundError';
+  }
+}
+
+/** 计划状态不允许该操作（DEC-013：未锁定就换菜 -> 409） */
+export class PlanStateError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = 'PlanStateError';
+  }
+}
+
+/** 换菜服务端复检拒绝（新菜不符合今晚规则 -> 400，details 携带过滤轨迹） */
+export class SwapRecheckError extends Error {
+  readonly details: unknown[];
+  constructor(message: string, details: unknown[] = []) {
+    super(message);
+    this.name = 'SwapRecheckError';
+    this.details = details;
   }
 }
 
@@ -153,6 +176,135 @@ async function resolveMustUseIds(
     idToRaw.set(id, trimmed);
   }
   return { ids, idToRaw };
+}
+
+// ── 内部辅助：锁定菜单与换菜（TP-03/DEC-013） ──
+
+/** 加载计划并校验已锁定（换菜序列 404 -> 409） */
+async function requireLockedPlan(
+  planId: string,
+): Promise<PlanRow & { lockedMenuId: string }> {
+  const plan = await prisma.plan.findUnique({ where: { id: planId } });
+  if (!plan) {
+    throw new NotFoundError(`Plan ${planId} not found`);
+  }
+  if (plan.status !== 'LOCKED' || !plan.lockedMenuId) {
+    throw new PlanStateError('计划尚未锁定菜单，请先锁定今晚方案');
+  }
+  return plan as PlanRow & { lockedMenuId: string };
+}
+
+/**
+ * 锁定菜单水合（DEC-013 持久化方案 B：快照零迁移）。
+ * 优先读 plan.candidates 中锁定候选的 menu 快照；快照缺失时按 lockedMenuId 从 DB 懒水合。
+ */
+async function hydrateLockedMenu(
+  plan: PlanRow & { lockedMenuId: string },
+): Promise<{ menuView: MenuView; candidateIndex: number }> {
+  const candidates = plan.candidates as Candidate[];
+  const candidateIndex = candidates.findIndex((c) => c.menuId === plan.lockedMenuId);
+  if (candidateIndex === -1) {
+    throw new NotFoundError(`Menu ${plan.lockedMenuId} is not a candidate of plan ${plan.id}`);
+  }
+  const snapshot = candidates[candidateIndex].menu as MenuView | undefined;
+  if (snapshot && Array.isArray(snapshot.dishes)) {
+    return { menuView: snapshot, candidateIndex };
+  }
+  const menu = await prisma.menu.findUnique({
+    where: { id: plan.lockedMenuId },
+    include: {
+      dishes: {
+        include: {
+          dish: {
+            include: {
+              ingredients: { include: { ingredient: true } },
+            },
+          },
+        },
+      },
+    },
+  });
+  if (!menu) {
+    throw new NotFoundError(`Menu ${plan.lockedMenuId} not found`);
+  }
+  return { menuView: toMenuView(menu), candidateIndex };
+}
+
+/** 加载指定角色的 PUBLISHED 菜品候选池（含食材关联） */
+async function loadDishViews(mealRole: MealRole): Promise<DishView[]> {
+  const dishes = await prisma.dish.findMany({
+    where: { status: 'PUBLISHED', mealRole },
+    include: { ingredients: { include: { ingredient: true } } },
+  });
+  return dishes.map(toDishView);
+}
+
+/**
+ * 换菜候选五层过滤（DEC-013）：
+ * safety -> 器具 -> 时长 -> mustUse 联动（接住 orphaned）-> 排除已在菜单。
+ */
+async function runSwapFilter(
+  plan: PlanRow,
+  menuView: MenuView,
+  outgoingDish: DishView,
+): Promise<ReturnType<typeof filterSwapCandidates>> {
+  const [rules, exclusions, mustUseResolved] = await Promise.all([
+    loadFamilyRuleView(FAMILY_ID),
+    loadExclusionViews(FAMILY_ID),
+    resolveMustUseIds((plan.context as PlanContext).mustUse),
+  ]);
+  return filterSwapCandidates({
+    outgoingDish,
+    remainingDishes: menuView.dishes.filter((d) => d.id !== outgoingDish.id),
+    candidates: await loadDishViews(outgoingDish.mealRole),
+    mustUseIngredientIds: mustUseResolved.ids,
+    timeBudgetMin: (plan.context as PlanContext).timeBudgetMin,
+    availableEquipment: rules.equipment,
+    exclusions,
+  });
+}
+
+/** 重算采购清单：merge 后按 ingredientId 保留旧清单勾选状态 */
+function computeShoppingList(
+  menuView: MenuView,
+  previous?: ShoppingList | null,
+): ShoppingList {
+  const merged = mergeShoppingList(toShoppingMenu(menuView));
+  if (!previous) {
+    return merged;
+  }
+  const checkedIds = new Set(
+    previous.groups.flatMap((g) =>
+      g.items.filter((i) => i.checked).map((i) => i.ingredientId),
+    ),
+  );
+  return {
+    groups: merged.groups.map((g) => ({
+      ...g,
+      items: g.items.map((i) => ({ ...i, checked: checkedIds.has(i.ingredientId) })),
+    })),
+  };
+}
+
+/** 备菜顺序确定性串行展开 v1（DEC-013）：按菜品序展开各菜步骤，分钟数均分累加 */
+function buildPrepSequence(dishes: DishView[]): PrepSequenceItem[] {
+  const sequence: PrepSequenceItem[] = [];
+  let cursor = 0;
+  for (const dish of dishes) {
+    const steps = [...dish.steps].sort((a, b) => a.order - b.order);
+    if (steps.length === 0) {
+      // steps 空的条目如实占位
+      sequence.push({ minute: cursor, action: `做「${dish.name}」` });
+      cursor += Math.max(1, Math.ceil(dish.activeMinutes));
+      continue;
+    }
+    const perStep = Math.max(1, Math.ceil(dish.activeMinutes / steps.length));
+    for (const step of steps) {
+      sequence.push({ minute: cursor, action: step.text });
+      cursor += perStep;
+    }
+  }
+  return sequence;
 }
 
 // ───── planService ─────
@@ -306,6 +458,7 @@ export const planService = {
     planId: string,
     swapType: SwapType,
     dishId?: string,
+    newDishId?: string,
     reason?: string,
   ): Promise<Plan> {
     const plan = await prisma.plan.findUnique({ where: { id: planId } });
@@ -410,17 +563,104 @@ export const planService = {
       return toPlan(updated as PlanRow);
     }
 
-    // 单菜换：记录事件，不修改候选
+    // ── 单菜换（DEC-013：真实替换，杜绝假成功） ──
+    if (plan.status !== 'LOCKED' || !plan.lockedMenuId) {
+      throw new PlanStateError('计划尚未锁定菜单，请先锁定今晚方案');
+    }
+    if (!dishId || !newDishId) {
+      throw new SwapRecheckError('单菜换必须携带 dishId 与 newDishId');
+    }
+
+    const { menuView, candidateIndex } = await hydrateLockedMenu(
+      plan as PlanRow & { lockedMenuId: string },
+    );
+    const outgoingDish = menuView.dishes.find((d) => d.id === dishId);
+    if (!outgoingDish) {
+      throw new NotFoundError(`今晚菜单中没有这道菜：${dishId}`);
+    }
+
+    // 服务端复检：新菜须过五层过滤（safety/器具/时长/mustUse 接住 orphaned/不在菜单）
+    const { passed, filtered } = await runSwapFilter(plan, menuView, outgoingDish);
+    const newDish = passed.find((d) => d.id === newDishId);
+    if (!newDish) {
+      const trace = filtered.find((f) => f.menuId === newDishId);
+      throw new SwapRecheckError(
+        trace ? `不能换成这道菜：${trace.rule}` : '不能换成这道菜（不在可换候选池中）',
+        trace ? [trace] : [],
+      );
+    }
+
+    // 快照重写：新菜继承被换菜的槽位，prepSequence/totalActiveMinutes 重算
+    const newDishes = [...menuView.dishes];
+    newDishes[newDishes.findIndex((d) => d.id === dishId)] = newDish;
+    const newMenuView: MenuView = {
+      ...menuView,
+      dishes: newDishes,
+      totalActiveMinutes: newDishes.reduce((sum, d) => sum + d.activeMinutes, 0),
+      prepSequence: buildPrepSequence(newDishes),
+    };
+
+    // 清单重算写回（按 ingredientId 保留勾选）+ 锁定候选快照原地重写
+    const shoppingList = computeShoppingList(
+      newMenuView,
+      (plan.shoppingList as ShoppingList | null) ?? null,
+    );
+    candidates[candidateIndex] = { ...candidates[candidateIndex], menu: newMenuView };
+
+    const updated = await prisma.plan.update({
+      where: { id: planId },
+      data: {
+        candidates: candidates as unknown as object,
+        shoppingList: shoppingList as unknown as object,
+      },
+    });
+
     await prisma.event.create({
       data: {
         familyId: FAMILY_ID,
         planId,
         type: 'SWAP_DISH',
-        payload: { reason, dishId },
+        payload: {
+          dishId,
+          newDishId,
+          reason: reason ?? null,
+          oldDishName: outgoingDish.name,
+          newDishName: newDish.name,
+          regenerated: true,
+        },
       },
     });
 
-    return toPlan(plan as PlanRow);
+    return toPlan(updated as PlanRow);
+  },
+
+  // ── F3: 换菜候选（TP-03/DEC-013） ──
+
+  async getSwapOptions(planId: string, dishId: string): Promise<SwapOptionsResponse> {
+    const plan = await requireLockedPlan(planId);
+    const { menuView } = await hydrateLockedMenu(plan);
+    const outgoingDish = menuView.dishes.find((d) => d.id === dishId);
+    if (!outgoingDish) {
+      throw new NotFoundError(`今晚菜单中没有这道菜：${dishId}`);
+    }
+
+    const { passed } = await runSwapFilter(plan, menuView, outgoingDish);
+
+    return {
+      dishId,
+      mealRole: outgoingDish.mealRole,
+      candidates: passed.map((d) => ({
+        dishId: d.id,
+        name: d.name,
+        mealRole: d.mealRole,
+        cuisine: d.cuisine,
+        flavorTags: d.flavorTags,
+        spicyLevel: d.spicyLevel,
+        activeMinutes: d.activeMinutes,
+        totalMinutes: d.totalMinutes,
+        equipment: d.equipment,
+      })),
+    };
   },
 
   // ── F4/F5: 采购清单 ──
@@ -434,27 +674,15 @@ export const planService = {
       throw new NotFoundError(`Plan ${planId} has no locked menu`);
     }
 
-    const menu = await prisma.menu.findUnique({
-      where: { id: plan.lockedMenuId },
-      include: {
-        dishes: {
-          include: {
-            dish: {
-              include: {
-                ingredients: { include: { ingredient: true } },
-              },
-            },
-          },
-        },
-      },
-    });
-    if (!menu) {
-      throw new NotFoundError(`Menu ${plan.lockedMenuId} not found`);
-    }
-
-    const menuView = toMenuView(menu);
-    const shoppingMenu = toShoppingMenu(menuView);
-    const shoppingList = mergeShoppingList(shoppingMenu);
+    // 快照优先（DEC-013）：从锁定候选的 menu 快照读，缺则懒水合；
+    // 重算后按 ingredientId 保留旧清单勾选状态（修复每次清空勾选的缺陷）
+    const { menuView } = await hydrateLockedMenu(
+      plan as PlanRow & { lockedMenuId: string },
+    );
+    const shoppingList = computeShoppingList(
+      menuView,
+      (plan.shoppingList as ShoppingList | null) ?? null,
+    );
 
     await prisma.plan.update({
       where: { id: planId },
