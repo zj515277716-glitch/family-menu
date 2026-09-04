@@ -16,3 +16,6 @@ apps/api/src/generated/
 
 # SWC 编译器插件（平台特定二进制，Taro 编译时自动下载）
 .swc/
+
+# 本机便携版 PostgreSQL（binaries + 数据目录，不入库）
+.pg/

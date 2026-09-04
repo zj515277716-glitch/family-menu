@@ -1,7 +1,7 @@
 // apps/h5/src/types/index.ts
 // 前端扩展类型：基于 shared v0.1 契约 + 展示层扩展（Menu/Dish 快照）
 // 设计假设：Candidate 契约只含 menuId/score/reasons/breakdown，不含菜单详情；
-// 前端用 CandidateView 承载可选的 MenuSnapshot（Mock 模式提供，真 API 降级）。
+// 前端用 CandidateView 承载可选的 MenuSnapshot（真 API 返回则带，未返回降级）。
 
 import type {
   Candidate,
@@ -42,6 +42,10 @@ export interface DishSnapshot {
   spicyLevel: number
   activeMinutes: number
   equipment: string[]
+  /** 用料（做法页展示用；真 API 未返回时为 undefined） */
+  ingredients?: { ingredientName: string; qty: number; unit: string }[]
+  /** 烹饪步骤（做法页展示用；真 API 未返回时为 undefined） */
+  steps?: { order: number; text: string; parallel?: boolean }[]
 }
 
 /** 菜单快照（候选卡展示用，从 engine MenuView 投影） */
@@ -89,22 +93,4 @@ export interface ShoppingListData {
 export interface RecommendResult {
   candidates: CandidateView[]
   planId: string
-}
-
-// ───── 静态资源模块声明（Taro webpack 图片 import） ─────
-declare module '*.png' {
-  const src: string
-  export default src
-}
-declare module '*.jpg' {
-  const src: string
-  export default src
-}
-declare module '*.jpeg' {
-  const src: string
-  export default src
-}
-declare module '*.webp' {
-  const src: string
-  export default src
 }

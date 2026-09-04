@@ -1,0 +1,792 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>E 完善稿 · 烟火朱砂 — 今晚吃什么（15 屏全状态）</title>
+<style>
+  /* ===== 方案 E tokens（与 docs/ui-redesign/style-options.md §3.2.5 完全一致）===== */
+  :root {
+    --nutui-color-primary: #C8392E;
+    --nutui-color-primary-end: #D85648;
+    --nutui-color-primary-disabled: #E89A90;
+    --nutui-color-primary-light: #F3E0DC;
+    --nutui-color-success: #5C8A4E;
+    --nutui-color-success-end: #72A064;
+    --nutui-color-warning: #D98C2B;
+    --nutui-color-warning-end: #E6A452;
+    --nutui-color-danger: #A82A20;
+    --nutui-color-danger-end: #C04035;
+    --nutui-title-color: #2A2018;
+    --nutui-title-color2: #4A3A2C;
+    --nutui-text-color: #7A6A55;
+    --nutui-text-help: #9A8A75;
+    --nutui-background-color: #FBF6EC;
+    --nutui-background-color2: #F3E9D4;
+    --nutui-background-color3: #E9DCBF;
+    --nutui-cell-background-color: #FFFCF5;
+    --nutui-cell-box-shadow: 0px 2px 12px rgba(200, 57, 46, 0.08);
+    --nutui-tabbar-background-color: #FFFCF5;
+    --nutui-tab-text-color: #7A6A55;
+    --nutui-tab-active-text-color: #C8392E;
+    --nutui-divider-color: #E5D9C2;
+    --nutui-border-color: #E5D9C2;
+    --nutui-border-radius: 12px;
+    --nutui-border-radius-small: 8px;
+    --nutui-border-radius-large: 16px;
+    --fm-font-size-xs: 22px; --fm-font-size-sm: 24px; --fm-font-size-base: 28px;
+    --fm-font-size-lg: 32px; --fm-font-size-xl: 38px; --fm-font-size-xxl: 46px;
+    --fm-line-height: 1.65;
+    --fm-spacing-xs: 8px; --fm-spacing-sm: 12px; --fm-spacing-md: 16px;
+    --fm-spacing-lg: 24px; --fm-spacing-xl: 32px;
+    --fm-radius-card: 12px;
+    --fm-shadow-sm: 0px 1px 6px rgba(200, 57, 46, 0.05);
+    --fm-shadow-card: 0px 2px 12px rgba(200, 57, 46, 0.08);
+    --fm-shadow-lg: 0px 6px 20px rgba(200, 57, 46, 0.10);
+    --fm-card-border: 1px solid #E5D9C2;
+    --fm-card-accent-bar: 2px solid #C8392E;
+    /* 750设计稿 → 375px 预览的半值 */
+    --dz-xs: calc(var(--fm-font-size-xs)/2); --dz-sm: calc(var(--fm-font-size-sm)/2);
+    --dz-base: calc(var(--fm-font-size-base)/2); --dz-lg: calc(var(--fm-font-size-lg)/2);
+    --dz-xl: calc(var(--fm-font-size-xl)/2); --dz-xxl: calc(var(--fm-font-size-xxl)/2);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: #EFE9DD; font-family: -apple-system, "PingFang SC", "HarmonyOS Sans SC", "Source Han Sans SC", "Microsoft YaHei", sans-serif;
+    color: var(--nutui-title-color); display: flex; flex-direction: column; align-items: center;
+    padding: 28px 12px 56px;
+  }
+  .page-title { font-size: 15px; font-weight: 600; color: #4A3A2C; margin-bottom: 4px; }
+  .page-sub { font-size: 12px; color: #7A6A55; margin-bottom: 16px; text-align: center; line-height: 1.6; }
+  /* 预览导航（不属于 App UI） */
+  .nav { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin-bottom: 20px; max-width: 760px; }
+  .nav button {
+    border: 1px solid #DCD0B8; background: #FFFCF5; color: #4A3A2C; font-size: 12px;
+    padding: 6px 14px; border-radius: 999px; cursor: pointer;
+  }
+  .nav button.on { background: var(--nutui-color-primary); border-color: var(--nutui-color-primary); color: #fff; }
+  /* 手机框 */
+  .phone {
+    width: 375px; height: 780px; background: var(--nutui-background-color);
+    border-radius: 40px; border: 9px solid #2B2420; overflow: hidden; position: relative;
+    box-shadow: 0 24px 64px rgba(0,0,0,.22);
+  }
+  .screen { display: none; height: 100%; overflow-y: auto; padding: 28px 16px 92px; }
+  .screen.active { display: block; }
+  .screen::-webkit-scrollbar { width: 0; }
+  /* 通用卡片（米白比页面底更亮 + 关键卡顶部 2px 朱砂条，每页至多 1 张） */
+  .card {
+    background: var(--nutui-cell-background-color); border-radius: var(--fm-radius-card);
+    box-shadow: var(--fm-shadow-card); border: var(--fm-card-border);
+    padding: var(--fm-spacing-md);
+  }
+  .card.accent { border-top: var(--fm-card-accent-bar); border-top-left-radius: var(--fm-radius-card); border-top-right-radius: var(--fm-radius-card); }
+  .gap-lg { height: var(--fm-spacing-lg); } .gap-md { height: var(--fm-spacing-sm); }
+  h1.page { font-size: var(--dz-xxl); font-weight: 600; line-height: var(--fm-line-height); margin-bottom: 4px; }
+  .sub { font-size: var(--dz-sm); color: var(--nutui-text-color); line-height: var(--fm-line-height); }
+  /* 设置屏控件 */
+  .row-label { font-size: var(--dz-lg); font-weight: 600; margin-bottom: var(--fm-spacing-sm); }
+  .stepper { display: flex; align-items: center; gap: var(--fm-spacing-md); }
+  .stepper .num { font-size: var(--dz-xl); font-weight: 600; min-width: 40px; text-align: center; }
+  .step-btn {
+    width: 36px; height: 36px; border-radius: 50%; border: 1px solid var(--nutui-border-color);
+    background: #FFFCF5; color: var(--nutui-color-primary); font-size: 18px; line-height: 1;
+  }
+  .radios { display: flex; gap: var(--fm-spacing-sm); }
+  .radio-chip {
+    flex: 1; text-align: center; padding: 9px 0; font-size: var(--dz-base);
+    border: 1px solid var(--nutui-border-color); border-radius: var(--nutui-border-radius-small); color: var(--nutui-title-color2); background: #FFFCF5;
+  }
+  .radio-chip.on { background: var(--nutui-color-primary-light); border-color: var(--nutui-color-primary); color: var(--nutui-color-primary); font-weight: 600; }
+  .hint {
+    font-size: var(--dz-xs); color: var(--nutui-text-color); line-height: var(--fm-line-height);
+    background: var(--nutui-background-color2); border-radius: var(--nutui-border-radius-small); padding: 8px 12px;
+  }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; }
+  .chip {
+    display: inline-flex; align-items: center; gap: 4px; font-size: var(--dz-base);
+    background: var(--nutui-color-primary-light); color: var(--nutui-title-color2);
+    padding: 5px 12px; border-radius: 999px;
+  }
+  .chip b { color: var(--nutui-color-primary); font-weight: 600; }
+  .chip.must b { color: var(--nutui-color-success); }
+  .fake-input {
+    border: 1px solid var(--nutui-border-color); border-radius: var(--nutui-border-radius-small);
+    padding: 10px 12px; font-size: var(--dz-base); color: var(--nutui-text-help); background: #FFFCF5;
+  }
+  /* 按钮 */
+  .btn-primary {
+    display: block; width: 100%; text-align: center; color: #fff; font-size: var(--dz-lg); font-weight: 600;
+    padding: 14px 0; border-radius: var(--fm-radius-card); border: none; cursor: pointer;
+    background: linear-gradient(135deg, var(--nutui-color-primary), var(--nutui-color-primary-end));
+    box-shadow: var(--fm-shadow-lg);
+  }
+  .btn-ghost {
+    display: block; width: 100%; text-align: center; background: transparent; color: var(--nutui-text-color);
+    font-size: var(--dz-base); padding: 12px 0; border: none; cursor: pointer;
+  }
+  /* 提示横幅：成功 / 错误（成对组件） */
+  .ok-banner {
+    display: flex; align-items: center; gap: 8px; background: rgba(92,138,78,.13);
+    color: var(--nutui-color-success); font-size: var(--dz-base); font-weight: 600;
+    border-radius: var(--nutui-border-radius-small); padding: 10px 12px;
+  }
+  .banner-error {
+    display: flex; align-items: center; gap: 8px; background: rgba(168,42,32,.10);
+    color: var(--nutui-color-danger); font-size: var(--dz-base); font-weight: 600;
+    border: 1px solid rgba(168,42,32,.25);
+    border-radius: var(--nutui-border-radius-small); padding: 10px 12px;
+  }
+  /* 菜品卡 */
+  .dish { display: flex; align-items: center; gap: var(--fm-spacing-md); }
+  .dish-img {
+    width: 56px; height: 56px; border-radius: var(--nutui-border-radius-small); flex: none;
+    background: var(--nutui-background-color2); display: flex; align-items: center; justify-content: center; font-size: 26px;
+    position: relative;
+  }
+  .dish-img::after {
+    content: "试做实拍位"; position: absolute; bottom: 2px; right: 3px; font-size: 8px; color: var(--nutui-text-help);
+  }
+  .dish-main { flex: 1; min-width: 0; }
+  .dish-name { font-size: var(--dz-lg); font-weight: 600; line-height: 1.4; }
+  .dish-meta { font-size: var(--dz-sm); color: var(--nutui-text-color); margin-top: 2px; }
+  .role-tag {
+    font-size: var(--dz-xs); color: var(--nutui-color-primary); background: var(--nutui-color-primary-light);
+    padding: 2px 8px; border-radius: 999px; margin-left: 6px; vertical-align: 2px;
+  }
+  .btn-swap {
+    border: 1px solid var(--nutui-border-color); background: #FFFCF5; color: var(--nutui-title-color2);
+    font-size: var(--dz-sm); padding: 7px 12px; border-radius: 999px; flex: none; cursor: pointer;
+  }
+  .timeline { list-style: none; }
+  .timeline li { display: flex; gap: 12px; padding: 6px 0; font-size: var(--dz-base); color: var(--nutui-title-color2); align-items: baseline; }
+  .timeline .t { color: var(--nutui-color-primary); font-weight: 600; min-width: 44px; font-size: var(--dz-sm); }
+  /* TabBar */
+  .tabbar {
+    position: absolute; left: 0; right: 0; bottom: 0; height: 72px;
+    background: var(--nutui-tabbar-background-color); border-top: 1px solid var(--nutui-divider-color);
+    display: flex; z-index: 5;
+  }
+  .tab { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; }
+  .tab .ico { width: 26px; height: 26px; border-radius: 8px; background: var(--nutui-background-color2); display: flex; align-items: center; justify-content: center; font-size: 14px; }
+  .tab .lb { font-size: 10px; color: var(--nutui-tab-text-color); }
+  .tab.on .lb { color: var(--nutui-tab-active-text-color); font-weight: 600; }
+  .tab.on .ico { background: var(--nutui-color-primary-light); }
+  /* 弹窗（换菜） */
+  .dim-backdrop { position: absolute; inset: 0; background: rgba(42,32,24,.5); z-index: 8; }
+  .sheet-back { position: absolute; inset: 0; padding: 28px 16px 92px; opacity: .35; pointer-events: none; }
+  .sheet {
+    position: absolute; left: 0; right: 0; bottom: 72px; z-index: 9;
+    background: var(--nutui-cell-background-color); border-radius: var(--nutui-border-radius-large) var(--nutui-border-radius-large) 0 0;
+    box-shadow: var(--fm-shadow-lg); padding: var(--fm-spacing-lg) var(--fm-spacing-md) var(--fm-spacing-md);
+    border-top: var(--fm-card-accent-bar);
+  }
+  .sheet h2 { font-size: var(--dz-lg); font-weight: 600; margin-bottom: 4px; }
+  .cand { display: flex; align-items: center; gap: 12px; border: 1px solid var(--nutui-border-color); border-radius: var(--fm-radius-card); padding: 12px; background: #FFFCF5; }
+  /* 统一选项 chip（换菜原因等所有可选小选项） */
+  .chip-opts { display: flex; flex-wrap: wrap; gap: 8px; margin: 8px 0 2px; }
+  .chip-opt {
+    font-size: var(--dz-base); padding: 6px 14px; border-radius: 999px;
+    border: 1px solid var(--nutui-border-color); color: var(--nutui-title-color2); background: #FFFCF5;
+  }
+  .chip-opt.on { border-color: var(--nutui-color-primary); color: var(--nutui-color-primary); background: var(--nutui-color-primary-light); font-weight: 600; }
+  /* 空态 */
+  .empty-card { text-align: center; padding: var(--fm-spacing-xl) var(--fm-spacing-md); }
+  .empty-emoji { font-size: 40px; margin-bottom: var(--fm-spacing-sm); }
+  .empty-title { font-size: var(--dz-lg); font-weight: 600; margin-bottom: var(--fm-spacing-xs); }
+  .empty-text { font-size: var(--dz-base); color: var(--nutui-text-color); line-height: var(--fm-line-height); }
+  /* 骨架屏（加载态） */
+  .skel {
+    background: linear-gradient(90deg, var(--nutui-background-color2) 25%, #FBF3E0 37%, var(--nutui-background-color2) 63%);
+    background-size: 400% 100%;
+    animation: fm-shimmer 1.2s ease infinite;
+    border-radius: var(--nutui-border-radius-small);
+  }
+  @keyframes fm-shimmer { 0% { background-position: 100% 0; } 100% { background-position: 0 0; } }
+  .skel-banner { height: 38px; }
+  .skel-ava { width: 56px; height: 56px; flex: none; }
+  .skel-line { height: 14px; margin: 7px 0; }
+  .skel-line.short { width: 60%; }
+  .skel-block { height: 110px; }
+  /* 清单 */
+  .group-title { font-size: var(--dz-sm); color: var(--nutui-text-color); margin: var(--fm-spacing-md) 0 var(--fm-spacing-xs); font-weight: 600; }
+  .li { display: flex; align-items: center; gap: 10px; padding: 10px 0; border-bottom: 1px solid var(--nutui-divider-color); }
+  .li:last-child { border-bottom: none; }
+  .li .name { font-size: var(--dz-base); color: var(--nutui-title-color); flex: 1; }
+  .li .qty { font-size: var(--dz-base); color: var(--nutui-title-color2); }
+  .tag-have {
+    font-size: var(--dz-xs); background: rgba(92,138,78,.15); color: var(--nutui-color-success);
+    padding: 2px 8px; border-radius: 999px; flex: none; font-weight: 600;
+  }
+  .tag-pantry { font-size: var(--dz-xs); background: var(--nutui-background-color2); color: var(--nutui-text-color); padding: 2px 8px; border-radius: 999px; flex: none; }
+  /* 标签族：历史结果（ok/warn/bad/skip）+ 忌口（hard/soft） */
+  .tag-ok { font-size: var(--dz-xs); background: rgba(92,138,78,.15); color: var(--nutui-color-success); padding: 2px 8px; border-radius: 999px; flex: none; font-weight: 600; }
+  .tag-warn { font-size: var(--dz-xs); background: rgba(217,140,43,.15); color: var(--nutui-color-warning); padding: 2px 8px; border-radius: 999px; flex: none; font-weight: 600; }
+  .tag-bad { font-size: var(--dz-xs); background: rgba(168,42,32,.12); color: var(--nutui-color-danger); padding: 2px 8px; border-radius: 999px; flex: none; font-weight: 600; }
+  .tag-skip { font-size: var(--dz-xs); background: var(--nutui-background-color2); color: var(--nutui-text-color); padding: 2px 8px; border-radius: 999px; flex: none; }
+  .tag-hard { font-size: var(--dz-xs); background: rgba(168,42,32,.10); color: var(--nutui-color-danger); border: 1px solid rgba(168,42,32,.30); padding: 2px 8px; border-radius: 999px; flex: none; font-weight: 600; }
+  .tag-soft { font-size: var(--dz-xs); background: var(--nutui-background-color2); color: var(--nutui-title-color2); border: 1px solid var(--nutui-border-color); padding: 2px 8px; border-radius: 999px; flex: none; }
+  /* 历史记录行 */
+  .rec {
+    background: var(--nutui-cell-background-color); border-radius: var(--fm-radius-card);
+    box-shadow: var(--fm-shadow-card); border: var(--fm-card-border); padding: var(--fm-spacing-md);
+  }
+  .rec-date { font-size: var(--dz-base); font-weight: 600; color: var(--nutui-text-color); margin-bottom: 4px; }
+  .rec-dishes { font-size: var(--dz-lg); font-weight: 600; line-height: 1.5; }
+  .rec-meta { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin-top: 8px; font-size: var(--dz-xs); color: var(--nutui-text-help); }
+  /* 反馈三问 */
+  .q-title { font-size: var(--dz-lg); font-weight: 600; margin: var(--fm-spacing-md) 0 var(--fm-spacing-sm); }
+  .opts { display: flex; gap: 8px; }
+  .opt {
+    flex: 1; text-align: center; padding: 11px 0; font-size: var(--dz-base); border-radius: var(--nutui-border-radius-small);
+    border: 1px solid var(--nutui-border-color); background: #FFFCF5; color: var(--nutui-title-color2);
+  }
+  .opt.on { background: var(--nutui-color-primary); border-color: var(--nutui-color-primary); color: #fff; font-weight: 600; }
+  .opt.warn.on { background: var(--nutui-color-warning); border-color: var(--nutui-color-warning); }
+  .opt.bad.on { background: var(--nutui-color-danger); border-color: var(--nutui-color-danger); }
+  /* 成功态 */
+  .done-wrap { text-align: center; padding: var(--fm-spacing-xl) 0 var(--fm-spacing-lg); }
+  .done-ico {
+    width: 72px; height: 72px; margin: 0 auto var(--fm-spacing-md); border-radius: 50%;
+    background: rgba(92,138,78,.15); color: var(--nutui-color-success);
+    font-size: 34px; font-weight: 700; display: flex; align-items: center; justify-content: center;
+  }
+  .done-title { font-size: var(--dz-xl); font-weight: 600; margin-bottom: var(--fm-spacing-xs); }
+  .done-text { font-size: var(--dz-base); color: var(--nutui-text-color); line-height: var(--fm-line-height); }
+  /* 做法页 */
+  .back { display: inline-block; font-size: var(--dz-sm); color: var(--nutui-text-color); margin-bottom: var(--fm-spacing-sm); cursor: pointer; }
+  .photo-ph {
+    height: 170px; border-radius: var(--fm-radius-card); background: var(--nutui-background-color2);
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px;
+    font-size: 44px; position: relative;
+  }
+  .photo-ph span { font-size: 10px; color: var(--nutui-text-help); }
+  .ing-li { display: flex; justify-content: space-between; padding: 9px 0; border-bottom: 1px solid var(--nutui-divider-color); font-size: var(--dz-base); }
+  .ing-li:last-child { border-bottom: none; }
+  .step-li { display: flex; gap: 10px; padding: 9px 0; font-size: var(--dz-base); color: var(--nutui-title-color2); line-height: var(--fm-line-height); align-items: baseline; }
+  .step-no {
+    flex: none; width: 22px; height: 22px; border-radius: 50%; background: var(--nutui-color-primary-light);
+    color: var(--nutui-color-primary); font-size: var(--dz-xs); font-weight: 600;
+    display: flex; align-items: center; justify-content: center; align-self: flex-start; margin-top: 3px;
+  }
+  /* 长期设置 · 忌口行 */
+  .avoid-li { padding: 10px 0; border-bottom: 1px solid var(--nutui-divider-color); }
+  .avoid-li:last-child { border-bottom: none; }
+  .avoid-head { display: flex; align-items: center; gap: 8px; }
+  .avoid-name { font-size: var(--dz-base); color: var(--nutui-title-color); flex: 1; font-weight: 600; }
+  .avoid-desc { font-size: var(--dz-xs); color: var(--nutui-text-help); margin-top: 4px; line-height: var(--fm-line-height); }
+</style>
+</head>
+<body>
+  <div class="page-title">E 方案 · 烟火朱砂 — 已定稿（2026-09-04，PD-011）</div>
+  <div class="page-sub">15 屏覆盖全部关键页面状态：正常 / 加载 / 空 / 错误 / 成功。统一设计规范见同目录 design-spec.md。<br>内容为真实菜库数据（张家四口），行为为已确认的产品决定（PD-001~009）。UI 基准已锁定（PD-011），本稿即开发落地的唯一视觉依据。</div>
+
+  <div class="nav">
+    <button data-s="s1" class="on">① 设置·必消</button>
+    <button data-s="s2">② 菜单·正常</button>
+    <button data-s="s3">③ 换菜·有候选</button>
+    <button data-s="s4">④ 换菜·无候选</button>
+    <button data-s="s5">⑤ 菜单·加载中</button>
+    <button data-s="s6">⑥ 空手场景</button>
+    <button data-s="s7">⑦ 清单·正常</button>
+    <button data-s="s8">⑧ 清单·空态</button>
+    <button data-s="s9">⑨ 反馈·填写</button>
+    <button data-s="s10">⑩ 反馈·成功</button>
+    <button data-s="s11">⑪ 菜品做法页</button>
+    <button data-s="s12">⑫ 历史·有记录</button>
+    <button data-s="s13">⑬ 历史·空态</button>
+    <button data-s="s14">⑭ 设置·长期</button>
+    <button data-s="s15">⑮ 未连接服务</button>
+  </div>
+
+  <div class="phone">
+
+    <!-- ① 设置·必消（今晚流程入口） -->
+    <section class="screen active" id="s1">
+      <h1 class="page">今晚吃什么</h1>
+      <div class="sub">张家四口 · 家常/湘菜 · 忌口：花生（过敏）、内脏（不吃）</div>
+      <div class="gap-lg"></div>
+
+      <div class="card accent">
+        <div class="row-label">几个人吃？</div>
+        <div class="stepper">
+          <button class="step-btn">−</button><span class="num">4</span><button class="step-btn">＋</button>
+          <span class="sub" style="margin-left:4px">默认 4 人，可临时改</span>
+        </div>
+      </div>
+      <div class="gap-md"></div>
+
+      <div class="card">
+        <div class="row-label">今晚有多少时间？</div>
+        <div class="radios">
+          <div class="radio-chip on">30 分钟</div>
+          <div class="radio-chip">60 分钟</div>
+        </div>
+      </div>
+      <div class="gap-md"></div>
+
+      <div class="card">
+        <div class="row-label">冰箱里必须消耗的？</div>
+        <div class="chips">
+          <span class="chip must"><b>番茄</b> ×</span>
+          <span class="chip must"><b>鸡蛋</b> ×</span>
+        </div>
+        <div class="gap-md"></div>
+        <div class="fake-input">搜索食材，如：土豆、西兰花…</div>
+      </div>
+      <div class="gap-lg"></div>
+
+      <button class="btn-primary" onclick="go('s5')">推荐今晚吃什么</button>
+      <button class="btn-ghost" onclick="go('s12')">先看看历史吃过什么</button>
+    </section>
+
+    <!-- ② 菜单·正常（正常态） -->
+    <section class="screen" id="s2">
+      <h1 class="page">今晚的菜单</h1>
+      <div class="sub">工作日快手套餐 · 全程 25 分钟 · 按 4 人份 · 点菜卡可看做法</div>
+      <div class="gap-md"></div>
+      <div class="ok-banner">✓ 必消食材已用上：番茄、鸡蛋</div>
+      <div class="gap-md"></div>
+
+      <div class="card accent dish" onclick="go('s11')" style="cursor:pointer">
+        <div class="dish-img">🍅</div>
+        <div class="dish-main">
+          <div class="dish-name">番茄炒蛋<span class="role-tag">主菜</span></div>
+          <div class="dish-meta">约 15 分钟 · 清淡 · 酸甜</div>
+        </div>
+        <button class="btn-swap" onclick="event.stopPropagation()">换一道</button>
+      </div>
+      <div class="gap-md"></div>
+      <div class="card dish">
+        <div class="dish-img">🥬</div>
+        <div class="dish-main">
+          <div class="dish-name">蒜蓉青菜<span class="role-tag">配菜</span></div>
+          <div class="dish-meta">约 8 分钟 · 清淡</div>
+        </div>
+        <button class="btn-swap" onclick="go('s3')">换一道</button>
+      </div>
+      <div class="gap-md"></div>
+      <div class="card dish">
+        <div class="dish-img">🍲</div>
+        <div class="dish-main">
+          <div class="dish-name">紫菜蛋花汤<span class="role-tag">汤</span></div>
+          <div class="dish-meta">约 10 分钟 · 清淡</div>
+        </div>
+        <button class="btn-swap">换一道</button>
+      </div>
+      <div class="gap-md"></div>
+
+      <div class="card">
+        <div class="row-label">备菜顺序</div>
+        <ul class="timeline">
+          <li><span class="t">0 分钟</span>烧水</li>
+          <li><span class="t">3 分钟</span>切番茄打散鸡蛋</li>
+          <li><span class="t">8 分钟</span>炒番茄炒蛋</li>
+          <li><span class="t">18 分钟</span>炒青菜</li>
+          <li><span class="t">22 分钟</span>做紫菜蛋花汤</li>
+        </ul>
+      </div>
+      <div class="gap-lg"></div>
+
+      <button class="btn-primary" onclick="go('s7')">就吃这套</button>
+      <button class="btn-ghost" onclick="go('s7')">查看购物清单 →</button>
+    </section>
+
+    <!-- ③ 换菜·有候选（弹窗态） -->
+    <section class="screen" id="s3" style="position:relative; overflow:hidden;">
+      <div class="sheet-back">
+        <h1 class="page">今晚的菜单</h1>
+        <div class="sub">工作日快手套餐 · 全程 25 分钟 · 按 4 人份</div>
+        <div class="gap-md"></div>
+        <div class="card dish"><div class="dish-img">🍅</div><div class="dish-main"><div class="dish-name">番茄炒蛋</div><div class="dish-meta">约 15 分钟</div></div></div>
+        <div class="gap-md"></div>
+        <div class="card dish"><div class="dish-img">🥬</div><div class="dish-main"><div class="dish-name">蒜蓉青菜</div><div class="dish-meta">约 8 分钟</div></div></div>
+        <div class="gap-md"></div>
+        <div class="card dish"><div class="dish-img">🍲</div><div class="dish-main"><div class="dish-name">紫菜蛋花汤</div><div class="dish-meta">约 10 分钟</div></div></div>
+      </div>
+      <div class="dim-backdrop"></div>
+      <div class="sheet">
+        <h2>换掉「蒜蓉青菜」</h2>
+        <div class="sub">候选来自同角色（配菜），共 1 个——有多少如实展示。</div>
+        <div class="gap-md"></div>
+        <div class="cand">
+          <div class="dish-img">🥒</div>
+          <div class="dish-main">
+            <div class="dish-name">凉拌黄瓜</div>
+            <div class="dish-meta">约 8 分钟 · 清爽 · 不用开火</div>
+          </div>
+          <button class="btn-swap" style="border-color:var(--nutui-color-primary); color:var(--nutui-color-primary);">换成这道</button>
+        </div>
+        <div class="gap-md"></div>
+        <div class="row-label" style="font-size:var(--dz-base)">为什么换？（可选）</div>
+        <div class="chip-opts">
+          <span class="chip-opt on">做腻了</span>
+          <span class="chip-opt">家里没有食材</span>
+          <span class="chip-opt">时间不够</span>
+          <span class="chip-opt">想换个口味</span>
+        </div>
+        <div class="sub">不选原因也可以直接换。</div>
+        <div class="gap-md"></div>
+        <button class="btn-primary" onclick="go('s2')">确认换菜</button>
+        <button class="btn-ghost" onclick="go('s2')">先不换了</button>
+      </div>
+      <div class="tabbar" style="z-index:10">
+        <div class="tab on" data-tab="tonight"><div class="ico">🍛</div><div class="lb">今晚</div></div>
+        <div class="tab" data-tab="history"><div class="ico">📔</div><div class="lb">历史</div></div>
+        <div class="tab" data-tab="settings"><div class="ico">⚙️</div><div class="lb">设置</div></div>
+      </div>
+    </section>
+
+    <!-- ④ 换菜·无候选（空结果弹窗：共 0 个如实展示） -->
+    <section class="screen" id="s4" style="position:relative; overflow:hidden;">
+      <div class="sheet-back">
+        <h1 class="page">今晚的菜单</h1>
+        <div class="sub">工作日快手套餐 · 全程 25 分钟 · 按 4 人份</div>
+        <div class="gap-md"></div>
+        <div class="card dish"><div class="dish-img">🍅</div><div class="dish-main"><div class="dish-name">番茄炒蛋</div><div class="dish-meta">约 15 分钟</div></div></div>
+        <div class="gap-md"></div>
+        <div class="card dish"><div class="dish-img">🥬</div><div class="dish-main"><div class="dish-name">蒜蓉青菜</div><div class="dish-meta">约 8 分钟</div></div></div>
+        <div class="gap-md"></div>
+        <div class="card dish"><div class="dish-img">🍲</div><div class="dish-main"><div class="dish-name">紫菜蛋花汤</div><div class="dish-meta">约 10 分钟</div></div></div>
+      </div>
+      <div class="dim-backdrop"></div>
+      <div class="sheet">
+        <h2>换掉「蒜蓉青菜」</h2>
+        <div class="sub">候选来自同角色（配菜），共 0 个——有多少如实展示。</div>
+        <div class="gap-md"></div>
+        <div class="empty-card" style="padding:var(--fm-spacing-lg) var(--fm-spacing-xs)">
+          <div class="empty-emoji">🤷</div>
+          <div class="empty-title" style="font-size:var(--dz-base)">暂时没有能换的配菜</div>
+          <div class="empty-text">同样条件下（配菜 · 30 分钟内 · 避开花生和内脏），<br>菜库里暂时没有别的配菜。<br>我们不会拿不合条件的菜凑数。</div>
+        </div>
+        <div class="gap-md"></div>
+        <button class="btn-primary" onclick="go('s2')">先保持这道菜</button>
+        <button class="btn-ghost" onclick="go('s14')">去长期设置看看</button>
+      </div>
+      <div class="tabbar" style="z-index:10">
+        <div class="tab on" data-tab="tonight"><div class="ico">🍛</div><div class="lb">今晚</div></div>
+        <div class="tab" data-tab="history"><div class="ico">📔</div><div class="lb">历史</div></div>
+        <div class="tab" data-tab="settings"><div class="ico">⚙️</div><div class="lb">设置</div></div>
+      </div>
+    </section>
+
+    <!-- ⑤ 菜单·加载中（骨架屏，真实应用中加载完自动进入 ②） -->
+    <section class="screen" id="s5">
+      <h1 class="page">正在想今晚吃什么…</h1>
+      <div class="sub">必消：番茄、鸡蛋 · 30 分钟 · 4 人份</div>
+      <div class="gap-md"></div>
+      <div class="hint">正在从菜库里挑能同时满足这些条件的菜。加载完会自动进入菜单；如果一直连不上，会明说「服务未连接」，不会假装有菜单。</div>
+      <div class="gap-md"></div>
+      <div class="skel skel-banner"></div>
+      <div class="gap-md"></div>
+      <div class="card">
+        <div class="dish">
+          <div class="skel skel-ava"></div>
+          <div style="flex:1"><div class="skel skel-line"></div><div class="skel skel-line short"></div></div>
+        </div>
+      </div>
+      <div class="gap-md"></div>
+      <div class="card">
+        <div class="dish">
+          <div class="skel skel-ava"></div>
+          <div style="flex:1"><div class="skel skel-line"></div><div class="skel skel-line short"></div></div>
+        </div>
+      </div>
+      <div class="gap-md"></div>
+      <div class="card">
+        <div class="dish">
+          <div class="skel skel-ava"></div>
+          <div style="flex:1"><div class="skel skel-line"></div><div class="skel skel-line short"></div></div>
+        </div>
+      </div>
+      <div class="gap-md"></div>
+      <div class="card"><div class="skel skel-block"></div></div>
+      <div class="gap-lg"></div>
+      <button class="btn-primary" style="opacity:.55">正在生成菜单…</button>
+    </section>
+
+    <!-- ⑥ 空手场景（必消无法满足的空态） -->
+    <section class="screen" id="s6">
+      <h1 class="page">今晚吃什么</h1>
+      <div class="sub">必消食材：番茄、苦瓜</div>
+      <div class="gap-lg"></div>
+
+      <div class="card empty-card">
+        <div class="empty-emoji">🤔</div>
+        <div class="empty-title">今晚没有能用上「苦瓜」的做法</div>
+        <div class="empty-text">必消食材是硬要求，用不上的方案不会推荐。<br>现在的菜库里暂时没有用上苦瓜的菜，<br>我们不会随便给你一套凑数的菜单。</div>
+      </div>
+      <div class="gap-lg"></div>
+
+      <button class="btn-primary" onclick="go('s5')">去掉「苦瓜」再试</button>
+      <button class="btn-ghost" onclick="go('s1')">返回修改必消食材</button>
+    </section>
+
+    <!-- ⑦ 清单·正常（正常态） -->
+    <section class="screen" id="s7">
+      <h1 class="page">购物清单</h1>
+      <div class="sub">工作日快手套餐 · 按 4 人份自动换算，用量已取整</div>
+      <div class="gap-md"></div>
+
+      <div class="card">
+        <div class="stepper" style="gap:12px">
+          <button class="step-btn" style="width:30px;height:30px">−</button>
+          <span class="num" style="font-size:var(--dz-lg)">4 人份</span>
+          <button class="step-btn" style="width:30px;height:30px">＋</button>
+          <span class="sub" style="margin-left:4px">改人数，用量自动缩放</span>
+        </div>
+      </div>
+
+      <div class="group-title">蔬菜</div>
+      <div class="card">
+        <div class="li"><span class="name">番茄</span><span class="tag-have">已有 · 必消</span><span class="qty">200g</span></div>
+        <div class="li"><span class="name">青菜</span><span class="qty">300g</span></div>
+      </div>
+      <div class="group-title">蛋类</div>
+      <div class="card">
+        <div class="li"><span class="name">鸡蛋</span><span class="tag-have">已有 · 必消</span><span class="qty">5 个</span></div>
+      </div>
+      <div class="group-title">干货 / 调味</div>
+      <div class="card">
+        <div class="li"><span class="name">紫菜</span><span class="qty">10g</span></div>
+        <div class="li"><span class="name">盐</span><span class="tag-pantry">家里常备</span><span class="qty">2g</span></div>
+      </div>
+      <div class="gap-md"></div>
+      <div class="hint">标了「已有」的不用买——留在清单里是为了提醒你别漏用。</div>
+      <div class="gap-md"></div>
+      <button class="btn-primary">就按这个买</button>
+      <button class="btn-ghost" onclick="go('s9')">做完饭回来记录一下 →</button>
+    </section>
+
+    <!-- ⑧ 清单·空态（还没定菜单时打开清单页） -->
+    <section class="screen" id="s8">
+      <h1 class="page">购物清单</h1>
+      <div class="gap-lg"></div>
+      <div class="card empty-card">
+        <div class="empty-emoji">🧺</div>
+        <div class="empty-title">还没有清单</div>
+        <div class="empty-text">先定好今晚的菜单，<br>清单会自动按人数把用量算好、取整。</div>
+      </div>
+      <div class="gap-lg"></div>
+      <button class="btn-primary" onclick="go('s1')">去定今晚的菜单</button>
+    </section>
+
+    <!-- ⑨ 反馈·填写（填写态） -->
+    <section class="screen" id="s9">
+      <h1 class="page">今晚吃得怎么样？</h1>
+      <div class="sub">工作日快手套餐 · 三个问题，十秒答完</div>
+
+      <div class="q-title" style="margin-top:var(--fm-spacing-lg)">① 今天这顿做了吗？</div>
+      <div class="opts">
+        <div class="opt on">做了</div>
+        <div class="opt">没做</div>
+      </div>
+
+      <div class="q-title">② 味道怎么样？</div>
+      <div class="opts">
+        <div class="opt on">好吃</div>
+        <div class="opt warn">一般</div>
+        <div class="opt bad">翻车</div>
+      </div>
+
+      <div class="q-title">③ 下次还做吗？</div>
+      <div class="opts">
+        <div class="opt on">还做</div>
+        <div class="opt">不做了</div>
+      </div>
+
+      <div class="gap-md"></div>
+      <div class="card">
+        <div class="row-label" style="font-size:var(--dz-base)">实际用时（选填）</div>
+        <div class="fake-input" style="margin-top:8px">如：30 分钟</div>
+      </div>
+      <div class="gap-lg"></div>
+
+      <button class="btn-primary" onclick="go('s10')">提交反馈</button>
+      <div class="sub" style="text-align:center; margin-top:10px">反馈只用于以后推荐，不评判谁做饭</div>
+    </section>
+
+    <!-- ⑩ 反馈·成功（成功态） -->
+    <section class="screen" id="s10">
+      <div class="done-wrap">
+        <div class="done-ico">✓</div>
+        <div class="done-title">记好了</div>
+        <div class="done-text">9月3日这顿已记下：做了 · 好吃 · 下次还做。<br>反馈只用于以后推荐，不评判谁做饭。</div>
+      </div>
+      <div class="gap-md"></div>
+      <button class="btn-primary" onclick="go('s1')">回今晚</button>
+      <button class="btn-ghost" onclick="go('s12')">看看历史</button>
+    </section>
+
+    <!-- ⑪ 菜品做法页（正常态；关键卡只有「做法」一张带朱砂条） -->
+    <section class="screen" id="s11">
+      <a class="back" onclick="go('s2')">‹ 返回今晚菜单</a>
+      <h1 class="page">番茄炒蛋</h1>
+      <div class="sub">主菜 · 家常 · 约 15 分钟 · 用炒锅 · 清淡 · 酸甜</div>
+      <div class="gap-md"></div>
+
+      <div class="photo-ph">🍅<span>试做实拍位</span></div>
+      <div class="gap-md"></div>
+
+      <div class="card">
+        <div class="row-label">用料（4 人份）</div>
+        <div class="ing-li"><span>番茄</span><span>200g</span></div>
+        <div class="ing-li"><span>鸡蛋</span><span>3 个</span></div>
+      </div>
+      <div class="gap-md"></div>
+
+      <div class="card accent">
+        <div class="row-label">做法</div>
+        <div class="step-li"><span class="step-no">1</span>番茄切块，鸡蛋打散</div>
+        <div class="step-li"><span class="step-no">2</span>热锅下油，炒蛋至半凝固盛出</div>
+        <div class="step-li"><span class="step-no">3</span>下番茄翻炒出汁</div>
+        <div class="step-li"><span class="step-no">4</span>倒回鸡蛋翻炒，加盐调味</div>
+      </div>
+      <div class="gap-lg"></div>
+
+      <button class="btn-primary" onclick="go('s9')">做完饭，记一笔</button>
+    </section>
+
+    <!-- ⑫ 历史·有记录（正常态） -->
+    <section class="screen" id="s12">
+      <h1 class="page">吃过的饭</h1>
+      <div class="sub">3 条记录 · 反馈只用于以后推荐，不评判谁做饭</div>
+      <div class="gap-md"></div>
+
+      <div class="rec">
+        <div class="rec-date">9月3日</div>
+        <div class="rec-dishes">番茄炒蛋 · 蒜蓉青菜 · 紫菜蛋花汤</div>
+        <div class="rec-meta">
+          <span class="tag-ok">做了</span><span class="tag-ok">好吃</span><span class="tag-ok">下次还做</span>
+          <span>约 30 分钟</span>
+        </div>
+      </div>
+      <div class="gap-md"></div>
+      <div class="rec">
+        <div class="rec-date">9月2日</div>
+        <div class="rec-dishes">红烧肉 · 凉拌黄瓜</div>
+        <div class="rec-meta"><span class="tag-skip">没做</span><span>这顿没做成，没记味道</span></div>
+      </div>
+      <div class="gap-md"></div>
+      <div class="rec">
+        <div class="rec-date">9月1日</div>
+        <div class="rec-dishes">清蒸鲈鱼 · 蒜蓉青菜</div>
+        <div class="rec-meta"><span class="tag-ok">做了</span><span class="tag-warn">一般</span><span class="tag-skip">不做了</span></div>
+      </div>
+      <div class="gap-lg"></div>
+
+      <button class="btn-primary" onclick="go('s1')">定今晚的菜单</button>
+    </section>
+
+    <!-- ⑬ 历史·空态 -->
+    <section class="screen" id="s13">
+      <h1 class="page">吃过的饭</h1>
+      <div class="gap-lg"></div>
+      <div class="card empty-card">
+        <div class="empty-emoji">📔</div>
+        <div class="empty-title">还没有记录</div>
+        <div class="empty-text">做完第一顿饭，花十秒记一笔，<br>这里就会长出你们家的吃饭历史。</div>
+      </div>
+      <div class="gap-lg"></div>
+      <button class="btn-primary" onclick="go('s1')">去定今晚的菜单</button>
+    </section>
+
+    <!-- ⑭ 设置·长期（设置 Tab 正常态；数据与今晚临时设置分开） -->
+    <section class="screen" id="s14">
+      <h1 class="page">长期设置</h1>
+      <div class="sub">改一次天天生效 · 今晚的临时设置在「今晚」页，互不影响</div>
+      <div class="gap-md"></div>
+
+      <div class="card">
+        <div class="row-label">默认几个人吃</div>
+        <div class="stepper">
+          <button class="step-btn">−</button><span class="num">4</span><button class="step-btn">＋</button>
+          <span class="sub" style="margin-left:4px">今晚页可临时改</span>
+        </div>
+      </div>
+      <div class="gap-md"></div>
+
+      <div class="card">
+        <div class="row-label">常做的时长档</div>
+        <div class="radios">
+          <div class="radio-chip on">30 分钟</div>
+          <div class="radio-chip">60 分钟</div>
+        </div>
+      </div>
+      <div class="gap-md"></div>
+
+      <div class="card">
+        <div class="row-label">家里的锅</div>
+        <div class="chips">
+          <span class="chip">炒锅</span><span class="chip">电饭煲</span><span class="chip">蒸锅</span><span class="chip">空气炸锅</span>
+        </div>
+        <div class="sub" style="margin-top:8px">只用做得到的锅来推荐，不做你做不了的菜。</div>
+      </div>
+      <div class="gap-md"></div>
+
+      <div class="card">
+        <div class="row-label">喜欢的菜系</div>
+        <div class="chips"><span class="chip">家常</span><span class="chip">湘菜</span></div>
+      </div>
+      <div class="gap-md"></div>
+
+      <div class="card">
+        <div class="row-label">忌口与不吃</div>
+        <div class="avoid-li">
+          <div class="avoid-head"><span class="avoid-name">花生</span><span class="tag-hard">过敏 · 硬禁忌</span></div>
+          <div class="avoid-desc">硬禁忌：推荐、清单、做法里都绝不会出现。</div>
+        </div>
+        <div class="avoid-li">
+          <div class="avoid-head"><span class="avoid-name">内脏</span><span class="tag-soft">不吃 · 软偏好</span></div>
+          <div class="avoid-desc">软偏好：有得选就不做；实在避不开会提前告诉你。</div>
+        </div>
+      </div>
+      <div class="gap-lg"></div>
+
+      <button class="btn-primary">保存设置</button>
+    </section>
+
+    <!-- ⑮ 未连接服务（错误态：禁止 Mock 兜底，明示未连接） -->
+    <section class="screen" id="s15">
+      <h1 class="page">今晚吃什么</h1>
+      <div class="gap-md"></div>
+      <div class="banner-error">⚠ 服务未连接，暂时拿不到菜单</div>
+      <div class="gap-md"></div>
+      <div class="card empty-card">
+        <div class="empty-emoji">📡</div>
+        <div class="empty-title">不假装有数据</div>
+        <div class="empty-text">推荐菜单需要连接服务才能生成。<br>现在连不上，这一页就没有菜单——<br>等连接恢复后点「重试」就好。</div>
+      </div>
+      <div class="gap-lg"></div>
+      <button class="btn-primary">重试</button>
+      <div class="sub" style="text-align:center; margin-top:10px">重试还是不行？检查网络后稍后再来。</div>
+    </section>
+
+    <!-- TabBar（今晚/历史/设置 3 Tab；③④ 弹窗屏内另有浮层副本盖住遮罩） -->
+    <div class="tabbar" id="tabbar">
+      <div class="tab on" data-tab="tonight"><div class="ico">🍛</div><div class="lb">今晚</div></div>
+      <div class="tab" data-tab="history"><div class="ico">📔</div><div class="lb">历史</div></div>
+      <div class="tab" data-tab="settings"><div class="ico">⚙️</div><div class="lb">设置</div></div>
+    </div>
+  </div>
+
+<script>
+  const btns = document.querySelectorAll('.nav button');
+  /* 每屏归属的 Tab（用于 TabBar 高亮联动） */
+  const tabOf = {
+    s1:'tonight', s2:'tonight', s3:'tonight', s4:'tonight', s5:'tonight',
+    s6:'tonight', s7:'tonight', s8:'tonight', s9:'tonight', s10:'tonight',
+    s11:'tonight', s15:'tonight',
+    s12:'history', s13:'history', s14:'settings'
+  };
+  function go(id) {
+    btns.forEach(x => x.classList.toggle('on', x.dataset.s === id));
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+    const cur = tabOf[id];
+    document.querySelectorAll('.tab[data-tab]').forEach(t => t.classList.toggle('on', t.dataset.tab === cur));
+  }
+  btns.forEach(b => b.addEventListener('click', () => go(b.dataset.s)));
+</script>
+</body>
+</html>

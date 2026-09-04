@@ -49,7 +49,7 @@ export default function DishPage() {
 
             <View className="fm-dish-section">
               <Text className="fm-dish-section-title">食材用量</Text>
-              {dish.ingredients.map((ing, i) => (
+              {(dish.ingredients ?? []).map((ing, i) => (
                 <View key={i} className="fm-dish-ing">
                   <Text className="fm-dish-ing-name">{ing.ingredientName}</Text>
                   <Text className="fm-dish-ing-qty">{ing.qty}{ing.unit}</Text>
@@ -59,7 +59,7 @@ export default function DishPage() {
 
             <View className="fm-dish-section">
               <Text className="fm-dish-section-title">烹饪步骤</Text>
-              {dish.steps.map((step, i) => (
+              {(dish.steps ?? []).map((step, i) => (
                 <View key={i} className="fm-dish-step">
                   <Text className="fm-dish-step-num">{step.order}</Text>
                   <View className="fm-dish-step-content">

@@ -6,8 +6,7 @@ import Taro from '@tarojs/taro'
 import { View, Text, Image, ScrollView } from '@tarojs/components'
 import { NavBar, Tag, Rate, Button, Popup, Input } from '@nutui/nutui-react-taro'
 import { ArrowLeft } from '@nutui/icons-react-taro'
-import { api, isMockMode } from '../../api/client'
-import { mockMenuMap } from '../../api/mock'
+import { api } from '../../api/client'
 import { useStore } from '../../store'
 import EmptyState from '../../components/EmptyState'
 import type { Candidate, CandidateView, DishSnapshot, MenuSnapshot } from '../../types'
@@ -27,7 +26,7 @@ const QUICK_REASONS = ['太麻烦', '食材不够', '不喜欢', '其他']
 /**
  * 换菜后将 swapPlan 返回的 Plan.candidates（不含 menu 详情）合并 menu 快照，
  * 更新候选显示（对齐 wireframes 第227行「返回新候选替换该卡」）。
- * menu 详情优先复用旧候选已有快照；Mock 模式下从 mockMenuMap 补充；真 API 降级为 undefined。
+ * menu 详情优先复用旧候选已有快照；真 API 未返回时降级为 undefined。
  */
 function mergeCandidates(
   newCandidates: Candidate[],
@@ -37,14 +36,9 @@ function mergeCandidates(
   oldCandidates.forEach((c) => {
     if (c.menu) menuMap[c.menuId] = c.menu
   })
-  if (isMockMode) {
-    Object.keys(mockMenuMap).forEach((id) => {
-      if (!menuMap[id]) menuMap[id] = mockMenuMap[id]
-    })
-  }
   return newCandidates.map((c) => ({
     ...c,
-    // 优先使用 API 返回的 menu 详情（swapPlan 已含 menu），降级到旧候选/mock 快照
+    // 优先使用 API 返回的 menu 详情（swapPlan 已含 menu），降级到旧候选快照
     menu: (c as CandidateView).menu ?? menuMap[c.menuId],
   }))
 }

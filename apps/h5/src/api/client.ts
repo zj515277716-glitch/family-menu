@@ -1,7 +1,7 @@
 // apps/h5/src/api/client.ts
 // API client：由 shared 契约约束的 Taro.request 封装（H5 模式下底层用 fetch）
 // 12 条 API 路由对应方法，ACCESS_TOKEN cookie 鉴权（H5 同源自动带 cookie）
-// 先 Mock 后真 API：TARO_APP_API_BASE_URL 未配置时走 Mock，配置后走真 API
+// 未配置 TARO_APP_API_BASE_URL 时所有请求明确失败「服务未连接」——绝不使用假数据（C-13）
 import Taro from '@tarojs/taro'
 import type {
   CookResult,
@@ -16,13 +16,11 @@ import type {
   RecommendResult,
   ShoppingListData,
 } from '../types'
-import { mockApi } from './mock'
 
 // ───── 配置 ─────
 
-/** API 基础地址：未配置则走 Mock 模式 */
+/** API 基础地址：未配置则一切请求明确失败（不提供任何假数据） */
 const BASE_URL = process.env.TARO_APP_API_BASE_URL || ''
-const USE_MOCK = !BASE_URL
 
 // ───── 请求封装 ─────
 
@@ -37,6 +35,9 @@ async function request<T>(
   options: RequestOptions,
   notFoundAsNull = false,
 ): Promise<T> {
+  if (!BASE_URL) {
+    throw new Error('服务未连接：后端地址未配置，暂时拿不到数据')
+  }
   const res = await Taro.request({
     url: `${BASE_URL}${path}`,
     method: options.method,
@@ -61,31 +62,26 @@ async function request<T>(
 export const api = {
   // 1. GET /api/family/rules -> FamilyRule（404 表示未设置，返回 null）
   getFamilyRules(): Promise<FamilyRule | null> {
-    if (USE_MOCK) return mockApi.getFamilyRules()
     return request<FamilyRule | null>('/api/family/rules', { method: 'GET' }, true)
   },
 
   // 2. PUT /api/family/rules <- FamilyRule -> FamilyRule
   putFamilyRules(rule: FamilyRule): Promise<FamilyRule> {
-    if (USE_MOCK) return mockApi.putFamilyRules(rule)
     return request<FamilyRule>('/api/family/rules', { method: 'PUT', data: rule })
   },
 
   // 3. GET /api/family/exclusions -> ExclusionRule[]（v0.2 新增，禁忌持久化）
   getExclusions(): Promise<ExclusionRule[]> {
-    if (USE_MOCK) return mockApi.getExclusions()
     return request<ExclusionRule[]>('/api/family/exclusions', { method: 'GET' })
   },
 
   // 4. PUT /api/family/exclusions <- ExclusionRule[] -> ExclusionRule[]（全量替换）
   putExclusions(rules: ExclusionRule[]): Promise<ExclusionRule[]> {
-    if (USE_MOCK) return mockApi.putExclusions(rules)
     return request<ExclusionRule[]>('/api/family/exclusions', { method: 'PUT', data: rules })
   },
 
   // 5. POST /api/recommend <- PlanContext -> { candidates, planId }
   recommend(context: PlanContext): Promise<RecommendResult> {
-    if (USE_MOCK) return mockApi.recommend()
     return request<RecommendResult>('/api/recommend', {
       method: 'POST',
       data: context,
@@ -94,7 +90,6 @@ export const api = {
 
   // 6. POST /api/plans/:id/lock <- { menuId } -> Plan
   lockPlan(planId: string, menuId: string): Promise<Plan> {
-    if (USE_MOCK) return mockApi.lockPlan(planId, menuId)
     return request<Plan>(`/api/plans/${planId}/lock`, {
       method: 'POST',
       data: { menuId },
@@ -108,7 +103,6 @@ export const api = {
     reason: string,
     dishId?: string,
   ): Promise<Plan> {
-    if (USE_MOCK) return mockApi.swapPlan(planId)
     return request<Plan>(`/api/plans/${planId}/swap`, {
       method: 'POST',
       data: { reason, swapType, dishId },
@@ -117,7 +111,6 @@ export const api = {
 
   // 8. GET /api/plans/:id/shopping-list -> ShoppingListData
   getShoppingList(planId: string): Promise<ShoppingListData> {
-    if (USE_MOCK) return mockApi.getShoppingList()
     return request<ShoppingListData>(`/api/plans/${planId}/shopping-list`, {
       method: 'GET',
     })
@@ -129,20 +122,6 @@ export const api = {
     itemId: string,
     checked: boolean,
   ): Promise<ShoppingListData> {
-    if (USE_MOCK) {
-      // Mock 模式下本地更新后返回
-      return mockApi.getShoppingList().then((list) => {
-        const updated: ShoppingListData = {
-          groups: list.groups.map((g) => ({
-            ...g,
-            items: g.items.map((it) =>
-              it.ingredientId === itemId ? { ...it, checked } : it,
-            ),
-          })),
-        }
-        return mockApi.patchShoppingList(updated)
-      })
-    }
     return request<ShoppingListData>(`/api/plans/${planId}/shopping-list`, {
       method: 'PATCH',
       data: { itemId, checked },
@@ -157,8 +136,6 @@ export const api = {
     cookResult?: CookResult,
     failPoints?: string,
   ): Promise<Plan> {
-    if (USE_MOCK)
-      return mockApi.addFeedback(planId, result, actualMinutes, cookResult, failPoints)
     return request<Plan>(`/api/plans/${planId}/feedback`, {
       method: 'POST',
       data: { result, actualMinutes, cookResult, failPoints },
@@ -167,16 +144,11 @@ export const api = {
 
   // 11. GET /api/plans -> Plan[]
   listPlans(): Promise<Plan[]> {
-    if (USE_MOCK) return mockApi.listPlans()
     return request<Plan[]>('/api/plans', { method: 'GET' })
   },
 
   // 12. POST /api/plans/:id/repeat -> Plan
   repeatPlan(planId: string): Promise<Plan> {
-    if (USE_MOCK) return mockApi.repeatPlan()
     return request<Plan>(`/api/plans/${planId}/repeat`, { method: 'POST' })
   },
 }
-
-/** 当前是否 Mock 模式（页面提示用） */
-export const isMockMode = USE_MOCK

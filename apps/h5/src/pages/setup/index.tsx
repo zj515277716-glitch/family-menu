@@ -166,7 +166,7 @@ export default function SetupPage() {
       <View className="fm-card">
         <Text className="fm-label">常用时长（可多选）</Text>
         <CheckboxGroup
-          value={timeBudgets}
+          value={timeBudgets.map(String)}
           onChange={(v) => setTimeBudgets((v as unknown[]).map(Number))}
         >
           <View className="fm-checkbox-row">
@@ -209,9 +209,9 @@ export default function SetupPage() {
       <View className="fm-card">
         <Cell
           title="禁忌设置"
-          subTitle={`硬禁忌${hardCount}项 · 软禁忌${softCount}项`}
+          description={`硬禁忌${hardCount}项 · 软禁忌${softCount}项`}
           onClick={() => setPopupVisible(true)}
-          isLink
+          clickable
         />
         {exclusions.length > 0 && (
           <View className="fm-exclusion-list">

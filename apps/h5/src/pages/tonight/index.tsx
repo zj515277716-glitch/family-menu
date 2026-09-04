@@ -127,7 +127,7 @@ export default function TonightPage() {
               <Tag
                 key={item}
                 type="primary"
-                closable
+                closeable
                 onClose={() => removeMustUse(item)}
               >
                 {item}

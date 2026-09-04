@@ -12,11 +12,10 @@ import {
   Switch,
   Button,
 } from '@nutui/nutui-react-taro'
-import { api, isMockMode } from '../../api/client'
+import { api } from '../../api/client'
 import { useStore } from '../../store'
 import CustomTabBar from '../../components/CustomTabBar'
 import EmptyState from '../../components/EmptyState'
-import { mockMenuMap } from '../../api/mock'
 import type { Plan, FeedbackResult, PlanStatus } from '@family-menu/shared'
 import emptyImage from '../../assets/asset-history-empty@2x.png'
 import feedbackSuccessImage from '../../assets/asset-history-feedback-success@2x.png'
@@ -117,7 +116,6 @@ export default function HistoryPage() {
 
   function getMenuName(plan: Plan): string {
     const menuId = plan.lockedMenuId
-    if (isMockMode && menuId && mockMenuMap[menuId]) return mockMenuMap[menuId].name
     return menuId ? `菜单${menuId.slice(-4)}` : '未锁定'
   }
 
