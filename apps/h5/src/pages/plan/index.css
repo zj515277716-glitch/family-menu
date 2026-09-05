@@ -3,12 +3,13 @@
 
 .plan-page {
   padding-top: 24px;
-  padding-bottom: 320px;
+  /* 底部让位：fixed 操作条（主按钮+次按钮）+ TabBar 144 + 安全区，留缓冲 */
+  padding-bottom: 520px;
 }
 
-/* 页内有 TabBar，底部条让位（与 tonight 同规则） */
+/* 页内有 TabBar（高 144px），底部条让位（与 tonight 同规则） */
 .plan-page .fm-bottom-bar {
-  bottom: calc(50px + env(safe-area-inset-bottom));
+  bottom: calc(144px + env(safe-area-inset-bottom));
 }
 
 /* 菜卡中部信息区（fm-dish flex 的伸缩位） */

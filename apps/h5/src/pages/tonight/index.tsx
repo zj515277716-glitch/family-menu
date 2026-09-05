@@ -6,7 +6,7 @@ import Taro from '@tarojs/taro'
 import { View, Text, Input } from '@tarojs/components'
 import { Button } from '@nutui/nutui-react-taro'
 import { api } from '../../api/client'
-import { useStore } from '../../store'
+import { useStore, todayKey } from '../../store'
 import CustomTabBar from '../../components/CustomTabBar'
 import { TIME_BUDGETS } from '@family-menu/shared'
 import type { ExclusionRule } from '@family-menu/shared'
@@ -34,6 +34,11 @@ export default function TonightPage() {
   // 首次启动检测：无 FamilyRule -> 强制跳 setup（wireframes 第32行）
   useEffect(() => {
     const state = useStore.getState()
+    // C-2「第二天打开是新的今晚」：跨天会话（含不重启跨过午夜）——清计划、必消清空
+    if (state.planDateKey && state.planDateKey !== todayKey()) {
+      state.clearTonightSession()
+      if (state.familyRule) state.resetTonightContext(state.familyRule)
+    }
     if (!state.familyRuleLoaded) {
       api
         .getFamilyRules()
@@ -41,6 +46,9 @@ export default function TonightPage() {
           state.setFamilyRule(rule)
           if (!rule) {
             Taro.reLaunch({ url: '/pages/setup/index' })
+          } else if (useStore.getState().planDateKey !== todayKey()) {
+            // C-2：今晚人数/时长默认带出长期设置；无当天会话时重置（跨天必消清空）
+            state.resetTonightContext(rule)
           }
         })
         .catch(() => {

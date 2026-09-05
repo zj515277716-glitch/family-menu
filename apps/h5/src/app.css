@@ -49,6 +49,9 @@ page {
   --nutui-cell-description-color: #9A8A75;
   --nutui-tabbar-active-color: #C8392E;
   --nutui-tabbar-inactive-color: #7A6A55;
+  /* TabBar 高度：定稿 72px 逻辑（e-final .tabbar height:72px）×2（750 设计稿）= 144px；
+     NutUI 默认 46px 会盖住下方内容（问题③根因） */
+  --nutui-tabbar-height: 144px;
   --nutui-tag-color: #C8392E;
   --nutui-tag-primary-background-color: #C8392E;
   --nutui-switch-active-background-color: #C8392E;
@@ -136,6 +139,11 @@ page {
   background-color: var(--fm-card-bg);
   box-shadow: 0 -2px 12px rgba(200, 57, 46, 0.06);
   z-index: 100;
+}
+
+/* NutUI TabBar：内容纵向居中（144px 高内图标+文字整体居中，防顶对齐留白） */
+.nut-tabbar .nut-tabbar-item {
+  justify-content: center;
 }
 
 /* ===== 公共组件类（与 e-final.html 一一对应，值为定稿预览 ×2 = 750 设计稿） ===== */

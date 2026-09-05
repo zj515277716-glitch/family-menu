@@ -3,10 +3,11 @@
 
 .tonight-page {
   padding-top: 24px;
-  /* 底部让位：fixed 操作条（主按钮+次按钮）+ TabBar */
-  padding-bottom: 300px;
+  /* 底部让位：fixed 操作条（主按钮+次按钮）+ TabBar 144 + 安全区，留缓冲 */
+  padding-bottom: 520px;
 }
 
+/* 页内有 TabBar（高 144px），底部条让位（与 plan 同规则） */
 .tonight-page .fm-bottom-bar {
-  bottom: calc(50px + env(safe-area-inset-bottom));
+  bottom: calc(144px + env(safe-area-inset-bottom));
 }

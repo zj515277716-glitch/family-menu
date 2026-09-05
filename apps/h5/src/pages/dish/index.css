@@ -3,7 +3,8 @@
 
 .dish-page {
   padding-top: 24px;
-  padding-bottom: 200px;
+  /* 底部让位：仅 fixed 底部条（无 TabBar），留缓冲 */
+  padding-bottom: 400px;
 }
 
 /* back 链接（dz-sm 可点） */

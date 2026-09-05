@@ -58,6 +58,8 @@ export default function PlanPage() {
   const [selectedNewId, setSelectedNewId] = useState<string | null>(null)
   const [swapReason, setSwapReason] = useState<string | null>(null)
   const [swapping, setSwapping] = useState(false)
+  // C-3a：换一批（整套重推）加载态
+  const [refreshing, setRefreshing] = useState(false)
 
   // 屏④空态文案需要忌口信息（避开 X 和 Y）
   const [exclusions, setExclusions] = useState<ExclusionRule[]>([])
@@ -204,6 +206,40 @@ export default function PlanPage() {
     }
   }
 
+  // ── 换一批（C-3a）：按同样条件（今晚人数、时长档、必消、忌口）整套重推 ──
+  // 后端排除当前候选重新推荐；全换请求体只带 swapType（契约 superRefine）
+  async function handleRefreshAll() {
+    if (!currentPlanId || refreshing) return
+    setRefreshing(true)
+    try {
+      const plan = await api.swapPlan(currentPlanId, { swapType: '全换' })
+      // 全换响应的 lockedMenuId 是新一套的 id（与单菜换不同，不能用 store 旧值查）
+      const lockedCandidate = plan.candidates.find(
+        (c) => c.menuId === plan.lockedMenuId,
+      )
+      const newMenu = lockedCandidate?.menu as MenuSnapshot | undefined
+      if (plan.lockedMenuId && newMenu) {
+        // 必消横幅/备菜顺序/总耗时都渲染自 lockedMenu，一次 set 同步更新
+        setLockedMenu(plan.lockedMenuId, newMenu)
+      }
+      // 清单已联动重算，重新拉取；拉取失败走既有 listError 横幅（不谎报"没换成"）
+      try {
+        const list = await api.getShoppingList(currentPlanId)
+        setShoppingList(list)
+        setListError(false)
+      } catch {
+        setListError(true)
+      }
+      Taro.showToast({ title: '已换一批', icon: 'success' })
+    } catch (e) {
+      console.error('[Plan] refreshAll error', e)
+      // 失败提示「没换成」；原菜单未动（store 未写），保持原样可再试
+      Taro.showToast({ title: '没换成', icon: 'none' })
+    } finally {
+      setRefreshing(false)
+    }
+  }
+
   function goFeedback() {
     Taro.navigateTo({ url: '/pages/feedback/index' })
   }
@@ -326,6 +362,15 @@ export default function PlanPage() {
               ))}
             </View>
           </View>
+
+          {/* 屏②：换一批——整套按同样条件重新推荐（e-final s2 顺序：备菜顺序卡之后，C-3a） */}
+          <Button
+            className="fm-btn-ghost"
+            loading={refreshing}
+            onClick={handleRefreshAll}
+          >
+            换一批
+          </Button>
 
           {/* 屏⑦：购物清单 */}
           <Text className="fm-row-label" style={{ margin: '24px 24px 0' }}>
