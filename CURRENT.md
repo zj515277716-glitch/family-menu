@@ -53,7 +53,8 @@
 - **TP-06 完成标志已达成**：发布菜单数量证据（publish-result.json：publishedMenuTotal=12，9 套管线明细）+ 推荐多样性可复现（diversity-result.json 6/6 PASS：5 轮「推荐→锁定」循环首选 5 套不同菜单、周末菜单浮出）。**卡外修复**：toEventView 事件映射丢弃 payload 的集成缺陷（基线断裂点第 4 条消费侧），历史接受度与多样性降权在真实 API 恢复生效；回归 296/296 + 禁忌 82/82 + 双 build 0 错。
 - 已完成：**TP-07 公网部署切片**（2026-09-05，证据见 [evidence/TP-07-2026-09-05.md](./evidence/TP-07-2026-09-05.md)）——阿里云 ECS 8.136.32.223 Docker 化部署 + 阿里云 RDS 独立新库 family_menu_v2（迁移+种子+数据导入）+ 子域名 menu.jijingkongjian.xin（已备案域名）+ certbot HTTPS（80 强制 301 跳 443）+ 口令保护（无令牌 401）+ 旧部署全量备份 /opt/family-menu.bak-TP07（回滚资产，旧 caddy 未动）。**卡外修复**：planService.getExclusions Prisma null 与契约 zod optional 不兼容致公网 400——服务层 null→undefined 归一化（契约零改动），公网 200 生效。
 - **TP-07 完成标志已达成**：公网 URL 可用证据（https://menu.jijingkongjian.xin 首页 200）+ 冒烟清单 9 项全绿（鉴权 401/计划 45 条/禁忌 2 条/推荐 3 候选真实建 Plan 等）+ 回滚预案成文；本地 apps/api 回归 68/68。
-- 进行中：按 [TECHNICAL-PLAN.md](./docs/ai-rebuild/TECHNICAL-PLAN.md) 切片序列执行，下一切片 **TP-08（UAT 交付）**。
+- 已完成：**TP-08 UAT 交付切片**（2026-09-05）——通俗中文交付消息发给产品负责人：固定地址 https://menu.jijingkongjian.xin（打开即用，口令已内置）+ 测试家庭张家四口 + 6 个真实任务（打开网站/设置页看禁忌/必消食材推荐 3 候选/选定锁定看清单备菜/人数缩放分量/反馈三问+历史四色标签）+ 每步预期；交付前逐页核实真实按钮文案与口令内置事实。
+- 进行中：待产品负责人按 6 任务 UAT；发现问题→后台修复循环。
 - 边界：UI 基准 = [e-final.html](./docs/ai-rebuild/ui/e-final.html) + [design-spec.md](./docs/ai-rebuild/ui/design-spec.md)，UI 改动须先改确认书 B 节再动代码；预览 http://localhost:8888/docs/ai-rebuild/ui/e-final.html。
 
-下一步：TP-08 UAT（按「固定地址 https://menu.jijingkongjian.xin + 测试账号 + 3-7 个真实任务 + 每步预期」格式交付）。
+下一步：等产品负责人 UAT 反馈；分支合 main 等收尾类决策须先问产品负责人。
