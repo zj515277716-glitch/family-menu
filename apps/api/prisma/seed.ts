@@ -129,10 +129,12 @@ async function main(): Promise<void> {
   }
 
   // 食材（name @unique）
+  // update 分支必须同步 aliases：线上库食材若早于 seed 建立或由内容管线建立，
+  // 别名会缺失导致必消匹配失败（如"西红柿"匹配不到"番茄"）；重跑 seed 即可补齐
   for (const ing of ingredients) {
     await prisma.ingredient.upsert({
       where: { name: ing.name },
-      update: {},
+      update: { aliases: ing.aliases },
       create: {
         id: ing.id,
         name: ing.name,
