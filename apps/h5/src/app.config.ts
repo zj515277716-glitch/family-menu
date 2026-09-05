@@ -12,6 +12,7 @@ export default defineAppConfig({
     'pages/candidates/index',
     'pages/plan/index',
     'pages/dish/index',
+    'pages/feedback/index',
   ],
   window: {
     backgroundTextStyle: 'light',

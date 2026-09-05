@@ -13,6 +13,7 @@ import {
   PlanResponseSchema,
   PlanListResponseSchema,
   ShoppingListResponseSchema,
+  FeedbackResponseSchema,
 } from '@family-menu/shared';
 
 // ───── mock planService（避免 DB 操作） ─────
@@ -53,6 +54,7 @@ vi.mock('../src/services/planService.js', () => {
       patchShoppingList: vi.fn(),
       rescaleShoppingList: vi.fn(),
       addFeedback: vi.fn(),
+      getFeedback: vi.fn(),
       listPlans: vi.fn(),
       repeatPlan: vi.fn(),
     },
@@ -660,62 +662,129 @@ describe('API contract tests', () => {
     });
   });
 
-  // ── F6: POST /api/plans/:id/feedback（AC6） ──
+  // ── F6: POST/GET /api/plans/:id/feedback（AC6，v0.6 三问模型 DEC-015） ──
 
   describe('POST /api/plans/:id/feedback (AC6)', () => {
-    it('returns 200 with valid FeedbackRequest (cooked)', async () => {
+    it('returns 200 with 三问全答（做了+好吃+还做+耗时）', async () => {
       vi.mocked(planService.addFeedback).mockResolvedValue(mockPlan);
       const response = await app.inject({
         method: 'POST',
         url: '/api/plans/test-plan-id/feedback',
         cookies: { access_token: 'test-token' },
-        body: { result: 'cooked', actualMinutes: 35 },
+        body: { didCook: true, taste: 'good', willRepeat: true, actualMinutes: 35 },
       });
       expect(response.statusCode).toBe(200);
       const body = parseResponse(response.body);
       expect(() => PlanResponseSchema.parse(body)).not.toThrow();
+      expect(planService.addFeedback).toHaveBeenCalledWith('test-plan-id', {
+        didCook: true, taste: 'good', willRepeat: true, actualMinutes: 35,
+      });
     });
 
-    it('returns 200 with valid FeedbackRequest (not_cooked)', async () => {
+    it('returns 200 with 没做+不做了（无 taste）', async () => {
       vi.mocked(planService.addFeedback).mockResolvedValue(mockPlan);
       const response = await app.inject({
         method: 'POST',
         url: '/api/plans/test-plan-id/feedback',
         cookies: { access_token: 'test-token' },
-        body: { result: 'not_cooked' },
+        body: { didCook: false, willRepeat: false },
       });
       expect(response.statusCode).toBe(200);
+      expect(planService.addFeedback).toHaveBeenCalledWith('test-plan-id', {
+        didCook: false, willRepeat: false,
+      });
     });
 
-    it('returns 200 with valid FeedbackRequest (repeat)', async () => {
-      vi.mocked(planService.addFeedback).mockResolvedValue(mockPlan);
+    it('returns 400 when 做了缺 taste（第②问条件必填）', async () => {
       const response = await app.inject({
         method: 'POST',
         url: '/api/plans/test-plan-id/feedback',
         cookies: { access_token: 'test-token' },
-        body: { result: 'repeat' },
-      });
-      expect(response.statusCode).toBe(200);
-    });
-
-    it('returns 400 with invalid result', async () => {
-      const response = await app.inject({
-        method: 'POST',
-        url: '/api/plans/test-plan-id/feedback',
-        cookies: { access_token: 'test-token' },
-        body: { result: 'invalid' },
+        body: { didCook: true, willRepeat: true },
       });
       expect(response.statusCode).toBe(400);
     });
 
-    it('returns 400 with missing result', async () => {
+    it('returns 400 when 没做却传 taste（禁传）', async () => {
       const response = await app.inject({
         method: 'POST',
         url: '/api/plans/test-plan-id/feedback',
         cookies: { access_token: 'test-token' },
-        body: {},
+        body: { didCook: false, taste: 'good', willRepeat: true },
       });
       expect(response.statusCode).toBe(400);
+    });
+
+    it('returns 400 when 缺 willRepeat（第③问必填）', async () => {
+      const response = await app.inject({
+        method: 'POST',
+        url: '/api/plans/test-plan-id/feedback',
+        cookies: { access_token: 'test-token' },
+        body: { didCook: true, taste: 'good' },
+      });
+      expect(response.statusCode).toBe(400);
+    });
+
+    it('returns 400 with 旧五项报文（result/cookResult，v0.6 breaking）', async () => {
+      const response = await app.inject({
+        method: 'POST',
+        url: '/api/plans/test-plan-id/feedback',
+        cookies: { access_token: 'test-token' },
+        body: { result: 'cooked', cookResult: 'partial' },
+      });
+      expect(response.statusCode).toBe(400);
+    });
+
+    it('returns 400 with taste 非法值', async () => {
+      const response = await app.inject({
+        method: 'POST',
+        url: '/api/plans/test-plan-id/feedback',
+        cookies: { access_token: 'test-token' },
+        body: { didCook: true, taste: 'success', willRepeat: true },
+      });
+      expect(response.statusCode).toBe(400);
+    });
+  });
+
+  describe('GET /api/plans/:id/feedback (v0.6 DEC-015 裁决 4)', () => {
+    it('returns 200 with FeedbackResponse（有反馈）', async () => {
+      vi.mocked(planService.getFeedback).mockResolvedValue({
+        didCook: true, taste: 'good', willRepeat: true, actualMinutes: 30,
+        submittedAt: new Date('2026-09-05T19:00:00'),
+      });
+      const response = await app.inject({
+        method: 'GET',
+        url: '/api/plans/test-plan-id/feedback',
+        cookies: { access_token: 'test-token' },
+      });
+      expect(response.statusCode).toBe(200);
+      const body = parseResponse(response.body);
+      expect(() => FeedbackResponseSchema.parse(body)).not.toThrow();
+      expect(planService.getFeedback).toHaveBeenCalledWith('test-plan-id');
+    });
+
+    it('returns 200 with 旧事件宽松解析（缺 taste/willRepeat 如实缺省）', async () => {
+      vi.mocked(planService.getFeedback).mockResolvedValue({
+        didCook: false, submittedAt: new Date('2026-09-04T19:00:00'),
+      });
+      const response = await app.inject({
+        method: 'GET',
+        url: '/api/plans/test-plan-id/feedback',
+        cookies: { access_token: 'test-token' },
+      });
+      expect(response.statusCode).toBe(200);
+      const body = parseResponse(response.body);
+      expect(body.taste).toBeUndefined();
+    });
+
+    it('returns 404 when 无反馈', async () => {
+      vi.mocked(planService.getFeedback).mockRejectedValue(new NotFoundError('Plan test-plan-id has no feedback'));
+      const response = await app.inject({
+        method: 'GET',
+        url: '/api/plans/test-plan-id/feedback',
+        cookies: { access_token: 'test-token' },
+      });
+      expect(response.statusCode).toBe(404);
     });
   });
 

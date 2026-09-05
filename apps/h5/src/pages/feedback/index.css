@@ -1,0 +1,132 @@
+/* apps/h5/src/pages/feedback/index.css
+ * 三问反馈页（TP-05/DEC-015，对齐 e-final 屏⑨/⑩ 与 design-spec 选项芯片） */
+
+.feedback-page {
+  padding-bottom: 60px;
+}
+
+.fm-fb-title {
+  display: block;
+  margin-top: 16px;
+  font-size: 40px;
+  font-weight: 700;
+  color: var(--fm-title);
+}
+
+.fm-fb-sub {
+  display: block;
+  margin-top: 8px;
+  font-size: 26px;
+  color: var(--fm-text-secondary);
+}
+
+.fm-fb-q {
+  display: block;
+  margin-top: 32px;
+  margin-bottom: 14px;
+  font-size: 30px;
+  font-weight: 600;
+  color: var(--fm-title);
+}
+
+/* 选项芯片（e-final .opt / .opt.on / .warn / .bad） */
+.fm-fb-opts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+}
+
+.fm-fb-opt {
+  padding: 14px 34px;
+  border: 2px solid var(--fm-border, #e8e2da);
+  border-radius: 999px;
+  font-size: 28px;
+  color: var(--fm-text);
+  background: #fff;
+}
+
+.fm-fb-opt.on {
+  border-color: var(--fm-primary, #d75a48);
+  color: var(--fm-primary, #d75a48);
+  background: var(--fm-primary-soft, #fdf1ef);
+  font-weight: 600;
+}
+
+.fm-fb-opt.warn.on {
+  border-color: var(--fm-warn, #d97a2b);
+  color: var(--fm-warn, #d97a2b);
+  background: var(--fm-warn-soft, #fdf4ea);
+}
+
+.fm-fb-opt.bad.on {
+  border-color: var(--fm-bad, #c0392b);
+  color: var(--fm-bad, #c0392b);
+  background: var(--fm-bad-soft, #fdeeec);
+}
+
+/* 耗时卡 */
+.fm-fb-minutes {
+  margin-top: 24px;
+}
+
+.fm-fb-minutes-label {
+  display: block;
+  font-size: 26px;
+  color: var(--fm-text-secondary);
+  margin-bottom: 10px;
+}
+
+.fm-fb-footer {
+  display: block;
+  margin-top: 14px;
+  text-align: center;
+  font-size: 24px;
+  color: var(--fm-text-secondary);
+}
+
+/* 无可反馈计划 */
+.fm-fb-noplan {
+  margin-top: 24px;
+  padding: 32px 24px;
+}
+
+.fm-fb-noplan-text {
+  display: block;
+  text-align: center;
+  font-size: 28px;
+  color: var(--fm-text-secondary);
+}
+
+/* ── 屏⑩ 成功复述态 ── */
+.fm-done-wrap {
+  margin-top: 120px;
+  margin-bottom: 48px;
+  text-align: center;
+}
+
+.fm-done-ico {
+  width: 120px;
+  height: 120px;
+  margin: 0 auto 24px;
+  border-radius: 50%;
+  background: var(--fm-ok, #3f8f4f);
+  color: #fff;
+  font-size: 64px;
+  line-height: 120px;
+}
+
+.fm-done-title {
+  display: block;
+  font-size: 40px;
+  font-weight: 700;
+  color: var(--fm-title);
+  margin-bottom: 14px;
+}
+
+.fm-done-text {
+  display: block;
+  font-size: 28px;
+  line-height: 1.7;
+  color: var(--fm-text-secondary);
+  padding: 0 32px;
+}

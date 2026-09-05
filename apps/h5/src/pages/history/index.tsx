@@ -1,105 +1,74 @@
 // apps/h5/src/pages/history/index.tsx
-// F6/F7 反馈 + 历史（/pages/history，Tab）
-// 对齐 wireframes.md 第318-405行：反馈表单/历史列表/复做/空状态
+// F7 历史（/pages/history，Tab）—— TP-05/DEC-015 重写为 C-11 历史列表：
+// 旧五项反馈表单移除（C-10：反馈统一走 /pages/feedback 三问页）；
+// 列表=日期/菜名/结果标签（绿=做了·好吃·还做 / 黄=一般 / 红=翻车 / 灰=没做·不做了·未记）
+// + 「约 N 分钟」（记了耗时才显示）+ 顶部「N 条记录 · 反馈只用于以后推荐，不评判谁做饭」。
 import { useEffect, useState } from 'react'
 import Taro from '@tarojs/taro'
-import { View, Text, Image, ScrollView } from '@tarojs/components'
-import {
-  Radio,
-  RadioGroup,
-  Input,
-  Tag,
-  Switch,
-  Button,
-} from '@nutui/nutui-react-taro'
+import { View, Text, ScrollView } from '@tarojs/components'
+import { Button, Tag } from '@nutui/nutui-react-taro'
 import { api } from '../../api/client'
-import { useStore } from '../../store'
 import CustomTabBar from '../../components/CustomTabBar'
 import EmptyState from '../../components/EmptyState'
-import type { Plan, FeedbackResult, PlanStatus } from '@family-menu/shared'
+import type { Plan } from '@family-menu/shared'
+import type { FeedbackResponse } from '../../types'
 import emptyImage from '../../assets/asset-history-empty@2x.png'
-import feedbackSuccessImage from '../../assets/asset-history-feedback-success@2x.png'
 import './index.css'
 
-const STATUS_LABELS: Record<PlanStatus, string> = {
-  PROPOSED: '待定',
-  LOCKED: '已锁定',
-  COOKED: '已做',
-  SKIPPED: '已跳过',
+/** C-11 结果标签（DEC-015 裁决 5 派生色：红>黄>灰>绿，味道事实优先于意愿） */
+const RESULT_TAG_TYPE: Record<string, string> = {
+  ok: 'success', // 绿
+  warn: 'warning', // 黄
+  bad: 'danger', // 红
+  skip: 'default', // 灰
 }
-const STATUS_TAG_TYPE: Record<PlanStatus, string> = {
-  PROPOSED: 'primary',
-  LOCKED: 'warning',
-  COOKED: 'success',
-  SKIPPED: 'default',
+
+/** 对单条 plan 派生 C-11 结果标签：颜色 + 短文案 + 「约 N 分钟」 */
+function deriveResultTag(plan: Plan, fb: FeedbackResponse | null) {
+  if (plan.status !== 'COOKED' && plan.status !== 'SKIPPED') {
+    return { color: 'skip', label: plan.status === 'LOCKED' ? '待反馈' : '未记' }
+  }
+  if (!fb) return { color: 'skip', label: '未记' } // 事件流无反馈，如实降级
+  if (fb.didCook && fb.taste === 'fail') return { color: 'bad', label: '翻车' }
+  if (fb.didCook && fb.taste === 'ok') return { color: 'warn', label: '一般' }
+  if (!fb.didCook || fb.willRepeat === false) {
+    return { color: 'skip', label: fb.didCook ? '不做了' : '没做' }
+  }
+  return { color: 'ok', label: '做了·好吃' }
 }
-const FAIL_REASONS = ['太耗时', '调味不对', '食材不够', '其他']
 
 export default function HistoryPage() {
-  const { currentPlanId } = useStore()
   const [plans, setPlans] = useState<Plan[]>([])
+  const [feedbacks, setFeedbacks] = useState<Record<string, FeedbackResponse | null>>({})
   const [loading, setLoading] = useState(true)
-  const [feedbackPlanId, setFeedbackPlanId] = useState<string | null>(null)
-  const [cooked, setCooked] = useState<'yes' | 'no'>('yes')
-  const [actualMinutes, setActualMinutes] = useState('')
-  const [cookResult, setCookResult] = useState<'success' | 'partial' | 'fail'>('success')
-  const [failReason, setFailReason] = useState('')
-  const [willRepeat, setWillRepeat] = useState(false)
-  const [submitting, setSubmitting] = useState(false)
-  const [feedbackSuccess, setFeedbackSuccess] = useState(false)
 
   useEffect(() => {
     loadPlans()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   async function loadPlans() {
     try {
       const list = await api.listPlans()
       setPlans(list)
-      const target =
-        list.find((p) => p.id === currentPlanId) ||
-        list.find((p) => p.status === 'LOCKED')
-      if (target) setFeedbackPlanId(target.id)
+      // C-11：对已记录的 plan 并发取最新反馈（404=未记，getFeedback 已把 404 转 null）
+      const recorded = list.filter((p) => p.status === 'COOKED' || p.status === 'SKIPPED')
+      const pairs = await Promise.all(
+        recorded.map(async (p) => {
+          try {
+            return [p.id, await api.getFeedback(p.id)] as const
+          } catch {
+            return [p.id, null] as const
+          }
+        }),
+      )
+      const map: Record<string, FeedbackResponse | null> = {}
+      for (const [id, fb] of pairs) map[id] = fb
+      setFeedbacks(map)
     } catch (e) {
       console.error('[History] loadPlans error', e)
     } finally {
       setLoading(false)
-    }
-  }
-
-  async function submitFeedback() {
-    if (!feedbackPlanId) return
-    setSubmitting(true)
-    let result: FeedbackResult
-    if (cooked === 'no') {
-      result = 'not_cooked'
-    } else if (willRepeat) {
-      result = 'repeat'
-    } else {
-      result = 'cooked'
-    }
-    try {
-      const minutes = actualMinutes ? Number(actualMinutes) : undefined
-      // cookResult/failPoints 仅在 result=cooked 时回传（后端据此写 CookLog，DEC-011）
-      // cookResult=success 时不传 failPoints（失败原因仅 partial/fail 有意义）
-      const cookResultVal = result === 'cooked' ? cookResult : undefined
-      const failPointsVal =
-        result === 'cooked' && cookResult !== 'success' ? failReason : undefined
-      await api.addFeedback(feedbackPlanId, result, minutes, cookResultVal, failPointsVal)
-      setFeedbackSuccess(true)
-      setActualMinutes('')
-      setWillRepeat(false)
-      setCooked('yes')
-      setTimeout(() => {
-        setFeedbackSuccess(false)
-        setFeedbackPlanId(null)
-        loadPlans()
-      }, 1500)
-    } catch (e) {
-      console.error('[History] feedback error', e)
-      Taro.showToast({ title: '提交失败，重试', icon: 'none' })
-    } finally {
-      setSubmitting(false)
     }
   }
 
@@ -129,7 +98,7 @@ export default function HistoryPage() {
     return (
       <View className="fm-page history-page">
         <View className="fm-page-header">
-          <Text className="fm-page-title">历史与反馈</Text>
+          <Text className="fm-page-title">历史记录</Text>
         </View>
         <EmptyState
           image={emptyImage}
@@ -147,106 +116,37 @@ export default function HistoryPage() {
   return (
     <View className="fm-page history-page">
       <View className="fm-page-header">
-        <Text className="fm-page-title">历史与反馈</Text>
+        <Text className="fm-page-title">历史记录</Text>
+        <Text className="fm-history-meta">
+          {plans.length} 条记录 · 反馈只用于以后推荐，不评判谁做饭
+        </Text>
       </View>
 
-      {/* 今日计划状态条 + 反馈表单 */}
-      {feedbackPlanId && (
-        <View className="fm-card fm-feedback-form">
-          <Text className="fm-feedback-title">烹饪反馈</Text>
-          <Text className="fm-label">做了吗？</Text>
-          <RadioGroup
-            value={cooked}
-            direction="horizontal"
-            onChange={(v) => setCooked(v as 'yes' | 'no')}
-          >
-            <Radio value="yes">做了</Radio>
-            <Radio value="no">没做</Radio>
-          </RadioGroup>
-
-          {cooked === 'yes' && (
-            <View className="fm-feedback-expand">
-              <Text className="fm-label">实际耗时（分钟）</Text>
-              <Input
-                type="number"
-                placeholder="如 32"
-                value={actualMinutes}
-                onChange={(v) => setActualMinutes(v)}
-              />
-              <Text className="fm-label">结果</Text>
-              <RadioGroup
-                value={cookResult}
-                direction="horizontal"
-                onChange={(v) => setCookResult(v as 'success' | 'partial' | 'fail')}
-              >
-                <Radio value="success">成功</Radio>
-                <Radio value="partial">部分成功</Radio>
-                <Radio value="fail">失败</Radio>
-              </RadioGroup>
-              {cookResult !== 'success' && (
-                <View className="fm-fail-reasons">
-                  <Text className="fm-label">失败原因</Text>
-                  <View className="fm-tag-row">
-                    {FAIL_REASONS.map((r) => (
-                      <Tag
-                        key={r}
-                        type={failReason === r ? 'primary' : 'default'}
-                        onClick={() => setFailReason(r)}
-                      >
-                        {r}
-                      </Tag>
-                    ))}
+      <ScrollView scrollY className="fm-history-scroll">
+        {plans.map((plan) => {
+          const fb = feedbacks[plan.id] ?? null
+          const tag = deriveResultTag(plan, fb)
+          return (
+            <View key={plan.id} className="fm-card fm-history-item">
+              <View className="fm-history-row">
+                <Text className="fm-history-date">{formatDate(plan.planDate)}</Text>
+                <View className="fm-history-main">
+                  <Text className="fm-history-name">{getMenuName(plan)}</Text>
+                  <View className="fm-history-result">
+                    <Tag type={RESULT_TAG_TYPE[tag.color] as never}>{tag.label}</Tag>
+                    {fb?.actualMinutes !== undefined && (
+                      <Text className="fm-history-minutes">约 {fb.actualMinutes} 分钟</Text>
+                    )}
                   </View>
                 </View>
-              )}
-              <View className="fm-switch-row">
-                <Text className="fm-label">下次还做？</Text>
-                <Switch checked={willRepeat} onChange={(v) => setWillRepeat(!!v)} />
+                <Button size="small" onClick={() => handleRepeat(plan.id)}>
+                  复做
+                </Button>
               </View>
             </View>
-          )}
-
-          <Button
-            type="primary"
-            block
-            loading={submitting}
-            onClick={submitFeedback}
-            style={{ marginTop: '16px' }}
-          >
-            提交反馈
-          </Button>
-        </View>
-      )}
-
-      {/* 历史记录列表 */}
-      <Text className="fm-section-title">历史记录</Text>
-      <ScrollView scrollY className="fm-history-scroll">
-        {plans.map((plan) => (
-          <View key={plan.id} className="fm-card fm-history-item">
-            <View className="fm-history-row">
-              <Text className="fm-history-date">{formatDate(plan.planDate)}</Text>
-              <Text className="fm-history-name">{getMenuName(plan)}</Text>
-              <Tag type={STATUS_TAG_TYPE[plan.status] as never}>
-                {STATUS_LABELS[plan.status]}
-              </Tag>
-            </View>
-            <Button size="small" onClick={() => handleRepeat(plan.id)}>
-              复做
-            </Button>
-          </View>
-        ))}
+          )
+        })}
       </ScrollView>
-
-      {feedbackSuccess && (
-        <View className="fm-lock-success-mask">
-          <Image
-            src={feedbackSuccessImage}
-            mode="aspectFit"
-            className="fm-lock-success-img"
-          />
-          <Text className="fm-lock-success-text">反馈已记录</Text>
-        </View>
-      )}
 
       <View style={{ height: '120px' }} />
       <CustomTabBar />

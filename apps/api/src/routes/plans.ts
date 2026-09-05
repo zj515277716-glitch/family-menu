@@ -11,6 +11,7 @@ import {
   PatchShoppingListRequestSchema,
   RescaleShoppingListRequestSchema,
   FeedbackRequestSchema,
+  FeedbackResponseSchema,
   PlanResponseSchema,
   PlanListResponseSchema,
   ShoppingListResponseSchema,
@@ -121,26 +122,31 @@ export const planRoutes: FastifyPluginAsync = async (app) => {
     return ShoppingListResponseSchema.parse(shoppingList);
   });
 
-  // ── F6: 反馈 ──
-  // POST /api/plans/:id/feedback
+  // ── F6: 反馈（v0.6 三问模型，DEC-015/TP-05） ──
+  // POST /api/plans/:id/feedback { didCook, taste?, willRepeat, actualMinutes? }
+  // 注意：不用 requireLockedPlan（LOCKED-only 会击穿 COOKED/SKIPPED 态「修改重提」，DEC-015 裁决 4）
   app.post('/plans/:id/feedback', async (request, reply) => {
     const params = PlanIdParamsSchema.safeParse(request.params);
     if (!params.success) {
       return reply.code(400).send({ error: 'Invalid plan id' });
     }
-    // 请求过 FeedbackRequestSchema 校验
+    // 请求过 FeedbackRequestSchema 校验（taste 条件必填：做了必填/没做禁传）
     const parsed = FeedbackRequestSchema.safeParse(request.body);
     if (!parsed.success) {
       return reply.code(400).send({ error: 'Validation error', details: parsed.error.issues });
     }
-    const plan = await planService.addFeedback(
-      params.data.id,
-      parsed.data.result,
-      parsed.data.actualMinutes,
-      parsed.data.cookResult,
-      parsed.data.failPoints,
-    );
+    const plan = await planService.addFeedback(params.data.id, parsed.data);
     return PlanResponseSchema.parse(plan);
+  });
+
+  // GET /api/plans/:id/feedback —— 该 plan 最新一条反馈（无则 404，前端回显/初始化空表单）
+  app.get('/plans/:id/feedback', async (request, reply) => {
+    const params = PlanIdParamsSchema.safeParse(request.params);
+    if (!params.success) {
+      return reply.code(400).send({ error: 'Invalid plan id' });
+    }
+    const feedback = await planService.getFeedback(params.data.id);
+    return FeedbackResponseSchema.parse(feedback);
   });
 
   // ── F7: 历史列表 ──

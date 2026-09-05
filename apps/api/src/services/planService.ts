@@ -7,10 +7,10 @@ import type { DishView, MenuView } from '@family-menu/engine';
 import { mergeShoppingList, type ShoppingList } from '@family-menu/list-merger';
 import type {
   Candidate,
-  CookResult,
   ExclusionRule,
   FamilyRule,
-  FeedbackResult,
+  FeedbackRequest,
+  FeedbackResponse,
   MealRole,
   Plan,
   PlanContext,
@@ -19,6 +19,7 @@ import type {
   PutExclusionsRequest,
   SwapOptionsResponse,
   SwapType,
+  Taste,
 } from '@family-menu/shared';
 import { prisma } from '../db.js';
 import {
@@ -775,22 +776,30 @@ export const planService = {
     return shoppingList;
   },
 
-  // ── F6: 反馈 ──
+  // ── F6: 反馈（v0.6 三问模型，DEC-015/TP-05，对应 C-10/PD-006） ──
 
-  async addFeedback(
-    planId: string,
-    result: FeedbackResult,
-    actualMinutes?: number,
-    cookResult?: CookResult,
-    failPoints?: string,
-  ): Promise<Plan> {
+  /**
+   * 三问反馈写入（append-only 事件流，覆盖重提=追加新事件）。
+   * didCook=true  -> Event COOKED，payload={taste, willRepeat, actualMinutes?}；并写 CookLog
+   *                  （taste 映射 result：good->success / ok->partial / fail->fail，DEC-015 裁决 3）；
+   * didCook=false -> Event NOT_COOKED，payload={willRepeat, actualMinutes?}（无 taste），不写 CookLog。
+   * Plan.status：didCook->COOKED / 没做->SKIPPED（裁决 5，willRepeat 不影响 status）。
+   * REPEAT 事件回归 repeatPlan 专属语义（反馈不再产生 REPEAT，消除旧 result='repeat' 语义 hack）。
+   */
+  async addFeedback(planId: string, data: FeedbackRequest): Promise<Plan> {
     const plan = await prisma.plan.findUnique({ where: { id: planId } });
     if (!plan) {
       throw new NotFoundError(`Plan ${planId} not found`);
     }
 
-    const eventType = result === 'cooked' ? 'COOKED' : result === 'not_cooked' ? 'NOT_COOKED' : 'REPEAT';
-    const newStatus: PlanStatus = result === 'cooked' ? 'COOKED' : result === 'not_cooked' ? 'SKIPPED' : (plan.status as PlanStatus);
+    const { didCook, taste, willRepeat, actualMinutes } = data;
+
+    // payload 形状钉死（DEC-015 裁决 2）：taste 仅在做了时存在
+    const payload: { taste?: Taste; willRepeat: boolean; actualMinutes?: number } = { willRepeat };
+    if (didCook) payload.taste = taste;
+    if (actualMinutes !== undefined) payload.actualMinutes = actualMinutes;
+
+    const newStatus: PlanStatus = didCook ? 'COOKED' : 'SKIPPED';
 
     const updated = await prisma.plan.update({
       where: { id: planId },
@@ -801,26 +810,67 @@ export const planService = {
       data: {
         familyId: FAMILY_ID,
         planId,
-        type: eventType,
-        payload: actualMinutes !== undefined ? { actualMinutes } : undefined,
+        type: didCook ? 'COOKED' : 'NOT_COOKED',
+        payload,
       },
     });
 
-    // 烹饪结果落 CookLog（DEC-011：result=cooked 且 cookResult 有值时写）
-    // CookLog model 无 familyId 字段（schema.prisma 事实源，边界禁改），任务卡示例的 familyId 此处不传
-    // menuId 用 ?? null（CookLog.menuId 可选，避免空字符串违反外键约束）
-    if (result === 'cooked' && cookResult) {
+    // CookLog 是内容升级唯一通道（DEC-006）：做了才写（没做即无试做，写了即伪造升级依据）
+    // taste 单向映射为管线语义 result（good->success / ok->partial / fail->fail），Event payload 保留 taste 原值
+    if (didCook) {
+      const resultMapping: Record<Taste, 'success' | 'partial' | 'fail'> = {
+        good: 'success',
+        ok: 'partial',
+        fail: 'fail',
+      };
       await prisma.cookLog.create({
         data: {
           menuId: plan.lockedMenuId ?? null,
-          result: cookResult,
-          failPoints: failPoints ?? null,
+          result: resultMapping[taste as Taste],
+          failPoints: null, // 三问无失败原因输入，字段留给内容管线
+          willRepeat,
           actualMinutes: actualMinutes ?? null,
         },
       });
     }
 
     return toPlan(updated as PlanRow);
+  },
+
+  /**
+   * 读取该 plan 最新一条反馈（GET /api/plans/:id/feedback，DEC-015 裁决 4）。
+   * didCook 由事件类型派生（COOKED/NOT_COOKED）；taste/willRepeat/actualMinutes 取事件 payload；
+   * submittedAt = 事件创建时间。事件流 append-only：覆盖重提后自然取到最新一条。
+   * taste/willRepeat/actualMinutes 可选 = v0.5 旧事件 payload 无这些字段，如实缺省不编造。
+   * 无反馈 -> 404（前端 catch 后初始化空表单）。
+   */
+  async getFeedback(planId: string): Promise<FeedbackResponse> {
+    const plan = await prisma.plan.findUnique({ where: { id: planId } });
+    if (!plan) {
+      throw new NotFoundError(`Plan ${planId} not found`);
+    }
+
+    const event = await prisma.event.findFirst({
+      where: { planId, type: { in: ['COOKED', 'NOT_COOKED'] } },
+      orderBy: { createdAt: 'desc' },
+    });
+    if (!event) {
+      throw new NotFoundError(`Plan ${planId} has no feedback`);
+    }
+
+    const payload = (event.payload ?? {}) as {
+      taste?: Taste;
+      willRepeat?: boolean;
+      actualMinutes?: number;
+    };
+
+    return {
+      didCook: event.type === 'COOKED',
+      taste: payload.taste,
+      willRepeat: payload.willRepeat,
+      actualMinutes: payload.actualMinutes,
+      submittedAt: event.createdAt,
+    };
   },
 
   // ── F7: 历史与复做 ──

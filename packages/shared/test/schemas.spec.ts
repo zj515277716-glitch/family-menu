@@ -34,12 +34,13 @@ import {
   SwapOptionsQuerySchema,
   SwapOptionsResponseSchema,
   FeedbackRequestSchema,
+  FeedbackResponseSchema,
+  TasteSchema,
   PatchShoppingListRequestSchema,
   RescaleShoppingListRequestSchema,
   PutFamilyRulesRequestSchema,
   PutExclusionsRequestSchema,
   GetExclusionsResponseSchema,
-  CookResultSchema,
   RecommendResponseSchema,
   // constants
   CATEGORIES,
@@ -446,30 +447,70 @@ describe('api schemas', () => {
     }).success).toBe(false);
   });
 
-  it('FeedbackRequestSchema result 枚举 cooked/not_cooked/repeat', () => {
-    expect(FeedbackRequestSchema.safeParse({ result: 'cooked' }).success).toBe(true);
-    expect(FeedbackRequestSchema.safeParse({ result: 'repeat', actualMinutes: 25 }).success).toBe(true);
-    expect(FeedbackRequestSchema.safeParse({ result: 'done' }).success).toBe(false);
+  it('TasteSchema 枚举 good/ok/fail', () => {
+    expect(TasteSchema.safeParse('good').success).toBe(true);
+    expect(TasteSchema.safeParse('ok').success).toBe(true);
+    expect(TasteSchema.safeParse('fail').success).toBe(true);
+    expect(TasteSchema.safeParse('success').success).toBe(false);
+    expect(TasteSchema.safeParse('').success).toBe(false);
   });
 
-  it('FeedbackRequestSchema v0.2 cookResult/failPoints 可选字段向后兼容', () => {
-    // 旧格式（无 cookResult/failPoints）仍通过--向后兼容
-    expect(FeedbackRequestSchema.safeParse({ result: 'cooked' }).success).toBe(true);
-    // 新字段 cookResult + failPoints 通过
-    expect(FeedbackRequestSchema.safeParse({
-      result: 'cooked', cookResult: 'partial', failPoints: '蛋老了',
-    }).success).toBe(true);
-    // cookResult 非法值拒绝
-    expect(FeedbackRequestSchema.safeParse({
-      result: 'cooked', cookResult: 'ok',
-    }).success).toBe(false);
+  it('FeedbackRequestSchema 三问全答（做了+好吃+还做）通过', () => {
+    const r = FeedbackRequestSchema.safeParse({ didCook: true, taste: 'good', willRepeat: true });
+    expect(r.success).toBe(true);
   });
 
-  it('CookResultSchema 枚举 success/partial/fail', () => {
-    expect(CookResultSchema.safeParse('success').success).toBe(true);
-    expect(CookResultSchema.safeParse('partial').success).toBe(true);
-    expect(CookResultSchema.safeParse('fail').success).toBe(true);
-    expect(CookResultSchema.safeParse('ok').success).toBe(false);
+  it('FeedbackRequestSchema 做了+一般/翻车+不做了 通过，耗时选填', () => {
+    expect(FeedbackRequestSchema.safeParse({ didCook: true, taste: 'ok', willRepeat: false }).success).toBe(true);
+    expect(FeedbackRequestSchema.safeParse({ didCook: true, taste: 'fail', willRepeat: false, actualMinutes: 45 }).success).toBe(true);
+    // 缺 willRepeat 拒绝（第③问必填，没做也答）
+    expect(FeedbackRequestSchema.safeParse({ didCook: true, taste: 'good' }).success).toBe(false);
+  });
+
+  it('FeedbackRequestSchema 没做：taste 禁传，willRepeat 仍必填', () => {
+    expect(FeedbackRequestSchema.safeParse({ didCook: false, willRepeat: false }).success).toBe(true);
+    expect(FeedbackRequestSchema.safeParse({ didCook: false, willRepeat: true }).success).toBe(true);
+    // 没做却传 taste -> 拒绝
+    expect(FeedbackRequestSchema.safeParse({ didCook: false, taste: 'good', willRepeat: true }).success).toBe(false);
+    // 没做缺 willRepeat -> 拒绝
+    expect(FeedbackRequestSchema.safeParse({ didCook: false }).success).toBe(false);
+  });
+
+  it('FeedbackRequestSchema 做了缺 taste（第②问条件必填）拒绝', () => {
+    expect(FeedbackRequestSchema.safeParse({ didCook: true, willRepeat: true }).success).toBe(false);
+  });
+
+  it('FeedbackRequestSchema 必填缺失/耗时非法拒绝', () => {
+    // 空对象拒绝
+    expect(FeedbackRequestSchema.safeParse({}).success).toBe(false);
+    // 耗时非整数拒绝
+    expect(FeedbackRequestSchema.safeParse({ didCook: true, taste: 'good', willRepeat: true, actualMinutes: 30.5 }).success).toBe(false);
+  });
+
+  it('FeedbackRequestSchema 旧五项报文（result/cookResult/failPoints）v0.6 起 400 拒绝', () => {
+    expect(FeedbackRequestSchema.safeParse({ result: 'cooked' }).success).toBe(false);
+    expect(FeedbackRequestSchema.safeParse({ result: 'repeat', cookResult: 'partial', failPoints: '蛋老了' }).success).toBe(false);
+  });
+
+  it('FeedbackResponseSchema 新事件 payload 完整解析', () => {
+    const r = FeedbackResponseSchema.safeParse({
+      didCook: true, taste: 'good', willRepeat: true, actualMinutes: 30, submittedAt: new Date('2026-09-05T19:00:00'),
+    });
+    expect(r.success).toBe(true);
+  });
+
+  it('FeedbackResponseSchema 旧事件 payload 宽松解析（缺 taste/willRepeat 如实缺省）', () => {
+    // v0.5 事件 payload 只有 actualMinutes
+    const old = FeedbackResponseSchema.safeParse({
+      didCook: false, actualMinutes: 20, submittedAt: new Date('2026-09-04T19:00:00'),
+    });
+    expect(old.success).toBe(true);
+    if (old.success) {
+      expect(old.data.taste).toBeUndefined();
+      expect(old.data.willRepeat).toBeUndefined();
+    }
+    // didCook/submittedAt 必填
+    expect(FeedbackResponseSchema.safeParse({ taste: 'good' }).success).toBe(false);
   });
 
   it('PutExclusionsRequestSchema 禁忌数组通过，非数组/非法元素拒绝', () => {

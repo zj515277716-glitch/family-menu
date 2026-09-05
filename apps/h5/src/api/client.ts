@@ -4,10 +4,10 @@
 // 未配置 TARO_APP_API_BASE_URL 时所有请求明确失败「服务未连接」——绝不使用假数据（C-13）
 import Taro from '@tarojs/taro'
 import type {
-  CookResult,
   ExclusionRule,
   FamilyRule,
-  FeedbackResult,
+  FeedbackRequest,
+  FeedbackResponse,
   Plan,
   PlanContext,
   SwapOptionsResponse,
@@ -140,18 +140,17 @@ export const api = {
     })
   },
 
-  // 10. POST /api/plans/:id/feedback <- { result, actualMinutes?, cookResult?, failPoints? } -> Plan
-  addFeedback(
-    planId: string,
-    result: FeedbackResult,
-    actualMinutes?: number,
-    cookResult?: CookResult,
-    failPoints?: string,
-  ): Promise<Plan> {
+  // 10a. POST /api/plans/:id/feedback <- FeedbackRequest（v0.6 三问，DEC-015） -> Plan
+  addFeedback(planId: string, body: FeedbackRequest): Promise<Plan> {
     return request<Plan>(`/api/plans/${planId}/feedback`, {
       method: 'POST',
-      data: { result, actualMinutes, cookResult, failPoints },
+      data: body,
     })
+  },
+
+  // 10b. GET /api/plans/:id/feedback -> FeedbackResponse（404=无反馈，返回 null 供回显/空表单）
+  getFeedback(planId: string): Promise<FeedbackResponse | null> {
+    return request<FeedbackResponse | null>(`/api/plans/${planId}/feedback`, { method: 'GET' }, true)
   },
 
   // 11. GET /api/plans -> Plan[]

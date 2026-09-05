@@ -256,3 +256,109 @@
   批准状态：已生效（2026-09-04）——PD-012 自主开发授权覆盖；契约细节均对应已定稿产品决策
   （PD-004/PD-005/C-8），常备调料口径依用户锁定 C-8 执行（A 部分冲突已记录在案）；主控按本条
   派发执行（同 DEC-013 生效惯例）。
+- DEC-015 契约变更 v0.5->v0.6（TP-05 反馈三问切片，PD-012 自主开发授权）：2026-09-05 架构师
+  （fm-arch）影响评估——已生效。
+  背景：C-10/PD-006 将反馈简化为三问（①做了吗 ②味道怎么样 ③下次还做吗）+ 耗时选填，
+  「如实记录（本轮不做学习）」；完成标志=三问提交后数据落库证据，旧五项表单移除。C-10 另要求：
+  同一天再次进入反馈页显示已提交答案、可修改重提（覆盖当天记录）；提交失败提示「没记上」且
+  已选答案不丢。C-11 历史结果标签：绿=做了/好吃/下次还做、灰=没做/不做了、黄=一般、红=翻车，
+  记了耗时显示「约 N 分钟」。现状缺口：FeedbackRequestSchema（v0.2 形态，api.ts 140-145 行）
+  result('cooked'|'not_cooked'|'repeat')/cookResult/failPoints 为旧五项表单模型，与三问不匹配；
+  result='repeat' 是语义 hack（「做了+还做」混写，与 repeatPlan 的 REPEAT 事件两义混用）。
+  变更内容（packages/shared，契约 v0.5->v0.6，仅 schemas/api.ts+types/index.ts+测试）：
+  ①FeedbackRequestSchema 重写为三问模型：didCook: z.boolean()（必填，第①问）；
+  taste: TasteSchema.optional()（第②问，条件必填——didCook=true 必填、didCook=false 不得传，
+  用 .superRefine 表达，先例同 DEC-013 单菜换条件必填，保持 z.infer 单一对象类型）；
+  willRepeat: z.boolean()（必填，第③问三问全答——C-11「灰=没做/不做了」证明没做也可答
+  不做了）；actualMinutes: z.number().int().optional()（选填，PD-006）。
+  旧字段 result/cookResult/failPoints 直接移除（裁决 1）。
+  ②新增 TasteSchema = z.enum(['good','ok','fail'])（好吃/一般/翻车）。
+  ③新增 FeedbackResponseSchema = {didCook: boolean, taste?: Taste, willRepeat?: boolean,
+  actualMinutes?: number, submittedAt: Date}（GET /api/plans/:id/feedback 响应，裁决 4）；
+  taste/willRepeat 在响应侧 optional 是旧数据宽松解析（v0.5 事件 payload 无此字段，如实缺省
+  不编造），与请求侧必填不对称属历史事实使然。
+  ④删除 FeedbackResultSchema 与 CookResultSchema 及其类型导出（三问模型下 result/cookResult
+  概念消失；CookLogSchema.result 在 menu.ts 为独立 z.enum 定义，不受影响，保持不动）。
+  ⑤EventTypeSchema/EventPayloadSchema/prisma/schema.prisma 零改动（裁决 2 复用现有事件类型）。
+  向后兼容性：①④为 breaking 变更（旧 result 报文 v0.6 起 400）。裁决依据：v0.5 消费面仅自家
+  h5（grep 证实：shared types、apps/api routes+planService、h5 client+history，全部在本切片
+  同步改造面内，无第三方/孤儿消费者），调用方与契约同 PR 升级；若保留旧字段则三问字段与
+  result 双轨并存+互斥校验，长期污染契约。先例：DEC-013 行为收紧声明（调用方自家、可 breaking）。
+  版本号 v0.5->v0.6 明示 breaking。②③为纯新增。zod v4 默认 strip、全仓无
+  .strict()/.passthrough()（DEC-012/013/014 三度 grep 核实，结论沿用）。
+  架构裁决（六项）：
+  ·裁决 1 旧字段处置：result/cookResult/failPoints 直接移除不保留兼容（理由见兼容性段）。
+  连带消除 result='repeat' 语义 hack：反馈不再产生 REPEAT 事件，REPEAT 事件回归 repeatPlan
+  （复做动作）专属语义，repeatPlan 分支代码不动。
+  ·裁决 2 事件映射（零迁移）：didCook=true -> Event type='COOKED'，payload={taste, willRepeat,
+  actualMinutes?}；didCook=false -> 'NOT_COOKED'，payload={willRepeat, actualMinutes?}（无
+  taste）。payload 形状语义钉死在本条（先例同 DEC-013 快照形状钉死）。否决新增 FEEDBACK
+  事件类型（需 DB enum 手动 SQL 迁移）：COOKED/NOT_COOKED 本身就是第①问的答案，再立
+  FEEDBACK 会把同一提交拆成动作流/反馈流双轨，历史读取与学习闭环都要合并两种事件；payload
+  扩展为 additive（EventPayloadSchema 本为 record(unknown) 按需细化），复用=单一事件流+零迁移。
+  ·裁决 3 CookLog 写入口径：didCook=true 继续 append（DEC-006：CookLog 是内容升级唯一通道，
+  不可断）——menuId=plan.lockedMenuId ?? null（沿用现状）、result=taste 确定映射
+  （good->success、ok->partial、fail->fail）、willRepeat=willRepeat、actualMinutes=
+  actualMinutes ?? null、failPoints=null（三问无失败原因输入，字段留给内容管线）、dishId
+  不写（沿用现状）。didCook=false 不写 CookLog（没做即无试做，写了即伪造内容管线升级依据，
+  「如实记录」）。映射理由：CookLog.result 是内容管线语义（DRAFT->TESTED->PUBLISHED 依据），
+  taste 是反馈语义；映射只在写入侧单向发生，Event payload 保留 taste 原值，信息无损，
+  TP-06+ 学习闭环从事件流取原值。否决 taste 原值直写 CookLog.result（破坏 CookLogSchema
+  枚举契约+管线三值语义被 'good'/'ok' 污染）。重复提交：CookLog 无 planId 字段（DB 边界
+  禁改）无法 upsert，didCook=true 的每次提交如实逐条 append，内容管线消费按 cookedAt 最新
+  一条为准（口径钉死；TP-06+ 如需按 plan 关联去重另行评估）。
+  ·裁决 4 覆盖重提读取：新增 GET /api/plans/:id/feedback——取该 plan 事件流最新一条
+  COOKED/NOT_COOKED 解析三问+耗时（didCook 由事件 type 派生，taste/willRepeat/actualMinutes
+  取 payload，submittedAt=事件 createdAt）；无反馈 -> 404（NotFoundError 先例，前端 catch
+  404 初始化空表单）。评估结论：满足 C-10「覆盖当天记录」——用户感知面（历史标签、反馈
+  回显）均取最新一条；事件流 append-only 不删旧事件（审计完整）；一个 plan 即一天一顿
+  （planDate），plan 级最新=当天最新，无需日期过滤；改提翻转 didCook 时 Plan.status 同步按
+  最新更新（COOKED/SKIPPED），无脏状态。重复提交=append 新事件+status 按最新，不引入第二个
+  存储位。状态校验注意：feedback 写/读均不得复用 requireLockedPlan（其仅放行 LOCKED，
+  184-195 行）——「可修改重提」发生在 COOKED/SKIPPED 态，LOCKED-only 会击穿 C-10 重提语义；
+  维持现状 findUnique+NotFoundError，不做状态强校验。
+  ·裁决 5 Plan.status 语义：didCook=true->COOKED、false->SKIPPED（沿用现状）；willRepeat
+  不影响 status（仅记录于 Event payload 与 CookLog.willRepeat）。C-11 结果标签由反馈数据
+  派生而非 status 单独决定，派生规则钉死（可测试）：taste=fail->红；taste=ok->黄；
+  didCook=false 或 willRepeat=false->灰；其余->绿（味道事实优先于意愿，符合 C-11 字面；
+  旧数据 willRepeat 缺失不触发灰规则，按缺省如实降级）。「约 N 分钟」= actualMinutes 有值
+  才显示。
+  ·裁决 6 「本轮不做学习」边界：契约与存储只保证如实记录（三问+耗时落 Event payload 与
+  CookLog）；packages/engine 零改动（评分不读反馈）；「反馈学习闭环本轮只积累记录」在以后
+  再做清单（PD-006）；页面保留「反馈只用于以后推荐，不评判谁做饭」文案（e-final s9/s10
+  原文）。
+  影响范围（主控按本条派发执行，本评估不改任何业务代码）：
+  ·packages/shared：schemas/api.ts（①②③④ + 版本头注释 v0.6）、types/index.ts（删
+  FeedbackResult/CookResult 导出，增 Taste/FeedbackResponse，FeedbackRequest 由 z.infer
+  自动变形）；test/schemas.spec.ts（449-472 行旧用例改写 + 新增：taste 条件必填/禁传、
+  didCook/willRepeat 必填、actualMinutes 选填、FeedbackResponse 旧 payload 宽松解析）；
+  ·apps/api：services/planService.ts（addFeedback 重写：签名改 (planId, data: FeedbackRequest)、
+  事件映射/CookLog 映射/status 按裁决 2/3/5；新增 getFeedback 按裁决 4）、routes/plans.ts
+  （feedback 路由透传改造 + 新增 GET /plans/:id/feedback）；test/contract.spec.ts（666-691 行
+  旧用例重写 + GET feedback 404/200 用例 + 真实 PG 落库证据断言：Event type/payload 三问
+  字段、CookLog result 映射/willRepeat/actualMinutes、Plan.status、覆盖重提 append 第二条+
+  GET 返回最新+status 翻转）；不改 prisma/schema.prisma；
+  ·apps/h5：app.config.ts（注册 pages/feedback/index）、api/client.ts（addFeedback 新签名 +
+  新增 getFeedback）、types/index.ts（re-export 同步：删 FeedbackResult、增 Taste/
+  FeedbackResponse）、新增 pages/feedback/index.tsx+index.css（三问芯片：做了/没做、好吃/
+  一般/翻车、还做/不做了 + 耗时选填「如：30 分钟」+ 成功页复述答案（屏⑨->⑩，如「N月N日
+  这顿已记下：做了 · 好吃 · 下次还做」）+ 失败「没记上」保答案可再提 + 404 空表单/已提交
+  回显可改重提）、pages/history/index.tsx（移除旧五项表单，重写为 C-11 历史列表：日期/菜名/
+  结果标签（裁决 5 派生色）+「约 N 分钟」；对 status∈{COOKED,SKIPPED} 的 plan 并发 GET
+  feedback，404=未反馈态）+index.css、pages/plan/index.tsx 363 行与 pages/dish/index.tsx
+  88 行入口改跳 feedback 页；
+  ·不改 packages/engine、packages/list-merger；不改 prisma/schema.prisma；e-final.html 仅作
+  视觉基准对照不改。
+  测试要求：pnpm vitest run packages/shared/test/schemas.spec.ts；pnpm vitest run
+  apps/api/test/contract.spec.ts + 真实 PG 集成断言（先例同 DEC-013 三一致断言）；全量
+  pnpm test（不触 engine，铁律 8 不适用，照跑防回归，先例同 DEC-014）；e2e 手工清单落
+  evidence/：三问提交->落库证据（Event/CookLog/status）->历史页立即可见（C-10 刷新/重进）
+  ->重进反馈页回显->修改重提->历史标签与耗时更新->提交失败保答案可再提交。
+  遗留与风险（主控注意）：历史页逐 plan 并发 GET feedback 属 N+1 读（个人自用量级可接受；
+  如未来需要列表聚合端点另行评估，勿塞本切片）；v0.5 旧事件 payload 无 taste/willRepeat、
+  旧 REPEAT 反馈事件不再解析，历史标签按缺省规则如实降级；CookLog 逐次 append 口径见裁决 3
+  （TP-06+ 消费时按 cookedAt 最新为准）。
+  冻结 tag：v0.6（代码合并后由队长打 tag；v0.5 保留可回滚）。
+  批准状态：已生效（2026-09-05）——PD-012 自主开发授权覆盖（同 DEC-012/013/014 生效惯例）；
+  架构师评估=批准（六项裁决与 breaking 依据均已核）；shared/api/h5 修改由主控按本条派发执行
+  并补测试。

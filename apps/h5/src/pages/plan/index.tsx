@@ -191,7 +191,7 @@ export default function PlanPage() {
   }
 
   function goFeedback() {
-    Taro.reLaunch({ url: '/pages/history/index' })
+    Taro.navigateTo({ url: '/pages/feedback/index' })
   }
 
   // 无锁定菜单 -> 空状态（无死胡同）

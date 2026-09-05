@@ -84,7 +84,7 @@ export default function DishPage() {
       </ScrollView>
 
       <View className="fm-dish-bottom">
-        <Button type="primary" block onClick={() => Taro.reLaunch({ url: '/pages/history/index' })}>
+        <Button type="primary" block onClick={() => Taro.navigateTo({ url: '/pages/feedback/index' })}>
           做完了，去反馈
         </Button>
       </View>

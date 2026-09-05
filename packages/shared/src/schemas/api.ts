@@ -5,6 +5,10 @@
 //   新增 GET /api/plans/:id/swap-options 契约（SwapOptionsQuery/SwapOption/SwapOptionsResponse）
 // v0.5（2026-09-04，DEC-014/TP-04）：新增 POST /api/plans/:id/shopping-list/rescale 契约（RescaleShoppingListRequest）；
 //   ShoppingListSchema 精化为结构化（条目增 alreadyHave/pantryStaple optional 标记，见 plan.ts）
+// v0.6（2026-09-05，DEC-015/TP-05）：反馈重写为三问模型（C-10/PD-006）——
+//   FeedbackRequest = { didCook 必填, taste 条件必填（做了必填/没做禁传）, willRepeat 必填, actualMinutes 选填 }；
+//   新增 TasteSchema / FeedbackResponseSchema（GET /api/plans/:id/feedback）；
+//   删除 FeedbackResultSchema / CookResultSchema（旧 result/cookResult/failPoints 五项表单模型移除，breaking）。
 import { z } from 'zod';
 import { MealRoleSchema } from './dish.js';
 import { FamilyRuleSchema, ExclusionRuleSchema } from './family.js';
@@ -28,18 +32,11 @@ export const PlanIdParamsSchema = z.object({
 export const SwapTypeSchema = z.enum(['全换', '单菜换']);
 
 /**
- * 反馈结果（POST /api/plans/:id/feedback）。
- * cooked = 做了；not_cooked = 没做；repeat = 下次还做。
- * 取值依据任务卡 5.1 "result: string(cooked/not_cooked/repeat)"。
+ * 第②问：味道怎么样（v0.6，DEC-015）。
+ * good = 好吃 / ok = 一般 / fail = 翻车。
+ * didCook=true 时必填、didCook=false 时禁传（superRefine 校验，见 FeedbackRequestSchema）。
  */
-export const FeedbackResultSchema = z.enum(['cooked', 'not_cooked', 'repeat']);
-
-/**
- * 烹饪结果（POST /api/plans/:id/feedback 的 cookResult 字段）。
- * success/partial/fail，取值与 CookLogSchema.result（menu.ts）一致；
- * 反馈时由 service 写入 CookLog.result。v0.2 新增（STEP-06 契约缺口修复）。
- */
-export const CookResultSchema = z.enum(['success', 'partial', 'fail']);
+export const TasteSchema = z.enum(['good', 'ok', 'fail']);
 
 // ───── 请求体 schemas ─────
 
@@ -131,17 +128,45 @@ export const RescaleShoppingListRequestSchema = z.object({
 });
 
 /**
- * POST /api/plans/:id/feedback 请求体。
- * result = 用户动作（cooked/not_cooked/repeat），写 Plan Event；
- * cookResult = 烹饪结果（success/partial/fail），写 CookLog.result（result=cooked 时有意义）；
- * failPoints = 失败原因，写 CookLog.failPoints（cookResult=partial/fail 时填）。
- * cookResult/failPoints 为 v0.2 新增 optional 字段，向后兼容（v0.1 调用方不传仍通过校验）。
+ * POST /api/plans/:id/feedback 请求体（v0.6 三问模型，DEC-015，对应 C-10/PD-006）。
+ * didCook = 第①问「做了吗」（必填）；
+ * taste = 第②问「味道怎么样」（didCook=true 必填、false 禁传，superRefine 校验）；
+ * willRepeat = 第③问「下次还做吗」（必填——没做也可答不做了，C-11 灰标签规则）；
+ * actualMinutes = 实际耗时选填（PD-006）。
+ * 写入映射（裁决 2/3，DEC-015）：didCook=true -> Event COOKED（payload 含三问+耗时）+ CookLog
+ * （taste 映射 result：good->success / ok->partial / fail->fail）；didCook=false -> Event
+ * NOT_COOKED（payload 无 taste），不写 CookLog。
+ * breaking：旧 result/cookResult/failPoints 报文 v0.6 起 400 拒绝（消费面仅自家 h5，同 PR 升级）。
  */
-export const FeedbackRequestSchema = z.object({
-  result: FeedbackResultSchema,
+export const FeedbackRequestSchema = z
+  .object({
+    didCook: z.boolean(),
+    taste: TasteSchema.optional(),
+    willRepeat: z.boolean(),
+    actualMinutes: z.number().int().optional(),
+  })
+  .superRefine((data, ctx) => {
+    if (data.didCook && !data.taste) {
+      ctx.addIssue({ code: 'custom', path: ['taste'], message: '做了必须回答味道怎么样（好吃/一般/翻车）' });
+    }
+    if (!data.didCook && data.taste) {
+      ctx.addIssue({ code: 'custom', path: ['taste'], message: '没做不能回答味道怎么样' });
+    }
+  });
+
+/**
+ * GET /api/plans/:id/feedback 响应（v0.6，DEC-015 裁决 4）。
+ * 返回该 plan 事件流最新一条反馈（didCook 由事件类型派生：COOKED/NOT_COOKED）；
+ * taste/willRepeat/actualMinutes 取事件 payload；submittedAt = 事件创建时间。
+ * 响应侧 taste/willRepeat/actualMinutes optional：v0.5 旧事件 payload 无这些字段，如实缺省不编造。
+ * 无反馈时返回 404（前端 catch 后初始化空表单）。
+ */
+export const FeedbackResponseSchema = z.object({
+  didCook: z.boolean(),
+  taste: TasteSchema.optional(),
+  willRepeat: z.boolean().optional(),
   actualMinutes: z.number().int().optional(),
-  cookResult: CookResultSchema.optional(),
-  failPoints: z.string().optional(),
+  submittedAt: z.date(),
 });
 
 // ───── 响应体 schemas ─────
