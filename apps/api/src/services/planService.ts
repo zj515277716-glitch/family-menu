@@ -345,8 +345,13 @@ export const planService = {
 
   async getExclusions(): Promise<ExclusionRule[]> {
     const rules = await prisma.exclusionRule.findMany({ where: { familyId: FAMILY_ID } });
-    // ExclusionRule 字段（id/familyId/scope/targetId/targetTag/severity/note）与 Prisma 行一致
-    return rules as unknown as ExclusionRule[];
+    // Prisma 可空列读出 null；契约 optional 字段仅接受 undefined（TAG 类禁忌 targetId 恒为 null）
+    return rules.map((r) => ({
+      ...r,
+      targetId: r.targetId ?? undefined,
+      targetTag: r.targetTag ?? undefined,
+      note: r.note ?? undefined,
+    }));
   },
 
   async putExclusions(rules: PutExclusionsRequest): Promise<ExclusionRule[]> {
