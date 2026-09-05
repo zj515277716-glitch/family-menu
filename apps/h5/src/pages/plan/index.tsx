@@ -1,28 +1,23 @@
 // apps/h5/src/pages/plan/index.tsx
-// F4/F5 采购清单 + 备菜顺序（/pages/plan，流式页）
-// 对齐 wireframes.md 第238-314行：Tabs切换清单/备菜，勾选PATCH，Timeline备菜
-// TP-03（DEC-013）：新增今晚菜单菜卡区 + 「换一道」真实换菜弹窗（e-final 屏②③④）
-// TP-04（DEC-014/PD-004/PD-005）：人数步进器联动重算清单 + 「已有/家里常备」标记 + C-8「就按这个买」
-// 弹窗两态：有候选（屏③：挑选+原因可选） / 无候选（屏④：共 0 个如实展示）
+// F4/F5 今晚的菜单 + 购物清单（/pages/plan，流式页）
+// UI 定稿对齐：e-final 屏②（今晚的菜单）/ 屏⑦（购物清单）/ 屏⑧（清单空）/ 屏③④（换菜弹窗）——PD-011
+// 单页滚动融合：菜卡（首张强调底）+ 备菜顺序 + 人数步进清单 + 单底部条
 import { useEffect, useState } from 'react'
 import Taro from '@tarojs/taro'
-import { View, Text, ScrollView } from '@tarojs/components'
-import {
-  NavBar,
-  Tabs,
-  TabPane,
-  Checkbox,
-  Button,
-  Popup,
-  Tag,
-} from '@nutui/nutui-react-taro'
-import { ArrowLeft } from '@nutui/icons-react-taro'
+import { View, Text } from '@tarojs/components'
+import { Button, Checkbox, Popup } from '@nutui/nutui-react-taro'
 import { api } from '../../api/client'
 import { useStore } from '../../store'
+import CustomTabBar from '../../components/CustomTabBar'
 import EmptyState from '../../components/EmptyState'
-import type { DishSnapshot, MenuSnapshot, ShoppingListData } from '../../types'
-import type { SwapOption, SwapOptionsResponse } from '../../types'
-import emptyImage from '../../assets/asset-plan-empty@2x.png'
+import type {
+  DishSnapshot,
+  MenuSnapshot,
+  ShoppingListData,
+  SwapOption,
+  SwapOptionsResponse,
+} from '../../types'
+import type { ExclusionRule } from '@family-menu/shared'
 import './index.css'
 
 const MEAL_ROLE_LABELS: Record<string, string> = {
@@ -31,22 +26,31 @@ const MEAL_ROLE_LABELS: Record<string, string> = {
   SOUP: '汤',
   STAPLE: '主食',
 }
+// DEC-007：菜品图一律 emoji 占位（按角色映射），禁止 AI 图
+const ROLE_EMOJI: Record<string, string> = {
+  MAIN: '🍳',
+  SIDE: '🥬',
+  SOUP: '🍲',
+  STAPLE: '🍚',
+}
 // e-final 屏③ 原因快捷项（选填，v0.4 reason 可选）
 const QUICK_REASONS = ['做腻了', '家里没有食材', '时间不够', '想换个口味']
 
 export default function PlanPage() {
   const { currentPlanId, lockedMenuId, lockedMenu, setLockedMenu } = useStore()
+  const { mustUse, timeBudgetMin } = useStore().tonightContext
   const [shoppingList, setShoppingList] = useState<ShoppingListData | null>(null)
   const [loading, setLoading] = useState(true)
-  const [activeTab, setActiveTab] = useState<string | number>('list')
+  // 定稿屏⑮同理：清单拉取失败 -> 页内横幅+明说，不假装空态
+  const [listError, setListError] = useState(false)
 
-  // ── TP-04：人数步进器（PD-005，初值=今晚情境人数；rescale 成功后同步 store） ──
+  // ── 人数步进器（初值=今晚情境人数；rescale 成功后同步 store） ──
   const [people, setPeople] = useState(() => useStore.getState().tonightContext.people)
   const [rescaling, setRescaling] = useState(false)
-  // ── TP-04：C-8「就按这个买」（仅会话态，不持久化） ──
+  // ── C-8「就按这个买」（仅会话态，不持久化） ──
   const [bought, setBought] = useState(false)
 
-  // ── 换菜弹窗状态（TP-03） ──
+  // ── 换菜弹窗状态 ──
   const [swapVisible, setSwapVisible] = useState(false)
   const [swapDish, setSwapDish] = useState<DishSnapshot | null>(null)
   const [swapOptions, setSwapOptions] = useState<SwapOptionsResponse | null>(null)
@@ -55,20 +59,30 @@ export default function PlanPage() {
   const [swapReason, setSwapReason] = useState<string | null>(null)
   const [swapping, setSwapping] = useState(false)
 
+  // 屏④空态文案需要忌口信息（避开 X 和 Y）
+  const [exclusions, setExclusions] = useState<ExclusionRule[]>([])
+
   useEffect(() => {
     if (currentPlanId) {
       loadShoppingList()
     } else {
       setLoading(false)
     }
+    api
+      .getExclusions()
+      .then(setExclusions)
+      .catch(() => setExclusions([]))
   }, [])
 
   async function loadShoppingList() {
+    if (!currentPlanId) return
     try {
-      const list = await api.getShoppingList(currentPlanId!)
+      const list = await api.getShoppingList(currentPlanId)
       setShoppingList(list)
+      setListError(false)
     } catch (e) {
       console.error('[Plan] loadShoppingList error', e)
+      setListError(true)
     } finally {
       setLoading(false)
     }
@@ -96,7 +110,7 @@ export default function PlanPage() {
     }
   }
 
-  // ── TP-04/PD-005：改人数 -> 服务端重算清单（按 ingredientId 保留勾选）-> 同步 store ──
+  // ── 改人数 -> 服务端重算清单（按 ingredientId 保留勾选）-> 同步 store ──
   // UI 防误触范围 1-20 人（契约只要求 >=1 整数）；加载态防连点
   async function handleRescale(next: number) {
     if (!currentPlanId || rescaling) return
@@ -118,7 +132,7 @@ export default function PlanPage() {
     }
   }
 
-  // ── 换菜（TP-03/DEC-013：真实替换） ──
+  // ── 换菜（真实替换） ──
 
   // 点「换一道」：打开弹窗并拉取同角色候选（空候选=200+空数组，屏④）
   async function openSwapPopup(dish: DishSnapshot) {
@@ -154,7 +168,7 @@ export default function PlanPage() {
 
   function goSetup() {
     closeSwap()
-    Taro.navigateTo({ url: '/pages/setup/index' })
+    Taro.reLaunch({ url: '/pages/setup/index' })
   }
 
   // 确认换菜：服务端复检不过会返回中文原因（SwapRecheckError 400），如实展示
@@ -194,185 +208,214 @@ export default function PlanPage() {
     Taro.navigateTo({ url: '/pages/feedback/index' })
   }
 
-  // 无锁定菜单 -> 空状态（无死胡同）
+  function goDish(dish: DishSnapshot) {
+    Taro.navigateTo({ url: `/pages/dish/index?dishId=${dish.id}` })
+  }
+
+  // 无锁定菜单 -> 屏⑧同族空态（无死胡同）
   if (!currentPlanId || !lockedMenu) {
     return (
-      <View className="fm-page">
-        <NavBar
-          title="采购清单"
-          back={<ArrowLeft width={16} height={16} />}
-          onBackClick={() => Taro.reLaunch({ url: '/pages/tonight/index' })}
-        />
+      <View className="fm-page plan-page">
+        <Text className="fm-h1">今晚的菜单</Text>
         <EmptyState
-          image={emptyImage}
-          title="还没有采购清单"
-          desc="先选定一套候选菜单"
-          btnText="回今晚"
+          emoji="🧺"
+          title="还没有清单"
+          desc="先定好今晚的菜单，清单会自动按人数把用量算好、取整。"
+          btnText="去定今晚的菜单"
           onBtnClick={() => Taro.reLaunch({ url: '/pages/tonight/index' })}
         />
+        <CustomTabBar />
       </View>
     )
   }
 
-  const totalItems = shoppingList?.groups.reduce(
-    (sum, g) => sum + g.items.length,
-    0,
-  ) || 0
-  const checkedCount =
-    shoppingList?.groups.reduce(
-      (sum, g) => sum + g.items.filter((it) => it.checked).length,
-      0,
-    ) || 0
-
-  const swapRoleLabel = swapOptions
-    ? MEAL_ROLE_LABELS[swapOptions.mealRole] || swapOptions.mealRole
+  const swapRoleLabel = swapDish
+    ? MEAL_ROLE_LABELS[swapDish.mealRole] || swapDish.mealRole
     : ''
+
+  // 屏④文案：同样条件下（配菜 · 30 分钟内 · 避开花生和内脏）
+  const hardNames = exclusions
+    .filter((e) => e.severity === 'HARD')
+    .map((e) => e.targetId || e.targetTag || '')
+    .filter(Boolean)
+  const softNames = exclusions
+    .filter((e) => e.severity === 'SOFT')
+    .map((e) => e.targetId || e.targetTag || '')
+    .filter(Boolean)
+  const avoidText = [...hardNames, ...softNames].join('和')
 
   return (
     <View className="fm-page plan-page">
-      <NavBar
-        title={`${lockedMenu.name}·已锁定`}
-        back={<ArrowLeft width={16} height={16} />}
-        onBackClick={() => Taro.reLaunch({ url: '/pages/tonight/index' })}
-      />
+      <Text className="fm-h1">今晚的菜单</Text>
+      <Text className="fm-sub">
+        {`${lockedMenu.name} · 全程 ${lockedMenu.totalActiveMinutes} 分钟 · 按 ${people} 人份 · 点菜卡可看做法`}
+      </Text>
 
-      {/* 今晚菜单菜卡区（e-final 屏②）：每张菜卡带「换一道」 */}
-      <View className="fm-menu-block">
-        <View className="fm-menu-block-head">
-          <Text className="fm-menu-block-title">今晚菜单</Text>
-          <Text className="fm-menu-block-meta">
-            全程 {lockedMenu.totalActiveMinutes} 分钟 · {tonightPeopleLabel()}
-          </Text>
-        </View>
-        {lockedMenu.dishes.map((d) => (
-          <View key={d.id} className="fm-menu-dish-card">
-            <View className="fm-menu-dish-info">
-              <View className="fm-menu-dish-name-row">
-                <Text className="fm-menu-dish-name">{d.name}</Text>
-                <Tag type="primary">{MEAL_ROLE_LABELS[d.mealRole] || d.mealRole}</Tag>
-              </View>
-              <Text className="fm-menu-dish-meta">
-                约 {d.activeMinutes} 分钟
-                {d.flavorTags.length > 0 ? ` · ${d.flavorTags.join(' · ')}` : ''}
-              </Text>
+      {mustUse.length > 0 && (
+        <View className="fm-ok-banner">✓ 必消食材已用上：{mustUse.join('、')}</View>
+      )}
+
+      <View style={{ height: '24px' }} />
+
+      {listError ? (
+        // 拉取失败：横幅+明说不假装+重试
+        <>
+          <View className="fm-error-banner">⚠ 服务未连接，暂时拿不到清单</View>
+          <View className="fm-card fm-empty">
+            <View className="fm-empty-emoji">📡</View>
+            <View className="fm-empty-title">清单没取回来</View>
+            <View className="fm-empty-text">
+              清单需要连接服务才能显示。现在连不上，这一页就先空着——不是没有清单。等连接恢复后点「重试」就好。
             </View>
-            <Text className="fm-menu-swap-btn" onClick={() => openSwapPopup(d)}>
-              换一道
-            </Text>
           </View>
-        ))}
-      </View>
+        </>
+      ) : loading ? (
+        // 骨架屏加载态
+        <>
+          <View className="fm-skel fm-skel-banner" />
+          <View className="fm-card">
+            <View className="fm-skel fm-skel-line" />
+            <View className="fm-skel fm-skel-line fm-skel-line-short" />
+            <View className="fm-skel fm-skel-line" />
+            <View className="fm-skel fm-skel-line fm-skel-line-short" />
+          </View>
+        </>
+      ) : (
+        <>
+          {/* 屏②：菜卡列表（首张强调底） */}
+          {lockedMenu.dishes.map((d, i) => (
+            <View
+              key={d.id}
+              className={`fm-card fm-dish${i === 0 ? ' fm-accent' : ''}`}
+              onClick={() => goDish(d)}
+            >
+              <View className="fm-dish-img">{ROLE_EMOJI[d.mealRole] || '🍳'}</View>
+              <View className="fm-dish-main">
+                <View>
+                  <Text className="fm-dish-name">{d.name}</Text>
+                  <Text className="fm-role-tag">
+                    {MEAL_ROLE_LABELS[d.mealRole] || d.mealRole}
+                  </Text>
+                </View>
+                <Text className="fm-dish-meta">
+                  {`约 ${d.activeMinutes} 分钟`}
+                  {d.flavorTags.length > 0 ? ` · ${d.flavorTags.join(' · ')}` : ''}
+                </Text>
+              </View>
+              <View
+                className="fm-btn-swap"
+                onClick={(e) => {
+                  e.stopPropagation()
+                  openSwapPopup(d)
+                }}
+              >
+                换一道
+              </View>
+            </View>
+          ))}
 
-      <Tabs value={activeTab} onChange={(v) => setActiveTab(v as string | number)}>
-        <TabPane value="list" title={`采购清单(${checkedCount}/${totalItems})`}>
-          <ScrollView scrollY className="fm-plan-scroll">
-            {/* 人数步进器（PD-005：按今晚人数自动缩放分量并取整） */}
-            <View className="fm-people-bar">
-              <Text className="fm-people-label">按</Text>
-              <Text
-                className={`fm-people-btn${rescaling || people <= 1 ? ' disabled' : ''}`}
+          {/* 屏②：备菜顺序卡 */}
+          <View className="fm-card">
+            <Text className="fm-row-label">备菜顺序</Text>
+            <View className="fm-timeline">
+              {lockedMenu.prepSequence.map((step, i) => (
+                <View key={i} className="fm-timeline-li">
+                  <Text className="fm-timeline-t">{`${step.minute} 分钟`}</Text>
+                  <Text>{step.action}</Text>
+                </View>
+              ))}
+            </View>
+          </View>
+
+          {/* 屏⑦：购物清单 */}
+          <Text className="fm-row-label" style={{ margin: '24px 24px 0' }}>
+            购物清单
+          </Text>
+          <View className="fm-card">
+            <View className="fm-stepper">
+              <View
+                className={`fm-step-btn${rescaling || people <= 1 ? ' disabled' : ''}`}
                 onClick={() => handleRescale(people - 1)}
               >
                 −
-              </Text>
-              <Text className="fm-people-num">{people}</Text>
-              <Text
-                className={`fm-people-btn${rescaling || people >= 20 ? ' disabled' : ''}`}
+              </View>
+              <Text className="fm-step-num">{`${people} 人份`}</Text>
+              <View
+                className={`fm-step-btn${rescaling || people >= 20 ? ' disabled' : ''}`}
                 onClick={() => handleRescale(people + 1)}
               >
                 ＋
-              </Text>
-              <Text className="fm-people-label">人买{rescaling ? ' · 调整中…' : ''}</Text>
+              </View>
             </View>
-            {/* C-8 提示（DEC-014 裁决 4：常备/已有标记保留，不删除条目） */}
-            <Text className="fm-list-hint">
-              标了「已有」的不用买——留在清单里是为了提醒你别漏用；「家里常备」的一般不用买。
+            <Text className="fm-sub" style={{ marginTop: '12px' }}>
+              改人数，用量自动缩放
             </Text>
-            {loading && <Text className="fm-text-secondary">加载中...</Text>}
-            {shoppingList?.groups.map((group) => (
-              <View key={group.category} className="fm-group">
-                <View className="fm-group-header">
-                  <Text className="fm-group-title">{group.category}</Text>
-                  <Text className="fm-group-count">{group.items.length}项</Text>
-                </View>
-                {group.items.map((item) => (
-                  <View key={item.ingredientId} className="fm-list-item">
+          </View>
+
+          {shoppingList?.groups.map((group, gi) => (
+            <View key={group.category}>
+              <Text className="fm-group-title">{group.category}</Text>
+              <View className="fm-card">
+                {group.items.map((item, ii) => (
+                  <View
+                    key={item.ingredientId}
+                    className={`fm-li${ii === group.items.length - 1 ? ' fm-li-last' : ''}`}
+                  >
                     <Checkbox
                       checked={item.checked}
                       onChange={(v) => handleCheck(item.ingredientId, !!v)}
                     />
-                    <View className="fm-item-main">
-                      <Text
-                        className={
-                          item.checked ? 'fm-item-name fm-item-checked' : 'fm-item-name'
-                        }
-                      >
+                    <Text className="fm-li-name">
+                      <Text className={item.checked ? 'fm-li-checked' : ''}>
                         {item.name}
                       </Text>
-                      {/* TP-04/PD-004：已有·必消标绿「已有」；家里常备标灰（C-8/DEC-014） */}
-                      {item.alreadyHave && <Text className="fm-tag-have">已有</Text>}
-                      {item.pantryStaple && <Text className="fm-tag-pantry">家里常备</Text>}
-                    </View>
-                    <Text className="fm-item-qty">
+                    </Text>
+                    {item.alreadyHave && (
+                      <Text className="fm-tag-have">已有 · 必消</Text>
+                    )}
+                    {item.pantryStaple && (
+                      <Text className="fm-tag-pantry">家里常备</Text>
+                    )}
+                    <Text className="fm-li-qty">
                       {item.qty}
                       {item.unit}
                     </Text>
                   </View>
                 ))}
               </View>
-            ))}
-            {/* C-8：就按这个买（点击后变已确认，仅本次会话） */}
-            <View className="fm-buy-confirm">
-              <Button
-                type={bought ? 'default' : 'primary'}
-                block
-                disabled={bought}
-                onClick={() => setBought(true)}
-              >
-                {bought ? '✓ 已按这个买' : '就按这个买'}
-              </Button>
             </View>
-          </ScrollView>
-        </TabPane>
+          ))}
 
-        <TabPane value="prep" title="备菜顺序">
-          <View className="fm-timeline">
-            {lockedMenu.prepSequence.map((step, i) => (
-              <View key={i} className="fm-timeline-item">
-                <View className="fm-timeline-dot" />
-                {i < lockedMenu.prepSequence.length - 1 && (
-                  <View className="fm-timeline-line" />
-                )}
-                <View className="fm-timeline-content">
-                  <Text className="fm-timeline-time">{step.minute}分钟</Text>
-                  <Text className="fm-timeline-action">{step.action}</Text>
-                </View>
-              </View>
-            ))}
-            <View className="fm-timeline-total">
-              <Text>总工时 {lockedMenu.totalActiveMinutes}分钟（并行工序，≠单菜相加）</Text>
-            </View>
+          <View className="fm-hint">
+            标了「已有」的不用买——留在清单里是为了提醒你别漏用。
           </View>
-        </TabPane>
-
-
-      </Tabs>
+        </>
+      )}
 
       <View className="fm-bottom-bar">
-        <Button type="primary" block onClick={goFeedback}>
-          做完了，去反馈
-        </Button>
-      </View>
-      <View className="fm-bottom-bar-secondary">
-        <Button plain block onClick={() => Taro.navigateTo({ url: '/pages/dish/index' })}>
-          查看菜品做法
-        </Button>
+        {listError ? (
+          <Button className="fm-btn-primary" onClick={loadShoppingList}>
+            重试
+          </Button>
+        ) : (
+          <>
+            <Button
+              className="fm-btn-primary"
+              onClick={() => !bought && setBought(true)}
+            >
+              {bought ? '✓ 已按这个买' : '就按这个买'}
+            </Button>
+            <Button className="fm-btn-ghost" onClick={goFeedback}>
+              做完饭回来记录一下 →
+            </Button>
+          </>
+        )}
       </View>
 
       {/* 换菜弹窗（e-final 屏③有候选 / 屏④无候选） */}
       <Popup visible={swapVisible} position="bottom" round onClose={closeSwap}>
-        <View className="fm-popup-content fm-swap-popup">
-          <Text className="fm-popup-title">
+        <View className="fm-swap-popup">
+          <Text className="fm-swap-title">
             {swapDish ? `换掉「${swapDish.name}」` : '换菜'}
           </Text>
 
@@ -384,27 +427,25 @@ export default function PlanPage() {
           {!swapOptionsLoading && swapOptions && swapOptions.candidates.length === 0 && (
             <View>
               <Text className="fm-swap-sub">
-                候选来自同角色（{swapRoleLabel}），共 0 个——有多少如实展示。
+                {`候选来自同角色（${swapRoleLabel}），共 0 个——有多少如实展示。`}
               </Text>
-              <View className="fm-swap-empty">
-                <Text className="fm-swap-empty-emoji">🤷</Text>
-                <Text className="fm-swap-empty-title">
-                  暂时没有能换的{swapRoleLabel}
-                </Text>
-                <Text className="fm-swap-empty-text">
-                  {`同样条件下，菜库里暂时没有别的${swapRoleLabel}。我们不会拿不合条件的菜凑数。`}
-                </Text>
+              <View className="fm-card fm-swap-empty">
+                <View className="fm-empty-emoji">🤷</View>
+                <View className="fm-empty-title">
+                  {`暂时没有能换的${swapRoleLabel}`}
+                </View>
+                <View className="fm-empty-text">
+                  {`同样条件下（${swapRoleLabel} · ${timeBudgetMin} 分钟内 · ${
+                    avoidText ? `避开${avoidText}` : '没有忌口'
+                  }），菜库里暂时没有别的${swapRoleLabel}。我们不会拿不合条件的菜凑数。`}
+                </View>
               </View>
-              <View className="fm-popup-actions">
-                <Button type="primary" block onClick={closeSwap}>
-                  先保持这道菜
-                </Button>
-              </View>
-              <View className="fm-popup-actions">
-                <Button block onClick={goSetup}>
-                  去长期设置看看
-                </Button>
-              </View>
+              <Button className="fm-btn-primary" onClick={closeSwap}>
+                先保持这道菜
+              </Button>
+              <Button className="fm-btn-ghost" onClick={goSetup}>
+                去长期设置看看
+              </Button>
             </View>
           )}
 
@@ -412,66 +453,70 @@ export default function PlanPage() {
           {!swapOptionsLoading && swapOptions && swapOptions.candidates.length > 0 && (
             <View>
               <Text className="fm-swap-sub">
-                候选来自同角色（{swapRoleLabel}），共 {swapOptions.candidates.length}{' '}
-                个——有多少如实展示。
+                {`候选来自同角色（${swapRoleLabel}），共 ${swapOptions.candidates.length} 个——有多少如实展示。`}
               </Text>
-              <ScrollView scrollY className="fm-swap-cand-list">
+              <View className="fm-swap-cand-list">
                 {swapOptions.candidates.map((c: SwapOption) => (
                   <View
                     key={c.dishId}
-                    className={`fm-swap-cand${selectedNewId === c.dishId ? ' on' : ''}`}
+                    className={`fm-card fm-dish fm-swap-cand${selectedNewId === c.dishId ? ' on' : ''}`}
                     onClick={() => setSelectedNewId(c.dishId)}
                   >
-                    <View className="fm-swap-cand-info">
-                      <Text className="fm-swap-cand-name">{c.name}</Text>
-                      <Text className="fm-swap-cand-meta">
+                    <View className="fm-dish-img">
+                      {swapDish ? ROLE_EMOJI[swapDish.mealRole] || '🍳' : '🍳'}
+                    </View>
+                    <View className="fm-dish-main">
+                      <View>
+                        <Text className="fm-dish-name">{c.name}</Text>
+                      </View>
+                      <Text className="fm-dish-meta">
                         {`约 ${c.activeMinutes} 分钟`}
-                        {c.flavorTags.length > 0 ? ` · ${c.flavorTags.join(' · ')}` : ''}
+                        {c.flavorTags.length > 0
+                          ? ` · ${c.flavorTags.join(' · ')}`
+                          : ''}
                         {c.equipment.includes('steamer') ? ' · 需蒸锅' : ''}
                       </Text>
                     </View>
-                    <Text className="fm-swap-cand-pick">
+                    <View className="fm-btn-swap">
                       {selectedNewId === c.dishId ? '✓ 已选' : '换成这道'}
-                    </Text>
+                    </View>
                   </View>
                 ))}
-              </ScrollView>
+              </View>
 
-              <Text className="fm-label">为什么换？（可选）</Text>
-              <View className="fm-tag-row">
+              <Text className="fm-row-label">为什么换？（可选）</Text>
+              <View className="fm-chip-opts">
                 {QUICK_REASONS.map((r) => (
-                  <Tag
+                  <View
                     key={r}
-                    type={swapReason === r ? 'primary' : 'default'}
+                    className={`fm-chip-opt${swapReason === r ? ' on' : ''}`}
                     onClick={() => setSwapReason(swapReason === r ? null : r)}
                   >
                     {r}
-                  </Tag>
+                  </View>
                 ))}
               </View>
-              <Text className="fm-swap-hint">不选原因也可以直接换。</Text>
+              <Text className="fm-swap-sub" style={{ marginTop: '12px' }}>
+                不选原因也可以直接换。
+              </Text>
 
-              <View className="fm-popup-actions">
-                <Button onClick={closeSwap}>先不换了</Button>
-                <Button
-                  type="primary"
-                  disabled={!selectedNewId}
-                  loading={swapping}
-                  onClick={confirmSwap}
-                >
-                  确认换菜
-                </Button>
-              </View>
+              <Button
+                className="fm-btn-primary"
+                disabled={!selectedNewId}
+                loading={swapping}
+                onClick={confirmSwap}
+              >
+                确认换菜
+              </Button>
+              <Button className="fm-btn-ghost" onClick={closeSwap}>
+                先不换了
+              </Button>
             </View>
           )}
         </View>
       </Popup>
+
+      <CustomTabBar />
     </View>
   )
-
-  // 人数文案（store 里的今晚情境）
-  function tonightPeopleLabel() {
-    const { people } = useStore.getState().tonightContext
-    return `按 ${people} 人份`
-  }
 }

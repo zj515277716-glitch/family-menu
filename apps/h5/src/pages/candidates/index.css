@@ -1,151 +1,78 @@
 /* apps/h5/src/pages/candidates/index.css */
+/* UI 定稿对齐：去评分/AI 图后的纯浏览候选池——公共类在 app.css，这里只留页面局部 */
 
 .candidates-page {
-  padding-bottom: 32px;
+  padding-top: 24px;
+  padding-bottom: 160px;
 }
 
-.fm-context-summary {
-  padding: 14px 20px;
-  font-size: 24px;
-  color: var(--fm-text-secondary);
-  background-color: var(--fm-primary-light);
-  border-radius: 12px;
-  margin: 12px 16px;
-}
-
-.fm-few-hint {
-  padding: 10px 20px;
-  font-size: 22px;
-  color: #F0A050;
-  background-color: #FFF8E8;
-  border-radius: 12px;
-  margin: 8px 16px;
-}
-
-.fm-candidates-scroll {
-  height: calc(100vh - 180px);
-}
-
-.candidate-card {
-  position: relative;
-  margin: 12px 16px;
-  background-color: #FFFFFF;
-  border-radius: 20px;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
-  overflow: hidden;
-}
-
-.fm-recommend-badge {
-  position: absolute;
-  top: 16px;
-  right: 16px;
-}
-
-.fm-menu-name {
-  display: block;
-  font-size: 34px;
-  font-weight: 700;
-  color: var(--fm-title);
-  margin-bottom: 8px;
-}
-
-.fm-menu-meta {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin-bottom: 16px;
-}
-
-.fm-score {
-  font-size: 26px;
-  color: var(--fm-primary);
-  font-weight: 700;
-}
-
-.fm-dish-list {
-  border-top: 1px solid var(--fm-border);
-  padding-top: 14px;
-  margin-bottom: 14px;
-}
-
-.fm-dish-item {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  padding: 10px 0;
-}
-
-.fm-dish-placeholder {
-  width: 72px;
-  height: 72px;
-  border-radius: 16px;
-  flex-shrink: 0;
-}
-
-.fm-dish-info {
+/* 菜行中部信息区（fm-dish 同构） */
+.fm-dish-main {
   flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
   min-width: 0;
 }
 
-.fm-dish-name {
-  font-size: 28px;
+/* 候选卡头：套名 + 推荐 tag */
+.fm-menu-name {
+  font-size: var(--fm-font-lg);
+  font-weight: 600;
   color: var(--fm-title);
-  font-weight: 500;
 }
 
-.fm-dish-tags {
+.fm-menu-meta {
+  display: block;
+  font-size: var(--fm-font-sm);
+  color: var(--fm-text-secondary);
+  margin-top: 4px;
+}
+
+/* 候选卡内菜行 */
+.fm-cand-dishes {
+  border-top: 1px solid var(--fm-border);
+  margin-top: var(--fm-space-sm);
+  padding-top: var(--fm-space-sm);
   display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  flex: 1;
+  flex-direction: column;
+  gap: var(--fm-space);
 }
 
-.fm-dish-swap {
-  font-size: 22px;
-  color: var(--fm-primary);
-  padding: 6px 16px;
-  border: 1.5px solid var(--fm-primary);
-  border-radius: 20px;
-  background-color: var(--fm-primary-light);
-}
-
-.fm-reasons {
-  background-color: var(--fm-primary-light);
-  border-radius: 12px;
-  padding: 14px 16px;
-  margin-bottom: 14px;
-}
-
-.fm-reason-item {
+.fm-cand-dish {
   display: flex;
-  align-items: flex-start;
-  gap: 8px;
-  padding: 4px 0;
+  align-items: center;
+  gap: var(--fm-space);
 }
 
-.fm-reason-check {
-  color: var(--fm-primary);
-  font-weight: 700;
+/* 为什么是这套：勾选理由（次要信息，不用色块） */
+.fm-cand-reasons {
+  margin-top: var(--fm-space-sm);
 }
 
-.fm-reason-text {
-  font-size: 24px;
+.fm-cand-reason {
+  display: block;
+  font-size: var(--fm-font-sm);
+  color: var(--fm-text-secondary);
+  line-height: var(--fm-line-height);
+}
+
+/* 选定此套：胶囊描边按钮（非渐变 primary，保持每屏单主按钮纪律） */
+.fm-cand-lock {
+  margin: var(--fm-space) 0 0;
+  width: 100%;
+  border: 1px solid var(--fm-border);
+  background: var(--fm-card-bg);
   color: var(--fm-text);
-  flex: 1;
+  font-size: var(--fm-font);
+  font-weight: 600;
+  padding: 20px 0;
+  border-radius: 999px;
+  text-align: center;
 }
 
-.fm-card-actions {
-  display: flex;
-  gap: 12px;
+.fm-cand-lock::after {
+  border: none;
 }
 
-.fm-card-actions > view {
-  flex: 1;
-}
-
+/* 锁定成功遮罩：大绿圆 ✓（替换 AI 插画） */
 .fm-lock-success-mask {
   position: fixed;
   top: 0;
@@ -160,24 +87,21 @@
   z-index: 200;
 }
 
-.fm-lock-success-img {
-  width: 200px;
-  height: 200px;
-}
-
-/* TP-02 C-3 必消已用上绿色横幅 */
-.fm-mustuse-banner {
-  padding: 10px 20px;
-  font-size: 22px;
-  color: #3C8C40;
-  background-color: #EAF7EA;
-  border-radius: 12px;
-  margin: 12px 16px;
+.fm-lock-success-check {
+  width: 160px;
+  height: 160px;
+  border-radius: 50%;
+  background: var(--fm-success);
+  color: #fff;
+  font-size: 80px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .fm-lock-success-text {
-  color: #FFFFFF;
-  font-size: 32px;
+  color: #ffffff;
+  font-size: var(--fm-font-lg);
   font-weight: 600;
-  margin-top: 16px;
+  margin-top: var(--fm-space);
 }

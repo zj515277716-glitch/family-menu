@@ -1,496 +1,81 @@
 /* apps/h5/src/pages/plan/index.css */
+/* UI 定稿对齐：e-final 屏②⑦⑧③④——公共类在 app.css，这里只留页面局部 */
 
 .plan-page {
-  padding-bottom: 200px;
+  padding-top: 24px;
+  padding-bottom: 320px;
 }
 
-/* ── TP-03：今晚菜单菜卡区（e-final 屏②） ── */
-
-.fm-menu-block {
-  margin: 12px 16px;
-  background-color: #FFFFFF;
-  border-radius: 20px;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
-  padding: 18px 20px;
+/* 页内有 TabBar，底部条让位（与 tonight 同规则） */
+.plan-page .fm-bottom-bar {
+  bottom: calc(50px + env(safe-area-inset-bottom));
 }
 
-.fm-menu-block-head {
-  display: flex;
-  justify-content: space-between;
-  align-items: baseline;
-  margin-bottom: 14px;
-}
-
-.fm-menu-block-title {
-  font-size: 30px;
-  font-weight: 700;
-  color: var(--fm-title);
-}
-
-.fm-menu-block-meta {
-  font-size: 22px;
-  color: var(--fm-text-secondary);
-}
-
-.fm-menu-dish-card {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  padding: 14px 0;
-  border-bottom: 1px solid var(--fm-border);
-}
-
-.fm-menu-dish-card:last-child {
-  border-bottom: none;
-  padding-bottom: 4px;
-}
-
-.fm-menu-dish-info {
+/* 菜卡中部信息区（fm-dish flex 的伸缩位） */
+.fm-dish-main {
   flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
   min-width: 0;
 }
 
-.fm-menu-dish-name-row {
-  display: flex;
-  align-items: center;
-  gap: 10px;
+/* 步进按钮禁用态 */
+.fm-step-btn.disabled {
+  opacity: 0.35;
 }
 
-.fm-menu-dish-name {
-  font-size: 28px;
+/* 清单勾选后的划线态 */
+.fm-li-checked {
+  text-decoration: line-through;
+  color: var(--fm-text-hint);
+}
+
+/* ── 换菜弹窗（屏③有候选 / 屏④无候选） ── */
+.fm-swap-popup {
+  background: var(--fm-card-bg);
+  padding: var(--fm-space-lg) var(--fm-space) var(--fm-space-xl);
+  max-height: 80vh;
+  overflow-y: auto;
+}
+
+.fm-swap-title {
+  display: block;
+  font-size: var(--fm-font-lg);
   font-weight: 600;
   color: var(--fm-title);
-}
-
-.fm-menu-dish-meta {
-  font-size: 22px;
-  color: var(--fm-text-secondary);
-}
-
-.fm-menu-swap-btn {
-  flex-shrink: 0;
-  font-size: 22px;
-  color: var(--fm-primary);
-  padding: 6px 16px;
-  border: 1.5px solid var(--fm-primary);
-  border-radius: 20px;
-  background-color: var(--fm-primary-light);
-}
-
-/* ── TP-03：换菜弹窗（e-final 屏③有候选 / 屏④无候选） ── */
-
-.fm-swap-popup {
-  max-height: 75vh;
-  overflow-y: auto;
+  margin-bottom: var(--fm-space-sm);
 }
 
 .fm-swap-sub {
   display: block;
-  font-size: 22px;
+  font-size: var(--fm-font-sm);
   color: var(--fm-text-secondary);
-  margin-bottom: 14px;
+  line-height: var(--fm-line-height);
+  margin-bottom: var(--fm-space-sm);
 }
 
-.fm-swap-cand-list {
-  max-height: 40vh;
-}
-
+/* 候选卡在弹窗内：贴边距收紧 */
 .fm-swap-cand {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  border: 1.5px solid var(--fm-border);
-  border-radius: 16px;
-  padding: 14px 16px;
-  margin-bottom: 10px;
-  background-color: #FFFCF5;
+  margin: 0 0 var(--fm-space-sm);
 }
 
+/* 候选行选中态：强调描边（屏③） */
 .fm-swap-cand.on {
   border-color: var(--fm-primary);
-  background-color: var(--fm-primary-light);
+  background: var(--fm-primary-light);
 }
 
-.fm-swap-cand-info {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  min-width: 0;
-}
-
-.fm-swap-cand-name {
-  font-size: 26px;
-  font-weight: 600;
-  color: var(--fm-title);
-}
-
-.fm-swap-cand-meta {
-  font-size: 22px;
-  color: var(--fm-text-secondary);
-}
-
-.fm-swap-cand-pick {
-  flex-shrink: 0;
-  font-size: 22px;
-  color: var(--fm-primary);
-  font-weight: 600;
-}
-
-.fm-swap-hint {
-  display: block;
-  font-size: 22px;
-  color: var(--fm-text-secondary);
-  margin: 8px 0 14px;
-}
-
-/* 屏④空态卡 */
+/* 屏④无候选卡 */
 .fm-swap-empty {
   text-align: center;
-  padding: 24px 8px;
+  margin-bottom: var(--fm-space);
 }
 
-.fm-swap-empty-emoji {
-  display: block;
-  font-size: 48px;
-  margin-bottom: 10px;
+/* 弹窗内按钮：改全宽纵向排布 */
+.fm-swap-popup .fm-btn-primary {
+  width: 100%;
+  margin: var(--fm-space-lg) 0 0;
 }
 
-.fm-swap-empty-title {
-  display: block;
-  font-size: 26px;
-  font-weight: 600;
-  color: var(--fm-title);
-  margin-bottom: 8px;
-}
-
-.fm-swap-empty-text {
-  display: block;
-  font-size: 24px;
-  color: var(--fm-text-secondary);
-  line-height: 1.6;
-}
-
-.fm-bottom-bar-secondary {
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  padding: 10px 16px calc(10px + env(safe-area-inset-bottom));
-  background-color: #FFFFFF;
-  border-top: 1px solid var(--fm-border);
-  z-index: 100;
-}
-
-.fm-plan-scroll {
-  height: calc(100vh - 220px);
-}
-
-.fm-group {
-  margin: 12px 16px;
-  background-color: #FFFFFF;
-  border-radius: 20px;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
-  overflow: hidden;
-}
-
-.fm-group-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 14px 20px;
-  background-color: var(--fm-primary-light);
-}
-
-.fm-group-title {
-  font-size: 28px;
-  font-weight: 600;
-  color: var(--fm-title);
-}
-
-.fm-group-count {
-  font-size: 24px;
-  color: var(--fm-text-secondary);
-}
-
-.fm-list-item {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 14px 20px;
-  border-bottom: 1px solid var(--fm-border);
-}
-
-.fm-item-name {
-  flex: 1;
-  font-size: 28px;
-  color: var(--fm-title);
-}
-
-.fm-item-checked {
-  text-decoration: line-through;
-  color: #C8C8C8;
-}
-
-.fm-item-qty {
-  font-size: 26px;
-  color: var(--fm-primary);
-  font-weight: 500;
-}
-
-/* ── TP-04：人数步进器（PD-005） ── */
-.fm-people-bar {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 16px;
-  margin: 12px 16px 0;
-  padding: 14px 20px;
-  background-color: #FFFFFF;
-  border-radius: 16px;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
-}
-
-.fm-people-label {
-  font-size: 26px;
-  color: var(--fm-title);
-}
-
-.fm-people-btn {
-  width: 56px;
-  height: 56px;
-  line-height: 52px;
-  text-align: center;
-  font-size: 32px;
-  color: var(--fm-primary);
-  border: 1.5px solid var(--fm-primary);
-  border-radius: 50%;
-  background-color: var(--fm-primary-light);
-}
-
-.fm-people-btn.disabled {
-  opacity: 0.35;
-}
-
-.fm-people-num {
-  min-width: 60px;
-  text-align: center;
-  font-size: 34px;
-  font-weight: 700;
-  color: var(--fm-title);
-}
-
-/* ── TP-04：C-8 提示 + 「已有/家里常备」标记（design-spec 第77行：已有=绿；家里常备=灰） ── */
-.fm-list-hint {
-  display: block;
-  margin: 10px 20px 0;
-  font-size: 22px;
-  color: var(--fm-text-secondary);
-  line-height: 1.6;
-}
-
-.fm-item-main {
-  flex: 1;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  min-width: 0;
-  flex-wrap: wrap;
-}
-
-.fm-tag-have {
-  flex-shrink: 0;
-  padding: 2px 14px;
-  font-size: 20px;
-  border-radius: 12px;
-  background-color: #E8F5E9;
-  color: #4CAF50;
-}
-
-.fm-tag-pantry {
-  flex-shrink: 0;
-  padding: 2px 14px;
-  font-size: 20px;
-  border-radius: 12px;
-  background-color: #F2F2F2;
-  color: #8A8A8A;
-}
-
-/* ── TP-04：就按这个买（C-8，会话态） ── */
-.fm-buy-confirm {
-  margin: 16px 16px 24px;
-}
-
-.fm-timeline {
-  padding: 28px 20px;
-}
-
-.fm-timeline-item {
-  display: flex;
-  position: relative;
-  padding-bottom: 28px;
-}
-
-.fm-timeline-dot {
-  width: 16px;
-  height: 16px;
-  border-radius: 50%;
-  background-color: var(--fm-primary);
-  margin-right: 18px;
-  margin-top: 6px;
-  flex-shrink: 0;
-  z-index: 1;
-  box-shadow: 0 0 0 4px var(--fm-primary-light);
-}
-
-.fm-timeline-line {
-  position: absolute;
-  left: 7px;
-  top: 22px;
-  bottom: 0;
-  width: 2px;
-  background-color: var(--fm-primary-light);
-}
-
-.fm-timeline-content {
-  flex: 1;
-}
-
-.fm-timeline-time {
-  display: block;
-  font-size: 24px;
-  color: var(--fm-primary);
-  font-weight: 600;
-  margin-bottom: 6px;
-}
-
-.fm-timeline-action {
-  display: block;
-  font-size: 28px;
-  color: var(--fm-title);
-  line-height: 1.5;
-}
-
-.fm-timeline-total {
-  margin-top: 20px;
-  padding: 14px 20px;
-  background-color: var(--fm-primary-light);
-  border-radius: 12px;
-  font-size: 24px;
-  color: var(--fm-text-secondary);
-}
-
-/* 菜品做法 Tab（保留样式，供 plan 页内引用） */
-.fm-dish-detail {
-  margin: 12px 16px;
-  background-color: #FFFFFF;
-  border-radius: 20px;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
-  overflow: hidden;
-}
-
-.fm-dish-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 18px 20px;
-  background-color: var(--fm-primary-light);
-}
-
-.fm-dish-name {
-  font-size: 32px;
-  font-weight: 700;
-  color: var(--fm-title);
-}
-
-.fm-dish-meta {
-  font-size: 24px;
-  color: var(--fm-text-secondary);
-}
-
-.fm-dish-section {
-  padding: 18px 20px;
-  border-bottom: 1px solid var(--fm-border);
-}
-
-.fm-dish-section-title {
-  display: block;
-  font-size: 26px;
-  font-weight: 600;
-  color: var(--fm-primary);
-  margin-bottom: 14px;
-}
-
-.fm-dish-ing {
-  display: flex;
-  justify-content: space-between;
-  padding: 8px 0;
-}
-
-.fm-dish-ing-name {
-  font-size: 28px;
-  color: var(--fm-title);
-}
-
-.fm-dish-ing-qty {
-  font-size: 28px;
-  color: var(--fm-primary);
-  font-weight: 500;
-}
-
-.fm-dish-step {
-  display: flex;
-  gap: 14px;
-  padding: 10px 0;
-}
-
-.fm-dish-step-num {
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  background-color: var(--fm-primary);
-  color: #FFFFFF;
-  font-size: 24px;
-  text-align: center;
-  line-height: 40px;
-  flex-shrink: 0;
-}
-
-.fm-dish-step-content {
-  flex: 1;
-}
-
-.fm-dish-step-text {
-  display: block;
-  font-size: 28px;
-  color: var(--fm-title);
-  line-height: 1.6;
-}
-
-.fm-dish-step-tag {
-  display: inline-block;
-  margin-top: 6px;
-  padding: 3px 14px;
-  background-color: #E8F5E9;
-  color: #4CAF50;
-  font-size: 22px;
-  border-radius: 12px;
-}
-
-.fm-dish-tags {
-  display: flex;
-  gap: 8px;
-  padding: 14px 20px;
-  flex-wrap: wrap;
-}
-
-.fm-dish-tag {
-  padding: 4px 18px;
-  background-color: var(--fm-primary-light);
-  color: var(--fm-primary);
-  font-size: 24px;
-  border-radius: 20px;
+.fm-swap-popup .fm-btn-ghost {
+  width: 100%;
+  margin: var(--fm-space-xs) 0 0;
 }

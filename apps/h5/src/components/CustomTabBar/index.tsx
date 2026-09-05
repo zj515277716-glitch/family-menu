@@ -1,15 +1,15 @@
 // apps/h5/src/components/CustomTabBar/index.tsx
-// 自定义 TabBar：NutUI Tabbar 实现 3 常驻入口（今晚/历史/设置）
-// 对齐 wireframes.md 第11-34行 + 第139行 [NutUI:Tabbar]
+// 自定义 TabBar：NutUI Tabbar 实现 3 常驻入口（今晚🍛 / 历史📔 / 设置⚙️）
+// 定稿基准：docs/ai-rebuild/ui/e-final.html（TabBar emoji 图标）+ design-spec.md §3
 // tab 间跳转用 Taro.reLaunch（清栈切 tab，Zustand 全局状态保留）
 import Taro from '@tarojs/taro'
 import { Tabbar, TabbarItem } from '@nutui/nutui-react-taro'
-import { Home, Clock, Setting } from '@nutui/icons-react-taro'
+import { Text } from '@tarojs/components'
 
 const TABS = [
-  { path: '/pages/tonight/index', text: '今晚', Icon: Home },
-  { path: '/pages/history/index', text: '历史', Icon: Clock },
-  { path: '/pages/setup/index', text: '设置', Icon: Setting },
+  { path: '/pages/tonight/index', text: '今晚', emoji: '🍛' },
+  { path: '/pages/history/index', text: '历史', emoji: '📔' },
+  { path: '/pages/setup/index', text: '设置', emoji: '⚙️' },
 ]
 
 export default function CustomTabBar() {
@@ -36,7 +36,11 @@ export default function CustomTabBar() {
       inactiveColor="#7A6A55"
     >
       {TABS.map((t) => (
-        <TabbarItem key={t.path} title={t.text} icon={<t.Icon width={20} height={20} />} />
+        <TabbarItem
+          key={t.path}
+          title={t.text}
+          icon={<Text style={{ fontSize: '40px', lineHeight: '48px' }}>{t.emoji}</Text>}
+        />
       ))}
     </Tabbar>
   )

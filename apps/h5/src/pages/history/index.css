@@ -1,59 +1,14 @@
-/* apps/h5/src/pages/history/index.css */
+/* apps/h5/src/pages/history/index.css
+ * e-final 屏⑫/⑬（PD-011 定稿）：fm-h1/fm-sub/fm-rec 族/fm-tag 族/fm-error-banner 全部为公共类，
+ * 本页只留布局差异。
+ */
 
 .history-page {
-  padding-bottom: 140px;
+  padding-top: 24px;
+  padding-bottom: 200px;
 }
 
-.fm-history-meta {
-  display: block;
-  font-size: 24px;
-  color: var(--fm-text-secondary);
-  margin-top: 6px;
-}
-
-.fm-history-scroll {
-  height: auto;
-  max-height: 600px;
-}
-
-.fm-history-item {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.fm-history-row {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  flex: 1;
-}
-
-.fm-history-date {
-  font-size: 26px;
-  color: var(--fm-text-secondary);
-  min-width: 80px;
-}
-
-.fm-history-main {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-.fm-history-name {
-  font-size: 28px;
-  color: var(--fm-title);
-}
-
-.fm-history-result {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.fm-history-minutes {
-  font-size: 24px;
-  color: var(--fm-text-secondary);
+/* 页内有 TabBar，底部条让位（与 tonight/plan/setup 同规则） */
+.history-page .fm-bottom-bar {
+  bottom: calc(50px + env(safe-area-inset-bottom));
 }

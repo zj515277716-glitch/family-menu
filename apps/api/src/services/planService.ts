@@ -886,7 +886,27 @@ export const planService = {
       where: { familyId: FAMILY_ID },
       orderBy: { createdAt: 'desc' },
     });
-    return plans.map((p) => toPlan(p as PlanRow));
+    // 真实菜名（e-final 屏⑫ rec-dishes）：按锁定菜单一次查出 全部 菜名，按 menuId 分组
+    const menuIds = [...new Set(plans.map((p) => p.lockedMenuId).filter((id): id is string => !!id))];
+    const dishRows = menuIds.length
+      ? await prisma.menuDish.findMany({
+          where: { menuId: { in: menuIds } },
+          orderBy: { sort: 'asc' },
+          select: { menuId: true, dish: { select: { name: true } } },
+        })
+      : [];
+    const namesByMenu = new Map<string, string[]>();
+    for (const row of dishRows) {
+      const names = namesByMenu.get(row.menuId) ?? [];
+      names.push(row.dish.name);
+      namesByMenu.set(row.menuId, names);
+    }
+    return plans.map((p) => {
+      const plan = toPlan(p as PlanRow);
+      const names = p.lockedMenuId ? namesByMenu.get(p.lockedMenuId) : undefined;
+      if (names && names.length > 0) plan.dishNames = names;
+      return plan;
+    });
   },
 
   async repeatPlan(planId: string): Promise<Plan> {

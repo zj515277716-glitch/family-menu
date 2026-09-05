@@ -1,55 +1,12 @@
 /* apps/h5/src/pages/tonight/index.css */
+/* 页面级样式：公共组件类全部来自 app.css（e-final 定稿 ×2） */
 
 .tonight-page {
-  padding-bottom: 140px;
+  padding-top: 24px;
+  /* 底部让位：fixed 操作条（主按钮+次按钮）+ TabBar */
+  padding-bottom: 300px;
 }
 
 .tonight-page .fm-bottom-bar {
   bottom: calc(50px + env(safe-area-inset-bottom));
-}
-
-.tonight-page .fm-page-header {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 20px 16px 12px;
-}
-
-.fm-logo {
-  width: 56px;
-  height: 56px;
-  flex-shrink: 0;
-}
-
-.fm-hero {
-  width: 100%;
-  height: 240px;
-  border-radius: 20px;
-  margin: 0 0 8px;
-}
-
-/* TP-02 空手说明卡（e-final 屏⑥：PD-001 硬要求 + C-7 空手文案） */
-.fm-empty-card {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  text-align: center;
-  gap: 12px;
-}
-
-.fm-empty-emoji {
-  font-size: 80px;
-  line-height: 1.2;
-}
-
-.fm-empty-title {
-  font-size: 32px;
-  font-weight: 700;
-  color: var(--fm-title);
-}
-
-.fm-empty-text {
-  font-size: 24px;
-  color: var(--fm-text-secondary);
-  line-height: 1.6;
 }

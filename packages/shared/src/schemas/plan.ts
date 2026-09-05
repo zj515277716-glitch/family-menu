@@ -87,6 +87,8 @@ export const PlanSchema = z.object({
   context: PlanContextSchema,
   candidates: z.array(CandidateSchema),
   lockedMenuId: z.string().optional(),
+  /** 锁定菜单的真实菜名列表（按 sort 排序；历史页展示用，未锁定=undefined） */
+  dishNames: z.array(z.string()).optional(),
   shoppingList: ShoppingListSchema.optional(),
   status: PlanStatusSchema.default('PROPOSED'),
   createdAt: z.date(),

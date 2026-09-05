@@ -1,131 +1,63 @@
 /* apps/h5/src/pages/dish/index.css */
+/* 做法页局部样式（e-final 屏⑪）：返回链接 + 步骤行；其余复用 app.css 公共类 */
 
 .dish-page {
-  padding-bottom: 140px;
+  padding-top: 24px;
+  padding-bottom: 200px;
 }
 
-.fm-dish-scroll {
-  height: calc(100vh - 220px);
-}
-
-.fm-dish-detail {
-  margin: 12px 16px;
-  background-color: #FFFFFF;
-  border-radius: 20px;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
-  overflow: hidden;
-}
-
-.fm-dish-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 18px 20px;
-  background-color: var(--fm-primary-light);
-}
-
-.fm-dish-name {
-  font-size: 32px;
-  font-weight: 700;
-  color: var(--fm-title);
-}
-
-.fm-dish-meta {
-  font-size: 24px;
+/* back 链接（dz-sm 可点） */
+.fm-back {
+  display: inline-block;
+  margin: 0 16px 8px;
+  font-size: var(--fm-font-sm);
   color: var(--fm-text-secondary);
 }
 
-.fm-dish-section {
-  padding: 18px 20px;
-  border-bottom: 1px solid var(--fm-border);
+/* Taro H5 Text 渲染为自定义元素，e-final 的 .photo-ph span 子选择器不可靠 → 显式 class */
+.fm-photo-ph-note {
+  font-size: 20px;
+  color: var(--fm-text-hint);
 }
 
-.fm-dish-section-title {
-  display: block;
-  font-size: 26px;
-  font-weight: 600;
-  color: var(--fm-primary);
-  margin-bottom: 14px;
-}
-
-.fm-dish-ing {
+/* 做法步骤行（step-li flex baseline + step-no 圆形序号） */
+.fm-step-li {
   display: flex;
-  justify-content: space-between;
-  padding: 8px 0;
+  align-items: baseline;
+  gap: 20px;
+  padding: 18px 0;
 }
 
-.fm-dish-ing-name {
-  font-size: 28px;
-  color: var(--fm-title);
-}
-
-.fm-dish-ing-qty {
-  font-size: 28px;
-  color: var(--fm-primary);
-  font-weight: 500;
-}
-
-.fm-dish-step {
-  display: flex;
-  gap: 14px;
-  padding: 10px 0;
-}
-
-.fm-dish-step-num {
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  background-color: var(--fm-primary);
-  color: #FFFFFF;
-  font-size: 24px;
-  text-align: center;
-  line-height: 40px;
+.fm-step-no {
   flex-shrink: 0;
-}
-
-.fm-dish-step-content {
-  flex: 1;
-}
-
-.fm-dish-step-text {
-  display: block;
-  font-size: 28px;
-  color: var(--fm-title);
-  line-height: 1.6;
-}
-
-.fm-dish-step-tag {
-  display: inline-block;
-  margin-top: 6px;
-  padding: 3px 14px;
-  background-color: #E8F5E9;
-  color: #4CAF50;
-  font-size: 22px;
-  border-radius: 12px;
-}
-
-.fm-dish-tags {
-  display: flex;
-  gap: 8px;
-  padding: 14px 20px;
-  flex-wrap: wrap;
-}
-
-.fm-dish-tag {
-  padding: 4px 18px;
-  background-color: var(--fm-primary-light);
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: var(--fm-primary-light);
   color: var(--fm-primary);
-  font-size: 24px;
-  border-radius: 20px;
+  font-size: var(--fm-font-xs);
+  font-weight: 600;
+  text-align: center;
+  line-height: 44px;
 }
 
-.fm-dish-bottom {
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  padding: 12px 16px calc(12px + env(safe-area-inset-bottom));
-  background-color: #FFFFFF;
-  border-top: 1px solid var(--fm-border);
-  z-index: 100;
+.fm-step-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.fm-step-text {
+  display: block;
+  font-size: var(--fm-font);
+  color: var(--fm-title);
+  line-height: var(--fm-line-height);
+}
+
+.fm-step-body .fm-tag {
+  margin-top: 8px;
+}
+
+/* 卡内兜底提示去外边距 */
+.fm-card .fm-hint {
+  margin: 0;
 }

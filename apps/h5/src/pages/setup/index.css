@@ -1,87 +1,100 @@
-/* apps/h5/src/pages/setup/index.css */
+/* apps/h5/src/pages/setup/index.css
+ * e-final 屏⑭（PD-011 定稿）：公共类全复用（fm-h1/fm-sub/fm-card/fm-stepper/fm-chip-opt/fm-tag-*），
+ * 本页只留局部差异。
+ */
 
 .setup-page {
-  padding-bottom: 140px;
+  padding-top: 24px;
+  padding-bottom: 200px;
 }
 
-.fm-page-header {
-  padding: 28px 20px 12px;
+/* 页内有 TabBar，底部条让位（与 tonight/plan 同规则） */
+.setup-page .fm-bottom-bar {
+  bottom: calc(50px + env(safe-area-inset-bottom));
 }
 
-.fm-page-title {
-  font-size: 38px;
-  font-weight: 700;
-  color: var(--fm-title);
-}
-
-.fm-label {
-  display: block;
-  font-size: 26px;
-  color: var(--fm-text);
-  margin-bottom: 14px;
-  font-weight: 500;
-}
-
-.fm-row {
-  display: flex;
-  align-items: center;
-}
-
-.fm-checkbox-row {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 16px;
-}
-
-.fm-tag-row {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 12px;
-}
-
-.fm-exclusion-list {
-  margin-top: 14px;
-}
-
-.fm-exclusion-item {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 10px 0;
+/* 忌口行：行头（名称+标签+删除）+ 固定解释 */
+.fm-avoid-li {
+  padding: 20px 0;
   border-bottom: 1px solid var(--fm-border);
 }
 
-.fm-exclusion-text {
-  flex: 1;
-  font-size: 26px;
-  color: var(--fm-title);
+.fm-avoid-li:first-of-type {
+  padding-top: 4px;
 }
 
-.fm-exclusion-del {
-  font-size: 24px;
-  color: #E85D5D;
-  padding: 4px 10px;
+.fm-avoid-li:last-of-type {
+  border-bottom: none;
+  padding-bottom: 8px;
 }
 
-.fm-popup-content {
-  padding: 28px 20px;
-}
-
-.fm-popup-title {
-  display: block;
-  font-size: 32px;
-  font-weight: 700;
-  color: var(--fm-title);
-  margin-bottom: 18px;
-  text-align: center;
-}
-
-.fm-popup-actions {
+.fm-avoid-head {
   display: flex;
-  gap: 12px;
-  margin-top: 28px;
+  align-items: center;
+  gap: 16px;
 }
 
-.fm-popup-actions > view {
+.fm-avoid-name {
   flex: 1;
+  min-width: 0;
+  font-size: var(--fm-font);
+  font-weight: 600;
+  color: var(--fm-title);
+}
+
+.fm-avoid-del {
+  flex: none;
+  font-size: var(--fm-font-sm);
+  color: var(--fm-danger);
+  padding: 4px 8px;
+}
+
+.fm-avoid-desc {
+  margin-top: 8px;
+  font-size: var(--fm-font-xs);
+  color: var(--fm-text-hint);
+  line-height: var(--fm-line-height);
+}
+
+/* 「＋ 添加忌口」：胶囊按钮撑满整行 */
+.fm-avoid-add {
+  display: block;
+  width: 100%;
+  box-sizing: border-box;
+  text-align: center;
+  margin-top: var(--fm-space-sm);
+}
+
+/* 添加忌口弹窗（同 plan 页 fm-swap-popup 骨架） */
+.fm-setup-popup {
+  background: var(--fm-card-bg);
+  padding: var(--fm-space-lg) var(--fm-space) var(--fm-space-xl);
+  max-height: 80vh;
+  overflow-y: auto;
+}
+
+.fm-setup-title {
+  display: block;
+  font-size: var(--fm-font-lg);
+  font-weight: 600;
+  color: var(--fm-title);
+  margin-bottom: var(--fm-space-sm);
+}
+
+.fm-setup-label {
+  display: block;
+  font-size: var(--fm-font-sm);
+  color: var(--fm-text-secondary);
+  margin: var(--fm-space) 0 var(--fm-space-xs);
+}
+
+/* 弹窗内按钮撑满整行 */
+.fm-setup-popup .fm-btn-primary {
+  width: 100%;
+  margin: var(--fm-space-lg) 0 0;
+}
+
+.fm-setup-popup .fm-btn-ghost {
+  width: 100%;
+  margin: var(--fm-space-xs) 0 0;
 }

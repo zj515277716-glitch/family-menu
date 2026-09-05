@@ -1,21 +1,22 @@
 // apps/h5/src/pages/feedback/index.tsx
-// F6 反馈三问（/pages/feedback，流式页，TP-05/DEC-015 契约 v0.6，对应 C-10/PD-006）
-// 对齐 e-final.html 屏⑨（三问填写）/屏⑩（成功复述）：
+// F6 反馈三问（/pages/feedback，TP-05/DEC-015 契约 v0.6，对应 C-10/PD-006）
+// 对齐 e-final 屏⑨（三问填写）/屏⑩（成功复述）：
 // ①做了吗 ②味道怎么样（做了才问） ③下次还做吗 + 耗时选填；
 // 同一天再次进入显示已提交答案、可修改重提；提交失败「没记上」已选答案不丢；
 // 文案原则：「反馈只用于以后推荐，不评判谁做饭」。
+// 样式全部复用 app.css 公共类（fm-q-title/fm-opts/fm-opt 三态/fm-done-*），本页只留差异。
 import { useEffect, useState } from 'react'
 import Taro, { useDidShow } from '@tarojs/taro'
-import { View, Text } from '@tarojs/components'
-import { NavBar, Button, Input } from '@nutui/nutui-react-taro'
-import { ArrowLeft } from '@nutui/icons-react-taro'
+import { View, Text, Input } from '@tarojs/components'
+import { Button } from '@nutui/nutui-react-taro'
 import { api } from '../../api/client'
 import { useStore } from '../../store'
+import EmptyState from '../../components/EmptyState'
 import type { Taste } from '../../types'
 import './index.css'
 
 export default function FeedbackPage() {
-  const { currentPlanId } = useStore()
+  const { currentPlanId, lockedMenu } = useStore()
 
   const [planId, setPlanId] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
@@ -120,16 +121,17 @@ export default function FeedbackPage() {
     return parts.join(' · ')
   }
 
-  // ── 屏⑩：成功复述态 ──
+  const backOut = () => {
+    const pages = Taro.getCurrentPages()
+    if (pages.length > 1) Taro.navigateBack()
+    else Taro.reLaunch({ url: '/pages/tonight/index' })
+  }
+
+  // ── 屏⑩：成功复述态（大绿圆 ✓，app.css 公共类） ──
   if (submitted) {
     const now = new Date()
     return (
       <View className="fm-page feedback-page">
-        <NavBar
-          title="反馈"
-          back={<ArrowLeft width={16} height={16} />}
-          onBackClick={() => Taro.reLaunch({ url: '/pages/tonight/index' })}
-        />
         <View className="fm-done-wrap">
           <View className="fm-done-ico">✓</View>
           <Text className="fm-done-title">记好了</Text>
@@ -138,13 +140,14 @@ export default function FeedbackPage() {
             {'\n'}反馈只用于以后推荐，不评判谁做饭。
           </Text>
         </View>
-        <Button type="primary" block onClick={() => Taro.reLaunch({ url: '/pages/tonight/index' })}>
+        <Button
+          className="fm-btn-primary"
+          onClick={() => Taro.reLaunch({ url: '/pages/tonight/index' })}
+        >
           回今晚
         </Button>
         <Button
-          plain
-          block
-          style={{ marginTop: '12px' }}
+          className="fm-btn-ghost"
           onClick={() => Taro.reLaunch({ url: '/pages/history/index' })}
         >
           看看历史
@@ -156,48 +159,41 @@ export default function FeedbackPage() {
   // ── 屏⑨：三问填写态 ──
   return (
     <View className="fm-page feedback-page">
-      <NavBar
-        title="反馈"
-        back={<ArrowLeft width={16} height={16} />}
-        onBackClick={() => Taro.navigateBack({ delta: 1 })}
-      />
-
-      <Text className="fm-fb-title">今晚吃得怎么样？</Text>
-      <Text className="fm-fb-sub">
+      <Text className="fm-back" onClick={backOut}>
+        {'‹ 返回'}
+      </Text>
+      <View className="fm-h1">今晚吃得怎么样？</View>
+      <Text className="fm-sub">
         {alreadyAnswered
-          ? '今天已记过一次，改完再交一次就行'
-          : '三个问题，十秒答完'}
+          ? `${lockedMenu?.name ? `${lockedMenu.name} · ` : ''}今天已记过一次，改完再交一次就行`
+          : `${lockedMenu?.name ? `${lockedMenu.name} · ` : ''}三个问题，十秒答完`}
       </Text>
 
-      {loading && <Text className="fm-fb-sub">加载中…</Text>}
+      {loading && <Text className="fm-sub">加载中…</Text>}
 
       {!loading && !planId && (
-        <View className="fm-card fm-fb-noplan">
-          <Text className="fm-fb-noplan-text">还没有可反馈的这顿饭</Text>
-          <Button
-            type="primary"
-            block
-            style={{ marginTop: '16px' }}
-            onClick={() => Taro.reLaunch({ url: '/pages/tonight/index' })}
-          >
-            去定今晚吃什么
-          </Button>
-        </View>
+        <EmptyState
+          emoji="🧾"
+          title="还没有可反馈的这顿饭"
+          desc="先定好今晚的菜单，吃完饭回来就能记一笔。"
+          btnText="去定今晚吃什么"
+          onBtnClick={() => Taro.reLaunch({ url: '/pages/tonight/index' })}
+        />
       )}
 
       {!loading && planId && (
         <View>
           {/* ① 做了吗 */}
-          <Text className="fm-fb-q">① 今天这顿做了吗？</Text>
-          <View className="fm-fb-opts">
+          <View className="fm-q-title">① 今天这顿做了吗？</View>
+          <View className="fm-opts">
             <View
-              className={`fm-fb-opt${didCook === true ? ' on' : ''}`}
+              className={`fm-opt${didCook === true ? ' on' : ''}`}
               onClick={() => setDidCook(true)}
             >
               做了
             </View>
             <View
-              className={`fm-fb-opt${didCook === false ? ' on' : ''}`}
+              className={`fm-opt${didCook === false ? ' on' : ''}`}
               onClick={() => {
                 setDidCook(false)
                 setTaste(null) // 没做不答味道（契约：禁传）
@@ -210,22 +206,22 @@ export default function FeedbackPage() {
           {/* ② 味道怎么样（做了才问） */}
           {didCook === true && (
             <View>
-              <Text className="fm-fb-q">② 味道怎么样？</Text>
-              <View className="fm-fb-opts">
+              <View className="fm-q-title">② 味道怎么样？</View>
+              <View className="fm-opts">
                 <View
-                  className={`fm-fb-opt${taste === 'good' ? ' on' : ''}`}
+                  className={`fm-opt${taste === 'good' ? ' on' : ''}`}
                   onClick={() => setTaste('good')}
                 >
                   好吃
                 </View>
                 <View
-                  className={`fm-fb-opt warn${taste === 'ok' ? ' on' : ''}`}
+                  className={`fm-opt fm-opt-warn${taste === 'ok' ? ' on' : ''}`}
                   onClick={() => setTaste('ok')}
                 >
                   一般
                 </View>
                 <View
-                  className={`fm-fb-opt bad${taste === 'fail' ? ' on' : ''}`}
+                  className={`fm-opt fm-opt-bad${taste === 'fail' ? ' on' : ''}`}
                   onClick={() => setTaste('fail')}
                 >
                   翻车
@@ -235,16 +231,16 @@ export default function FeedbackPage() {
           )}
 
           {/* ③ 下次还做吗（没做也答） */}
-          <Text className="fm-fb-q">③ 下次还做吗？</Text>
-          <View className="fm-fb-opts">
+          <View className="fm-q-title">③ 下次还做吗？</View>
+          <View className="fm-opts">
             <View
-              className={`fm-fb-opt${willRepeat === true ? ' on' : ''}`}
+              className={`fm-opt${willRepeat === true ? ' on' : ''}`}
               onClick={() => setWillRepeat(true)}
             >
               还做
             </View>
             <View
-              className={`fm-fb-opt${willRepeat === false ? ' on' : ''}`}
+              className={`fm-opt${willRepeat === false ? ' on' : ''}`}
               onClick={() => setWillRepeat(false)}
             >
               不做了
@@ -253,22 +249,21 @@ export default function FeedbackPage() {
 
           {/* 耗时（选填，PD-006） */}
           <View className="fm-card fm-fb-minutes">
-            <Text className="fm-fb-minutes-label">实际用时（选填）</Text>
+            <Text className="fm-row-label fm-fb-minutes-label">实际用时（选填）</Text>
             <Input
+              className="fm-input"
               type="number"
               placeholder="如：30 分钟"
               value={actualMinutes}
-              onChange={(v) => setActualMinutes(v)}
+              onInput={(e) => setActualMinutes(e.detail.value)}
             />
           </View>
 
           <Button
-            type="primary"
-            block
+            className="fm-btn-primary"
             loading={submitting}
             disabled={!canSubmit}
             onClick={submit}
-            style={{ marginTop: '24px' }}
           >
             提交反馈
           </Button>
