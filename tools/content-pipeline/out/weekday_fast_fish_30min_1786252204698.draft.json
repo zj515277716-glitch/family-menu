@@ -1,0 +1,111 @@
+{
+  "id": "draft-1786252204696",
+  "name": "清蒸鲈鱼",
+  "mealRole": "MAIN",
+  "cuisine": "家常",
+  "flavorTags": [
+    "清淡",
+    "鲜美"
+  ],
+  "spicyLevel": 0,
+  "splitFlavor": false,
+  "activeMinutes": 10,
+  "totalMinutes": 25,
+  "equipment": [
+    "steamer",
+    "wok"
+  ],
+  "steps": [
+    {
+      "order": 1,
+      "text": "鲈鱼去鳞、去鳃、去内脏，冲洗干净后在鱼身两面各划3道斜口；生姜15g切丝，葱20g一半切葱段、一半切葱花备用。"
+    },
+    {
+      "order": 2,
+      "text": "将15ml料酒均匀涂抹在鱼身内外，鱼肚中塞入1/2姜丝和全部葱段。"
+    },
+    {
+      "order": 3,
+      "text": "静置腌制5分钟，使鱼肉初步去腥入味。",
+      "parallel": true
+    },
+    {
+      "order": 4,
+      "text": "蒸锅中加入足量清水，放入蒸架，开大火加热。"
+    },
+    {
+      "order": 5,
+      "text": "等待蒸锅中的水完全沸腾。",
+      "parallel": true
+    },
+    {
+      "order": 6,
+      "text": "将腌制好的鲈鱼放在蒸架上，盖上锅盖。"
+    },
+    {
+      "order": 7,
+      "text": "大火蒸8分钟至鱼肉完全熟透。",
+      "parallel": true
+    },
+    {
+      "order": 8,
+      "text": "取出蒸好的鲈鱼，倒掉盘中蒸出的汁水，淋上30ml蒸鱼豉油，撒上剩余姜丝和葱花。"
+    },
+    {
+      "order": 9,
+      "text": "炒锅中倒入20ml食用油，大火烧至七成热，淋在葱姜丝上激出香味即可。"
+    }
+  ],
+  "status": "DRAFT",
+  "origin": "LLM_DRAFT",
+  "ingredients": [
+    {
+      "name": "鲈鱼",
+      "category": "水产",
+      "defaultUnit": "条",
+      "qty": 1,
+      "unit": "条",
+      "optional": false
+    },
+    {
+      "name": "生姜",
+      "category": "蔬菜",
+      "defaultUnit": "g",
+      "qty": 15,
+      "unit": "g",
+      "optional": false
+    },
+    {
+      "name": "葱",
+      "category": "蔬菜",
+      "defaultUnit": "g",
+      "qty": 20,
+      "unit": "g",
+      "optional": false
+    },
+    {
+      "name": "料酒",
+      "category": "调料",
+      "defaultUnit": "ml",
+      "qty": 15,
+      "unit": "ml",
+      "optional": false
+    },
+    {
+      "name": "蒸鱼豉油",
+      "category": "调料",
+      "defaultUnit": "ml",
+      "qty": 30,
+      "unit": "ml",
+      "optional": false
+    },
+    {
+      "name": "食用油",
+      "category": "调料",
+      "defaultUnit": "ml",
+      "qty": 20,
+      "unit": "ml",
+      "optional": false
+    }
+  ]
+}

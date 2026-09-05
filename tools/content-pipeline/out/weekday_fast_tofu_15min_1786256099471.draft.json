@@ -1,0 +1,108 @@
+{
+  "id": "draft-1786256099469",
+  "name": "葱烧嫩豆腐",
+  "mealRole": "MAIN",
+  "cuisine": "家常",
+  "flavorTags": [
+    "咸香",
+    "清爽"
+  ],
+  "spicyLevel": 0,
+  "splitFlavor": false,
+  "activeMinutes": 10,
+  "totalMinutes": 12,
+  "equipment": [
+    "wok"
+  ],
+  "steps": [
+    {
+      "order": 1,
+      "text": "嫩豆腐冲洗干净，切成2cm见方的块；小葱分开葱白和葱绿分别切碎；玉米淀粉加30ml清水调成水淀粉备用"
+    },
+    {
+      "order": 2,
+      "text": "炒锅烧热倒入食用油，放入豆腐块，中小火煎至底面金黄后翻面，继续煎至另一面金黄，盛出备用"
+    },
+    {
+      "order": 3,
+      "text": "锅中留约2ml底油，下葱白爆香，加入生抽、蚝油和剩余20ml清水，搅拌均匀煮至沸腾"
+    },
+    {
+      "order": 4,
+      "text": "倒入煎好的豆腐，轻轻推动使豆腐均匀裹上酱汁，盖上锅盖小火焖2分钟入味",
+      "parallel": true
+    },
+    {
+      "order": 5,
+      "text": "开盖淋入水淀粉，轻轻翻炒至汤汁浓稠，加1g盐调味，撒上葱绿碎即可出锅"
+    }
+  ],
+  "status": "DRAFT",
+  "origin": "LLM_DRAFT",
+  "ingredients": [
+    {
+      "name": "嫩豆腐",
+      "category": "豆制品",
+      "defaultUnit": "g",
+      "qty": 500,
+      "unit": "g",
+      "optional": false
+    },
+    {
+      "name": "小葱",
+      "category": "蔬菜",
+      "defaultUnit": "g",
+      "qty": 20,
+      "unit": "g",
+      "optional": false
+    },
+    {
+      "name": "生抽",
+      "category": "调料",
+      "defaultUnit": "ml",
+      "qty": 15,
+      "unit": "ml",
+      "optional": false
+    },
+    {
+      "name": "蚝油",
+      "category": "调料",
+      "defaultUnit": "ml",
+      "qty": 10,
+      "unit": "ml",
+      "optional": false
+    },
+    {
+      "name": "玉米淀粉",
+      "category": "调料",
+      "defaultUnit": "g",
+      "qty": 5,
+      "unit": "g",
+      "optional": false
+    },
+    {
+      "name": "清水",
+      "category": "调料",
+      "defaultUnit": "ml",
+      "qty": 50,
+      "unit": "ml",
+      "optional": false
+    },
+    {
+      "name": "食用油",
+      "category": "调料",
+      "defaultUnit": "ml",
+      "qty": 10,
+      "unit": "ml",
+      "optional": false
+    },
+    {
+      "name": "盐",
+      "category": "调料",
+      "defaultUnit": "g",
+      "qty": 1,
+      "unit": "g",
+      "optional": false
+    }
+  ]
+}

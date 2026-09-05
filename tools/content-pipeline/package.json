@@ -14,7 +14,8 @@
   "bin": {
     "fm-coverage": "./dist/cli/coverage.js",
     "fm-draft": "./dist/cli/draft.js",
-    "fm-import": "./dist/cli/import.js"
+    "fm-import": "./dist/cli/import.js",
+    "fm-menu": "./dist/cli/menu.js"
   },
   "scripts": {
     "build": "tsc -p tsconfig.json",
@@ -22,7 +23,8 @@
     "test": "vitest run",
     "coverage": "tsx src/cli/coverage.ts",
     "draft": "tsx src/cli/draft.ts",
-    "import": "tsx src/cli/import.ts"
+    "import": "tsx src/cli/import.ts",
+    "menu": "tsx src/cli/menu.ts"
   },
   "dependencies": {
     "@family-menu/shared": "workspace:*",

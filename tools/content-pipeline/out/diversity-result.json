@@ -1,0 +1,127 @@
+{
+  "at": "2026-09-05T03:08:26.307Z",
+  "base": "http://127.0.0.1:3000",
+  "version": "v2-lock-loop",
+  "total": 6,
+  "passed": 6,
+  "failed": 0,
+  "results": [
+    {
+      "id": "D1",
+      "name": "no-token-401",
+      "pass": true,
+      "detail": {
+        "status": 401
+      }
+    },
+    {
+      "id": "D2",
+      "name": "budget-15-nonempty",
+      "pass": true,
+      "detail": {
+        "status": 200,
+        "count": 1,
+        "menus": [
+          "pipeline-menu-02"
+        ]
+      }
+    },
+    {
+      "id": "D3",
+      "name": "budget-30-has-pipeline",
+      "pass": true,
+      "detail": {
+        "status": 200,
+        "menus": [
+          "pipeline-menu-03",
+          "pipeline-menu-04",
+          "pipeline-menu-05"
+        ]
+      }
+    },
+    {
+      "id": "D4",
+      "name": "budget-60-loop-weekend-surfaces",
+      "pass": true,
+      "detail": {
+        "sawWeekend": true,
+        "loopDetail": [
+          {
+            "round": 1,
+            "candidates": [
+              "pipeline-menu-03",
+              "pipeline-menu-04",
+              "pipeline-menu-05"
+            ]
+          },
+          {
+            "round": 2,
+            "candidates": [
+              "pipeline-menu-04",
+              "pipeline-menu-05",
+              "pipeline-menu-06"
+            ]
+          },
+          {
+            "round": 3,
+            "candidates": [
+              "pipeline-menu-05",
+              "pipeline-menu-06",
+              "pipeline-menu-07"
+            ]
+          },
+          {
+            "round": 4,
+            "candidates": [
+              "pipeline-menu-06",
+              "pipeline-menu-07",
+              "seed-menu-weekday"
+            ]
+          },
+          {
+            "round": 5,
+            "candidates": [
+              "pipeline-menu-07",
+              "seed-menu-weekday",
+              "pipeline-menu-08"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "D5",
+      "name": "lock-loop-first-pick-varies",
+      "pass": true,
+      "detail": {
+        "firstPicks": [
+          "pipeline-menu-03",
+          "pipeline-menu-04",
+          "pipeline-menu-05",
+          "pipeline-menu-06",
+          "pipeline-menu-07"
+        ],
+        "distinct": 5
+      }
+    },
+    {
+      "id": "D6",
+      "name": "published-12-no-draft-leak",
+      "pass": true,
+      "detail": {
+        "publishedTotal": 12,
+        "candidateIds": [
+          "pipeline-menu-02",
+          "pipeline-menu-03",
+          "pipeline-menu-04",
+          "pipeline-menu-05",
+          "pipeline-menu-06",
+          "pipeline-menu-07",
+          "seed-menu-weekday",
+          "pipeline-menu-08"
+        ],
+        "leaked": []
+      }
+    }
+  ]
+}

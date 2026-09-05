@@ -1,0 +1,112 @@
+{
+  "id": "draft-1786251708128",
+  "name": "青椒炒鸡丁",
+  "mealRole": "MAIN",
+  "cuisine": "家常",
+  "flavorTags": [
+    "咸香",
+    "清爽"
+  ],
+  "spicyLevel": 0,
+  "splitFlavor": false,
+  "activeMinutes": 8,
+  "totalMinutes": 12,
+  "equipment": [
+    "wok"
+  ],
+  "steps": [
+    {
+      "order": 1,
+      "text": "鸡胸肉洗净切成1cm见方的丁，青椒去蒂去籽切成丁，大蒜切末；将鸡丁与料酒、5ml生抽、玉米淀粉抓拌均匀"
+    },
+    {
+      "order": 2,
+      "text": "鸡丁静置腌制3分钟",
+      "parallel": true
+    },
+    {
+      "order": 3,
+      "text": "热锅倒入食用油，下蒜末爆香"
+    },
+    {
+      "order": 4,
+      "text": "下鸡丁快速翻炒约2分钟至完全变色"
+    },
+    {
+      "order": 5,
+      "text": "加入青椒丁翻炒1分钟至断生"
+    },
+    {
+      "order": 6,
+      "text": "加入剩余10ml生抽、食用盐，翻炒均匀后出锅"
+    }
+  ],
+  "status": "DRAFT",
+  "origin": "LLM_DRAFT",
+  "ingredients": [
+    {
+      "name": "鸡胸肉",
+      "category": "肉类",
+      "defaultUnit": "g",
+      "qty": 250,
+      "unit": "g",
+      "optional": false
+    },
+    {
+      "name": "青椒",
+      "category": "蔬菜",
+      "defaultUnit": "g",
+      "qty": 150,
+      "unit": "g",
+      "optional": false
+    },
+    {
+      "name": "大蒜",
+      "category": "调料",
+      "defaultUnit": "g",
+      "qty": 10,
+      "unit": "g",
+      "optional": false
+    },
+    {
+      "name": "生抽",
+      "category": "调料",
+      "defaultUnit": "ml",
+      "qty": 15,
+      "unit": "ml",
+      "optional": false
+    },
+    {
+      "name": "料酒",
+      "category": "调料",
+      "defaultUnit": "ml",
+      "qty": 10,
+      "unit": "ml",
+      "optional": false
+    },
+    {
+      "name": "玉米淀粉",
+      "category": "调料",
+      "defaultUnit": "g",
+      "qty": 5,
+      "unit": "g",
+      "optional": false
+    },
+    {
+      "name": "食用盐",
+      "category": "调料",
+      "defaultUnit": "g",
+      "qty": 2,
+      "unit": "g",
+      "optional": false
+    },
+    {
+      "name": "食用油",
+      "category": "调料",
+      "defaultUnit": "ml",
+      "qty": 20,
+      "unit": "ml",
+      "optional": false
+    }
+  ]
+}

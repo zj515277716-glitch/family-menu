@@ -1,0 +1,154 @@
+{
+  "id": "draft-1786252429939",
+  "name": "香菇土豆炖五花肉",
+  "mealRole": "MAIN",
+  "cuisine": "家常",
+  "flavorTags": [
+    "咸香",
+    "鲜美"
+  ],
+  "spicyLevel": 0,
+  "splitFlavor": false,
+  "activeMinutes": 28,
+  "totalMinutes": 58,
+  "equipment": [
+    "wok"
+  ],
+  "steps": [
+    {
+      "order": 1,
+      "text": "干香菇用沸水浸泡10分钟至泡发",
+      "parallel": true
+    },
+    {
+      "order": 2,
+      "text": "五花肉切成1.5cm见方的块，土豆去皮切滚刀块，生姜切片，小葱切葱花"
+    },
+    {
+      "order": 3,
+      "text": "泡发好的香菇去蒂，对半切开备用"
+    },
+    {
+      "order": 4,
+      "text": "锅中加入冷水，放入五花肉块、10ml料酒，大火煮开后撇去表面浮沫，捞出沥干水分"
+    },
+    {
+      "order": 5,
+      "text": "热锅倒入15ml食用油，放入冰糖，小火慢慢翻炒至冰糖融化并呈枣红色"
+    },
+    {
+      "order": 6,
+      "text": "倒入焯好水的五花肉块，快速翻炒均匀，使每块肉都裹上糖色"
+    },
+    {
+      "order": 7,
+      "text": "加入姜片、生抽、老抽、剩余10ml料酒，继续翻炒出香味"
+    },
+    {
+      "order": 8,
+      "text": "加入没过所有食材的热水，大火煮开后转小火盖上锅盖炖煮20分钟",
+      "parallel": true
+    },
+    {
+      "order": 9,
+      "text": "放入土豆块和香菇块，翻拌均匀后继续盖盖小火炖煮10分钟",
+      "parallel": true
+    },
+    {
+      "order": 10,
+      "text": "打开锅盖，转大火收汁，加入食用盐调味，翻炒至汤汁浓稠，出锅撒上葱花即可"
+    }
+  ],
+  "status": "DRAFT",
+  "origin": "LLM_DRAFT",
+  "ingredients": [
+    {
+      "name": "五花肉",
+      "category": "肉类",
+      "defaultUnit": "g",
+      "qty": 500,
+      "unit": "g",
+      "optional": false
+    },
+    {
+      "name": "土豆",
+      "category": "蔬菜",
+      "defaultUnit": "g",
+      "qty": 400,
+      "unit": "g",
+      "optional": false
+    },
+    {
+      "name": "干香菇",
+      "category": "蔬菜",
+      "defaultUnit": "g",
+      "qty": 30,
+      "unit": "g",
+      "optional": false
+    },
+    {
+      "name": "生姜",
+      "category": "调料",
+      "defaultUnit": "g",
+      "qty": 15,
+      "unit": "g",
+      "optional": false
+    },
+    {
+      "name": "小葱",
+      "category": "调料",
+      "defaultUnit": "g",
+      "qty": 10,
+      "unit": "g",
+      "optional": true
+    },
+    {
+      "name": "生抽",
+      "category": "调料",
+      "defaultUnit": "ml",
+      "qty": 30,
+      "unit": "ml",
+      "optional": false
+    },
+    {
+      "name": "老抽",
+      "category": "调料",
+      "defaultUnit": "ml",
+      "qty": 15,
+      "unit": "ml",
+      "optional": false
+    },
+    {
+      "name": "料酒",
+      "category": "调料",
+      "defaultUnit": "ml",
+      "qty": 20,
+      "unit": "ml",
+      "optional": false
+    },
+    {
+      "name": "冰糖",
+      "category": "调料",
+      "defaultUnit": "g",
+      "qty": 20,
+      "unit": "g",
+      "optional": false
+    },
+    {
+      "name": "食用盐",
+      "category": "调料",
+      "defaultUnit": "g",
+      "qty": 3,
+      "unit": "g",
+      "optional": false
+    },
+    {
+      "name": "食用油",
+      "category": "调料",
+      "defaultUnit": "ml",
+      "qty": 15,
+      "unit": "ml",
+      "optional": false
+    }
+  ]
+}

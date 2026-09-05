@@ -1,0 +1,132 @@
+{
+  "id": "draft-1786250882370",
+  "name": "青椒炒肉丝",
+  "mealRole": "MAIN",
+  "cuisine": "家常",
+  "flavorTags": [
+    "咸香",
+    "清爽"
+  ],
+  "spicyLevel": 0,
+  "splitFlavor": false,
+  "activeMinutes": 15,
+  "totalMinutes": 25,
+  "equipment": [
+    "wok"
+  ],
+  "steps": [
+    {
+      "order": 1,
+      "text": "猪里脊肉切成约0.3cm粗的细丝，放入碗中加入5ml料酒、5ml生抽、3g玉米淀粉，用手抓拌均匀"
+    },
+    {
+      "order": 2,
+      "text": "将肉丝静置腌制10分钟",
+      "parallel": true
+    },
+    {
+      "order": 3,
+      "text": "青椒去蒂去籽切成与肉丝粗细相近的丝，大蒜切末，生姜切末"
+    },
+    {
+      "order": 4,
+      "text": "热锅倒入15ml食用油，油温六成热时下姜蒜末爆香"
+    },
+    {
+      "order": 5,
+      "text": "下入腌好的肉丝快速滑炒至全部变色，盛出备用"
+    },
+    {
+      "order": 6,
+      "text": "锅中留5ml底油，下入青椒丝大火翻炒约1分钟至断生"
+    },
+    {
+      "order": 7,
+      "text": "倒回炒好的肉丝，加入剩余10ml生抽、5ml老抽、2g食用盐，快速翻炒均匀后出锅"
+    }
+  ],
+  "status": "DRAFT",
+  "origin": "LLM_DRAFT",
+  "ingredients": [
+    {
+      "name": "猪里脊肉",
+      "category": "肉类",
+      "defaultUnit": "g",
+      "qty": 300,
+      "unit": "g",
+      "optional": false
+    },
+    {
+      "name": "青椒",
+      "category": "蔬菜",
+      "defaultUnit": "g",
+      "qty": 250,
+      "unit": "g",
+      "optional": false
+    },
+    {
+      "name": "大蒜",
+      "category": "调料",
+      "defaultUnit": "个",
+      "qty": 3,
+      "unit": "个",
+      "optional": false
+    },
+    {
+      "name": "生姜",
+      "category": "调料",
+      "defaultUnit": "g",
+      "qty": 5,
+      "unit": "g",
+      "optional": false
+    },
+    {
+      "name": "生抽",
+      "category": "调料",
+      "defaultUnit": "ml",
+      "qty": 15,
+      "unit": "ml",
+      "optional": false
+    },
+    {
+      "name": "老抽",
+      "category": "调料",
+      "defaultUnit": "ml",
+      "qty": 5,
+      "unit": "ml",
+      "optional": false
+    },
+    {
+      "name": "料酒",
+      "category": "调料",
+      "defaultUnit": "ml",
+      "qty": 10,
+      "unit": "ml",
+      "optional": false
+    },
+    {
+      "name": "玉米淀粉",
+      "category": "调料",
+      "defaultUnit": "g",
+      "qty": 5,
+      "unit": "g",
+      "optional": false
+    },
+    {
+      "name": "食用盐",
+      "category": "调料",
+      "defaultUnit": "g",
+      "qty": 2,
+      "unit": "g",
+      "optional": false
+    },
+    {
+      "name": "食用油",
+      "category": "调料",
+      "defaultUnit": "ml",
+      "qty": 20,
+      "unit": "ml",
+      "optional": false
+    }
+  ]
+}

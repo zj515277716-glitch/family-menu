@@ -90,6 +90,8 @@ interface EventRow {
   id: string;
   type: string;
   createdAt: Date;
+  payload: unknown;
+  plan: { lockedMenuId: string | null } | null;
 }
 
 // ───── 映射函数 ─────
@@ -164,12 +166,44 @@ export function toMenuView(row: MenuRow): MenuView {
   };
 }
 
+/**
+ * Event -> EventView。menuId/dishId/cookedResult/willRepeat 为 join 后字段（契约注释见 engine types），
+ * 从事件 payload 与关联 Plan 提取：
+ * - LOCK: payload.menuId（该菜单成为今晚计划）
+ * - SWAP_MENU: payload.newMenuId（换菜后今晚的菜单）
+ * - SWAP_DISH: payload.dishId（菜品级换新）
+ * - COOKED: plan.lockedMenuId；payload.taste 单向映射 cookedResult（good->success/ok->partial/fail->fail，
+ *   与 addFeedback 写 CookLog 用同一映射）；payload.willRepeat
+ * - NOT_COOKED/GENERATE/VIEW/REPEAT/RESCALE：不带 menuId（没做成/未选定，不参与"7天内已做过"降权）
+ */
 export function toEventView(row: EventRow): EventView {
-  return {
+  const payload = (row.payload ?? {}) as {
+    menuId?: string;
+    newMenuId?: string;
+    dishId?: string;
+    taste?: string;
+    willRepeat?: boolean;
+  };
+  const view: EventView = {
     id: row.id,
     type: row.type as EventType,
     createdAt: row.createdAt,
   };
+  if (row.type === 'LOCK' && typeof payload.menuId === 'string') {
+    view.menuId = payload.menuId;
+  } else if (row.type === 'SWAP_MENU' && typeof payload.newMenuId === 'string') {
+    view.menuId = payload.newMenuId;
+  } else if (row.type === 'SWAP_DISH' && typeof payload.dishId === 'string') {
+    view.dishId = payload.dishId;
+  } else if (row.type === 'COOKED') {
+    const lockedMenuId = row.plan?.lockedMenuId ?? undefined;
+    if (lockedMenuId) view.menuId = lockedMenuId;
+    if (payload.taste === 'good') view.cookedResult = 'success';
+    else if (payload.taste === 'ok') view.cookedResult = 'partial';
+    else if (payload.taste === 'fail') view.cookedResult = 'fail';
+    if (typeof payload.willRepeat === 'boolean') view.willRepeat = payload.willRepeat;
+  }
+  return view;
 }
 
 // ───── list-merger 输入映射（MenuView -> ShoppingMenu 鸭子类型兼容） ─────

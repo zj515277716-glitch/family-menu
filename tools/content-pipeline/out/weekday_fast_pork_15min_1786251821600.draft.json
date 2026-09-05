@@ -1,0 +1,108 @@
+{
+  "id": "draft-1786251821598",
+  "name": "青椒肉丝",
+  "mealRole": "MAIN",
+  "cuisine": "家常",
+  "flavorTags": [
+    "咸香",
+    "清爽"
+  ],
+  "spicyLevel": 0,
+  "splitFlavor": false,
+  "activeMinutes": 9,
+  "totalMinutes": 12,
+  "equipment": [
+    "wok"
+  ],
+  "steps": [
+    {
+      "order": 1,
+      "text": "猪里脊切成细丝，放入碗中加入10ml料酒、10ml生抽、5g玉米淀粉抓匀"
+    },
+    {
+      "order": 2,
+      "text": "将肉丝静置腌制5分钟",
+      "parallel": true
+    },
+    {
+      "order": 3,
+      "text": "青椒去籽切成细丝，蒜切末备用"
+    },
+    {
+      "order": 4,
+      "text": "热锅倒入20ml食用油，下蒜末爆香，放入肉丝快速滑炒至变色盛出"
+    },
+    {
+      "order": 5,
+      "text": "锅中留底油，下青椒丝翻炒1分钟至断生，倒回肉丝，加入剩余5ml生抽、2g食用盐调味，翻炒均匀即可出锅"
+    }
+  ],
+  "status": "DRAFT",
+  "origin": "LLM_DRAFT",
+  "ingredients": [
+    {
+      "name": "猪里脊",
+      "category": "肉类",
+      "defaultUnit": "g",
+      "qty": 300,
+      "unit": "g",
+      "optional": false
+    },
+    {
+      "name": "青椒",
+      "category": "蔬菜",
+      "defaultUnit": "g",
+      "qty": 200,
+      "unit": "g",
+      "optional": false
+    },
+    {
+      "name": "蒜",
+      "category": "蔬菜",
+      "defaultUnit": "g",
+      "qty": 10,
+      "unit": "g",
+      "optional": false
+    },
+    {
+      "name": "生抽",
+      "category": "调料",
+      "defaultUnit": "ml",
+      "qty": 15,
+      "unit": "ml",
+      "optional": false
+    },
+    {
+      "name": "料酒",
+      "category": "调料",
+      "defaultUnit": "ml",
+      "qty": 10,
+      "unit": "ml",
+      "optional": false
+    },
+    {
+      "name": "玉米淀粉",
+      "category": "调料",
+      "defaultUnit": "g",
+      "qty": 5,
+      "unit": "g",
+      "optional": false
+    },
+    {
+      "name": "食用盐",
+      "category": "调料",
+      "defaultUnit": "g",
+      "qty": 2,
+      "unit": "g",
+      "optional": false
+    },
+    {
+      "name": "食用油",
+      "category": "调料",
+      "defaultUnit": "ml",
+      "qty": 20,
+      "unit": "ml",
+      "optional": false
+    }
+  ]
+}

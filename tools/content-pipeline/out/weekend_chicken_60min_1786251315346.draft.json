@@ -1,0 +1,153 @@
+{
+  "id": "draft-1786251315344",
+  "name": "土豆炖鸡块",
+  "mealRole": "MAIN",
+  "cuisine": "家常",
+  "flavorTags": [
+    "咸香",
+    "鲜美"
+  ],
+  "spicyLevel": 0,
+  "splitFlavor": false,
+  "activeMinutes": 20,
+  "totalMinutes": 55,
+  "equipment": [
+    "wok"
+  ],
+  "steps": [
+    {
+      "order": 1,
+      "text": "鸡腿肉洗净切成3cm见方的块；土豆、胡萝卜去皮切滚刀块；姜切片，八角冲洗干净"
+    },
+    {
+      "order": 2,
+      "text": "鸡块冷水下锅，加入10ml料酒、一半姜片，大火煮开后撇去浮沫，捞出沥干水分"
+    },
+    {
+      "order": 3,
+      "text": "热锅倒入20ml食用油，放入冰糖，小火炒至冰糖融化呈焦糖色"
+    },
+    {
+      "order": 4,
+      "text": "下入焯好的鸡块，快速翻炒至表面均匀裹上糖色"
+    },
+    {
+      "order": 5,
+      "text": "加入剩余姜片、八角、生抽、老抽、剩余10ml料酒，翻炒出香味"
+    },
+    {
+      "order": 6,
+      "text": "加入没过食材的开水，大火煮开后转小火盖盖，炖煮20分钟",
+      "parallel": true
+    },
+    {
+      "order": 7,
+      "text": "开盖加入土豆块、胡萝卜块，放入盐调味，翻拌均匀"
+    },
+    {
+      "order": 8,
+      "text": "转小火盖盖，继续炖煮12分钟至食材软烂、汤汁浓稠即可",
+      "parallel": true
+    }
+  ],
+  "status": "DRAFT",
+  "origin": "LLM_DRAFT",
+  "ingredients": [
+    {
+      "name": "鸡腿肉",
+      "category": "肉类",
+      "defaultUnit": "g",
+      "qty": 600,
+      "unit": "g",
+      "optional": false
+    },
+    {
+      "name": "土豆",
+      "category": "蔬菜",
+      "defaultUnit": "g",
+      "qty": 400,
+      "unit": "g",
+      "optional": false
+    },
+    {
+      "name": "胡萝卜",
+      "category": "蔬菜",
+      "defaultUnit": "g",
+      "qty": 150,
+      "unit": "g",
+      "optional": true
+    },
+    {
+      "name": "姜",
+      "category": "调料",
+      "defaultUnit": "g",
+      "qty": 10,
+      "unit": "g",
+      "optional": false
+    },
+    {
+      "name": "八角",
+      "category": "调料",
+      "defaultUnit": "个",
+      "qty": 2,
+      "unit": "个",
+      "optional": true
+    },
+    {
+      "name": "生抽",
+      "category": "调料",
+      "defaultUnit": "ml",
+      "qty": 30,
+      "unit": "ml",
+      "optional": false
+    },
+    {
+      "name": "老抽",
+      "category": "调料",
+      "defaultUnit": "ml",
+      "qty": 10,
+      "unit": "ml",
+      "optional": false
+    },
+    {
+      "name": "料酒",
+      "category": "调料",
+      "defaultUnit": "ml",
+      "qty": 20,
+      "unit": "ml",
+      "optional": false
+    },
+    {
+      "name": "冰糖",
+      "category": "调料",
+      "defaultUnit": "g",
+      "qty": 15,
+      "unit": "g",
+      "optional": false
+    },
+    {
+      "name": "盐",
+      "category": "调料",
+      "defaultUnit": "g",
+      "qty": 5,
+      "unit": "g",
+      "optional": false
+    },
+    {
+      "name": "食用油",
+      "category": "调料",
+      "defaultUnit": "ml",
+      "qty": 20,
+      "unit": "ml",
+      "optional": false
+    },
+    {
+      "name": "葱花",
+      "category": "蔬菜",
+      "defaultUnit": "g",
+      "qty": 5,
+      "unit": "g",
+      "optional": true
+    }
+  ]
+}

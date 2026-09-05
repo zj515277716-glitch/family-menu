@@ -12,8 +12,8 @@
 
 1. **必消食材失效**：前端传中文名原文，引擎按 ingredientId 匹配，必不命中，且无任何提示。——**TP-02 已修复**（中文名→ID 稳定映射 + 引擎硬过滤 + 空手原文回传，见 [evidence/TP-02-2026-09-04.md](./evidence/TP-02-2026-09-04.md)）
 2. **单菜换是假动作**：API 只记一笔事件并原样返回，前端却弹"已换菜"成功提示。——**TP-03 已修复**（真实替换并持久化：同类型候选挑选+换菜原因选填+清单与备菜顺序联动重算+服务端复检，见 [evidence/TP-03-2026-09-04.md](./evidence/TP-03-2026-09-04.md)）
-3. **整套换无菜可换**：种子菜库 4 套菜单、仅 3 套 PUBLISHED；推荐时三套全上，整套换只会打乱旧菜重排。
-4. **反馈学习断链**：Event 表无 menuId 字段，映射层丢弃反馈内容，历史接受度（权重 0.35，最大维度）恒取中性值。
+3. **整套换无菜可换**：种子菜库 4 套菜单、仅 3 套 PUBLISHED；推荐时三套全上，整套换只会打乱旧菜重排。——菜库已扩至 **12 套 PUBLISHED（TP-06）**；「整套换」功能本身仍在推迟清单，实施时须一并处理 swapPlan 全换分支 mustUse 原文映射
+4. **反馈学习断链**：Event 表无 menuId 字段，映射层丢弃反馈内容，历史接受度（权重 0.35，最大维度）恒取中性值。——**映射断裂 TP-06 已修复**（toEventView 按 join 规则补齐 menuId/dishId/cookedResult，历史接受度与近期多样性降权在真实 API 恢复生效；TP-05 已修复记录侧三问落库）
 5. **Mock 自动兜底**：H5 未配置 API 地址即自动切换假数据演示模式（当前未配置任何 .env，即永远假数据）。
 6. **真实环境零验证**：本机无 Docker/PostgreSQL/ECS，DB 集成、e2e 冒烟、部署、回滚均无证据；README 五步冒烟清单从未真实执行。
 
@@ -49,7 +49,9 @@
 - **TP-04 完成标志已达成**：人数缩放与「已有」标记数值证据可复现——e2e 19 PASS / 0 FAIL（番茄 200g→100g→50g→200g 往返一致、alreadyHave 全程保留、勾选跨 rescale 保留、PG 直查 RESCALE 事件 payload from/to）；全量 274/275（1 项性能抖动单跑即过）+ 禁忌 82/82 + h5 类型检查全绿。**e2e 抓住一处产品级遗漏**（数据库枚举未迁移）并已修复，过程记录见证据 §2.3/§5。
 - 已完成：**TP-05 反馈三问切片**（2026-09-05，证据见 [evidence/TP-05-2026-09-05.md](./evidence/TP-05-2026-09-05.md)）——契约 v0.6（DEC-015：三问模型 didCook/taste/willRepeat + 耗时选填，旧 result/cookResult/failPoints 移除）；复用 Event COOKED/NOT_COOKED 零迁移 + CookLog taste 单向映射（good→success/ok→partial/fail→fail，没做不写 CookLog）；覆盖重提 = append-only 事件流 + GET 取最新一条（didCook 由事件类型派生，feedback 写/读不走 requireLockedPlan）；Plan.status：做了→COOKED / 没做→SKIPPED；h5 三问页（回显可改重提+失败保答案）+ 历史页 C-11 结果标签（红>黄>灰>绿派生）+「约 N 分钟」+ 旧五项表单移除。
 - **TP-05 完成标志已达成**：三问提交后数据落库证据可复现——e2e 16 PASS / 0 FAIL（PG 直查：Event payload 三问字段、CookLog result 映射、Plan.status 翻转、append-only 累计 2 条、GET 最新、没做不写 CookLog）；旧五项表单已移除；全量 285/286（AC12 抖动单跑 51/51）+ 禁忌 82/82 + 三层类型检查全绿。反馈评分消费侧（学习闭环）按 PD-006 推迟。
-- 进行中：按 [TECHNICAL-PLAN.md](./docs/ai-rebuild/TECHNICAL-PLAN.md) 切片序列执行，下一切片 **TP-06（菜库扩充）**。
+- 已完成：**TP-06 菜库扩充切片**（2026-09-05，证据见 [evidence/TP-06-2026-09-05.md](./evidence/TP-06-2026-09-05.md)）——内容管线闭环：fm-import 导入 9 道家常菜品 DRAFT → menu-assemble 纯规则组装（零 LLM，单测 10/10）→ fm-menu 写 9 套菜单 DRAFT → 产品负责人确认 → 幂等发布；**PUBLISHED 菜单 3→12 套**（7 套工作日快手 15-22 分钟 + 2 套周末炖菜 38/40 分钟）、**PUBLISHED 菜品 9→18 道**，零草稿泄漏。
+- **TP-06 完成标志已达成**：发布菜单数量证据（publish-result.json：publishedMenuTotal=12，9 套管线明细）+ 推荐多样性可复现（diversity-result.json 6/6 PASS：5 轮「推荐→锁定」循环首选 5 套不同菜单、周末菜单浮出）。**卡外修复**：toEventView 事件映射丢弃 payload 的集成缺陷（基线断裂点第 4 条消费侧），历史接受度与多样性降权在真实 API 恢复生效；回归 296/296 + 禁忌 82/82 + 双 build 0 错。
+- 进行中：按 [TECHNICAL-PLAN.md](./docs/ai-rebuild/TECHNICAL-PLAN.md) 切片序列执行，下一切片 **TP-07（公网部署）**。
 - 边界：UI 基准 = [e-final.html](./docs/ai-rebuild/ui/e-final.html) + [design-spec.md](./docs/ai-rebuild/ui/design-spec.md)，UI 改动须先改确认书 B 节再动代码；预览 http://localhost:8888/docs/ai-rebuild/ui/e-final.html。
 
-下一步：TP-06 → 依次推进至 TP-08（TP-07 前单独询问服务器/域名/备案；「整套换」在推迟清单，实施时须一并处理 swapPlan 全换分支 mustUse 原文映射）。
+下一步：TP-07（公网部署——服务器/域名/备案属打断点，单独询问产品负责人）→ TP-08 UAT（按「固定地址 + 测试账号 + 3-7 个真实任务 + 每步预期」格式交付）。

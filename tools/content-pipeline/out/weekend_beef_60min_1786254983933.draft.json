@@ -1,0 +1,165 @@
+{
+  "id": "draft-1786254983931",
+  "name": "番茄土豆炖牛腩",
+  "mealRole": "MAIN",
+  "cuisine": "家常",
+  "flavorTags": [
+    "咸香",
+    "酸甜"
+  ],
+  "spicyLevel": 0,
+  "splitFlavor": false,
+  "activeMinutes": 22,
+  "totalMinutes": 55,
+  "equipment": [
+    "wok"
+  ],
+  "steps": [
+    {
+      "order": 1,
+      "text": "牛腩切成2cm见方的小块，冷水下锅加入10ml料酒，大火煮开后撇去浮沫，继续煮2分钟，捞出沥干水分备用"
+    },
+    {
+      "order": 2,
+      "text": "番茄去皮后切成小块，土豆、胡萝卜切滚刀块，姜切片，葱切段备用"
+    },
+    {
+      "order": 3,
+      "text": "热锅倒入20ml食用油，放入冰糖，小火炒至冰糖完全融化呈琥珀色糖色"
+    },
+    {
+      "order": 4,
+      "text": "倒入焯好的牛腩，快速翻炒2分钟，使每块牛腩均匀裹上糖色"
+    },
+    {
+      "order": 5,
+      "text": "加入姜片、葱段、剩余10ml料酒、生抽、老抽，继续翻炒1分钟炒出香味"
+    },
+    {
+      "order": 6,
+      "text": "加入700ml热水，大火煮开后撇去表面浮末"
+    },
+    {
+      "order": 7,
+      "text": "盖上锅盖，转最小火慢炖20分钟",
+      "parallel": true
+    },
+    {
+      "order": 8,
+      "text": "打开锅盖，加入番茄块、土豆块、胡萝卜块、番茄酱、盐，搅拌均匀"
+    },
+    {
+      "order": 9,
+      "text": "盖上锅盖，继续小火炖12分钟至土豆、胡萝卜软烂即可",
+      "parallel": true
+    }
+  ],
+  "status": "DRAFT",
+  "origin": "LLM_DRAFT",
+  "ingredients": [
+    {
+      "name": "牛腩",
+      "category": "肉类",
+      "defaultUnit": "g",
+      "qty": 400,
+      "unit": "g",
+      "optional": false
+    },
+    {
+      "name": "番茄",
+      "category": "蔬菜",
+      "defaultUnit": "g",
+      "qty": 300,
+      "unit": "g",
+      "optional": false
+    },
+    {
+      "name": "土豆",
+      "category": "蔬菜",
+      "defaultUnit": "g",
+      "qty": 250,
+      "unit": "g",
+      "optional": false
+    },
+    {
+      "name": "胡萝卜",
+      "category": "蔬菜",
+      "defaultUnit": "g",
+      "qty": 150,
+      "unit": "g",
+      "optional": false
+    },
+    {
+      "name": "姜",
+      "category": "蔬菜",
+      "defaultUnit": "g",
+      "qty": 10,
+      "unit": "g",
+      "optional": false
+    },
+    {
+      "name": "葱",
+      "category": "蔬菜",
+      "defaultUnit": "g",
+      "qty": 15,
+      "unit": "g",
+      "optional": false
+    },
+    {
+      "name": "冰糖",
+      "category": "调料",
+      "defaultUnit": "g",
+      "qty": 15,
+      "unit": "g",
+      "optional": false
+    },
+    {
+      "name": "生抽",
+      "category": "调料",
+      "defaultUnit": "ml",
+      "qty": 30,
+      "unit": "ml",
+      "optional": false
+    },
+    {
+      "name": "老抽",
+      "category": "调料",
+      "defaultUnit": "ml",
+      "qty": 10,
+      "unit": "ml",
+      "optional": false
+    },
+    {
+      "name": "料酒",
+      "category": "调料",
+      "defaultUnit": "ml",
+      "qty": 20,
+      "unit": "ml",
+      "optional": false
+    },
+    {
+      "name": "番茄酱",
+      "category": "调料",
+      "defaultUnit": "g",
+      "qty": 20,
+      "unit": "g",
+      "optional": false
+    },
+    {
+      "name": "盐",
+      "category": "调料",
+      "defaultUnit": "g",
+      "qty": 5,
+      "unit": "g",
+      "optional": false
+    },
+    {
+      "name": "食用油",
+      "category": "调料",
+      "defaultUnit": "ml",
+      "qty": 20,
+      "unit": "ml",
+      "optional": false
+    }
+  ]
+}

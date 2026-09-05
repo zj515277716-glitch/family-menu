@@ -1,0 +1,754 @@
+{
+  "generatedAt": "2026-09-05T01:34:56.075Z",
+  "note": "TP-06 菜库扩充组装计划：9 套新菜单（status=DRAFT）。发布须产品负责人确认（TP-06 卡内建确认点）。",
+  "newMenusCount": 9,
+  "importedDishes": 9,
+  "menus": [
+    {
+      "menuId": "pipeline-menu-01",
+      "name": "青椒炒鸡丁套餐",
+      "scene": "WEEKDAY_FAST",
+      "serves": 4,
+      "totalActiveMinutes": 18,
+      "status": "DRAFT",
+      "dishes": [
+        {
+          "name": "青椒炒鸡丁",
+          "mealRole": "MAIN",
+          "dishId": "cmtnpn9om00080wpgdul1ai7u",
+          "sort": 1
+        },
+        {
+          "name": "蒜蓉青菜",
+          "mealRole": "SIDE",
+          "dishId": "seed-dish-garlic-greens",
+          "sort": 2
+        },
+        {
+          "name": "紫菜蛋花汤",
+          "mealRole": "SOUP",
+          "dishId": "seed-dish-seaweed-soup",
+          "sort": 3
+        }
+      ],
+      "prepSequence": [
+        {
+          "minute": 0,
+          "action": "鸡胸肉洗净切成1cm见方的丁，青椒去蒂去籽切成丁，大蒜切末；将鸡丁与料酒、5ml生抽、玉米淀粉抓拌均匀"
+        },
+        {
+          "minute": 2,
+          "action": "鸡丁静置腌制3分钟"
+        },
+        {
+          "minute": 4,
+          "action": "热锅倒入食用油，下蒜末爆香"
+        },
+        {
+          "minute": 6,
+          "action": "下鸡丁快速翻炒约2分钟至完全变色"
+        },
+        {
+          "minute": 8,
+          "action": "加入青椒丁翻炒1分钟至断生"
+        },
+        {
+          "minute": 10,
+          "action": "加入剩余10ml生抽、食用盐，翻炒均匀后出锅"
+        },
+        {
+          "minute": 12,
+          "action": "青菜洗净，蒜切末"
+        },
+        {
+          "minute": 14,
+          "action": "热锅下油爆香蒜末"
+        },
+        {
+          "minute": 16,
+          "action": "下青菜大火快炒，加盐调味"
+        },
+        {
+          "minute": 18,
+          "action": "紫菜泡发，鸡蛋打散"
+        },
+        {
+          "minute": 20,
+          "action": "水烧开下紫菜"
+        },
+        {
+          "minute": 22,
+          "action": "淋蛋液划散，加盐调味"
+        }
+      ]
+    },
+    {
+      "menuId": "pipeline-menu-02",
+      "name": "家常蒸蛋羹套餐",
+      "scene": "WEEKDAY_FAST",
+      "serves": 4,
+      "totalActiveMinutes": 15,
+      "status": "DRAFT",
+      "dishes": [
+        {
+          "name": "家常蒸蛋羹",
+          "mealRole": "MAIN",
+          "dishId": "cmtnpn9pi000m0wpgnz0oqrpt",
+          "sort": 1
+        },
+        {
+          "name": "凉拌黄瓜",
+          "mealRole": "SIDE",
+          "dishId": "seed-dish-cucumber-salad",
+          "sort": 2
+        },
+        {
+          "name": "紫菜蛋花汤",
+          "mealRole": "SOUP",
+          "dishId": "seed-dish-seaweed-soup",
+          "sort": 3
+        }
+      ],
+      "prepSequence": [
+        {
+          "minute": 0,
+          "action": "蒸锅中加入500ml清水，开大火加热"
+        },
+        {
+          "minute": 1,
+          "action": "鸡蛋打入大碗中，加入2g食用盐，用筷子充分搅打至蛋清蛋黄完全融合"
+        },
+        {
+          "minute": 2,
+          "action": "往蛋液中加入450ml 40℃左右的温水，搅拌均匀后用细筛网过滤2次，撇去表面浮沫；碗口覆盖一层保鲜膜，用牙签扎6个小孔透气"
+        },
+        {
+          "minute": 3,
+          "action": "待蒸锅水沸腾后，将蛋液碗放入蒸屉，转中小火蒸10分钟"
+        },
+        {
+          "minute": 4,
+          "action": "蒸好后取出，淋上生抽、香油，撒上切碎的香葱末即可"
+        },
+        {
+          "minute": 5,
+          "action": "黄瓜拍碎切段"
+        },
+        {
+          "minute": 8,
+          "action": "加盐、生抽、白糖拌匀"
+        },
+        {
+          "minute": 11,
+          "action": "紫菜泡发，鸡蛋打散"
+        },
+        {
+          "minute": 13,
+          "action": "水烧开下紫菜"
+        },
+        {
+          "minute": 15,
+          "action": "淋蛋液划散，加盐调味"
+        }
+      ]
+    },
+    {
+      "menuId": "pipeline-menu-03",
+      "name": "青椒肉丝套餐",
+      "scene": "WEEKDAY_FAST",
+      "serves": 4,
+      "totalActiveMinutes": 19,
+      "status": "DRAFT",
+      "dishes": [
+        {
+          "name": "青椒肉丝",
+          "mealRole": "MAIN",
+          "dishId": "cmtnpn9pv00100wpgk3oz9wp9",
+          "sort": 1
+        },
+        {
+          "name": "蒜蓉青菜",
+          "mealRole": "SIDE",
+          "dishId": "seed-dish-garlic-greens",
+          "sort": 2
+        },
+        {
+          "name": "紫菜蛋花汤",
+          "mealRole": "SOUP",
+          "dishId": "seed-dish-seaweed-soup",
+          "sort": 3
+        }
+      ],
+      "prepSequence": [
+        {
+          "minute": 0,
+          "action": "猪里脊切成细丝，放入碗中加入10ml料酒、10ml生抽、5g玉米淀粉抓匀"
+        },
+        {
+          "minute": 2,
+          "action": "将肉丝静置腌制5分钟"
+        },
+        {
+          "minute": 4,
+          "action": "青椒去籽切成细丝，蒜切末备用"
+        },
+        {
+          "minute": 6,
+          "action": "热锅倒入20ml食用油，下蒜末爆香，放入肉丝快速滑炒至变色盛出"
+        },
+        {
+          "minute": 8,
+          "action": "锅中留底油，下青椒丝翻炒1分钟至断生，倒回肉丝，加入剩余5ml生抽、2g食用盐调味，翻炒均匀即可出锅"
+        },
+        {
+          "minute": 10,
+          "action": "青菜洗净，蒜切末"
+        },
+        {
+          "minute": 12,
+          "action": "热锅下油爆香蒜末"
+        },
+        {
+          "minute": 14,
+          "action": "下青菜大火快炒，加盐调味"
+        },
+        {
+          "minute": 16,
+          "action": "紫菜泡发，鸡蛋打散"
+        },
+        {
+          "minute": 18,
+          "action": "水烧开下紫菜"
+        },
+        {
+          "minute": 20,
+          "action": "淋蛋液划散，加盐调味"
+        }
+      ]
+    },
+    {
+      "menuId": "pipeline-menu-04",
+      "name": "葱烧嫩豆腐套餐",
+      "scene": "WEEKDAY_FAST",
+      "serves": 4,
+      "totalActiveMinutes": 20,
+      "status": "DRAFT",
+      "dishes": [
+        {
+          "name": "葱烧嫩豆腐",
+          "mealRole": "MAIN",
+          "dishId": "cmtnpn9q8001h0wpgvtw76zuo",
+          "sort": 1
+        },
+        {
+          "name": "凉拌黄瓜",
+          "mealRole": "SIDE",
+          "dishId": "seed-dish-cucumber-salad",
+          "sort": 2
+        },
+        {
+          "name": "紫菜蛋花汤",
+          "mealRole": "SOUP",
+          "dishId": "seed-dish-seaweed-soup",
+          "sort": 3
+        }
+      ],
+      "prepSequence": [
+        {
+          "minute": 0,
+          "action": "嫩豆腐冲洗干净，切成2cm见方的块；小葱分开葱白和葱绿分别切碎；玉米淀粉加30ml清水调成水淀粉备用"
+        },
+        {
+          "minute": 2,
+          "action": "炒锅烧热倒入食用油，放入豆腐块，中小火煎至底面金黄后翻面，继续煎至另一面金黄，盛出备用"
+        },
+        {
+          "minute": 4,
+          "action": "锅中留约2ml底油，下葱白爆香，加入生抽、蚝油和剩余20ml清水，搅拌均匀煮至沸腾"
+        },
+        {
+          "minute": 6,
+          "action": "倒入煎好的豆腐，轻轻推动使豆腐均匀裹上酱汁，盖上锅盖小火焖2分钟入味"
+        },
+        {
+          "minute": 8,
+          "action": "开盖淋入水淀粉，轻轻翻炒至汤汁浓稠，加1g盐调味，撒上葱绿碎即可出锅"
+        },
+        {
+          "minute": 10,
+          "action": "黄瓜拍碎切段"
+        },
+        {
+          "minute": 13,
+          "action": "加盐、生抽、白糖拌匀"
+        },
+        {
+          "minute": 16,
+          "action": "紫菜泡发，鸡蛋打散"
+        },
+        {
+          "minute": 18,
+          "action": "水烧开下紫菜"
+        },
+        {
+          "minute": 20,
+          "action": "淋蛋液划散，加盐调味"
+        }
+      ]
+    },
+    {
+      "menuId": "pipeline-menu-05",
+      "name": "杭椒牛柳套餐",
+      "scene": "WEEKDAY_FAST",
+      "serves": 4,
+      "totalActiveMinutes": 22,
+      "status": "DRAFT",
+      "dishes": [
+        {
+          "name": "杭椒牛柳",
+          "mealRole": "MAIN",
+          "dishId": "cmtnpn9ql00200wpguox5xas5",
+          "sort": 1
+        },
+        {
+          "name": "蒜蓉青菜",
+          "mealRole": "SIDE",
+          "dishId": "seed-dish-garlic-greens",
+          "sort": 2
+        },
+        {
+          "name": "紫菜蛋花汤",
+          "mealRole": "SOUP",
+          "dishId": "seed-dish-seaweed-soup",
+          "sort": 3
+        }
+      ],
+      "prepSequence": [
+        {
+          "minute": 0,
+          "action": "牛里脊逆纹切成0.5cm粗的条，加入5ml料酒、5ml生抽、3g玉米淀粉、1g黑胡椒粉抓拌均匀"
+        },
+        {
+          "minute": 2,
+          "action": "将牛肉静置腌制10分钟"
+        },
+        {
+          "minute": 4,
+          "action": "杭椒洗净去蒂，切成2cm长的斜段；大蒜切成薄片"
+        },
+        {
+          "minute": 6,
+          "action": "炒锅烧热，倒入20ml食用油，下蒜片爆香"
+        },
+        {
+          "minute": 8,
+          "action": "放入牛肉条快速滑炒1分钟至表面变色，盛出备用"
+        },
+        {
+          "minute": 10,
+          "action": "锅中留底油，放入杭椒段翻炒1分钟至断生"
+        },
+        {
+          "minute": 12,
+          "action": "倒回牛肉条，加入10ml生抽、5ml老抽、2g食用盐、1g黑胡椒粉，大火翻炒30秒均匀即可出锅"
+        },
+        {
+          "minute": 14,
+          "action": "青菜洗净，蒜切末"
+        },
+        {
+          "minute": 16,
+          "action": "热锅下油爆香蒜末"
+        },
+        {
+          "minute": 18,
+          "action": "下青菜大火快炒，加盐调味"
+        },
+        {
+          "minute": 20,
+          "action": "紫菜泡发，鸡蛋打散"
+        },
+        {
+          "minute": 22,
+          "action": "水烧开下紫菜"
+        },
+        {
+          "minute": 24,
+          "action": "淋蛋液划散，加盐调味"
+        }
+      ]
+    },
+    {
+      "menuId": "pipeline-menu-06",
+      "name": "清蒸鲈鱼套餐",
+      "scene": "WEEKDAY_FAST",
+      "serves": 4,
+      "totalActiveMinutes": 20,
+      "status": "DRAFT",
+      "dishes": [
+        {
+          "name": "清蒸鲈鱼",
+          "mealRole": "MAIN",
+          "dishId": "cmtnpn9qx002h0wpgyl0rndy8",
+          "sort": 1
+        },
+        {
+          "name": "凉拌黄瓜",
+          "mealRole": "SIDE",
+          "dishId": "seed-dish-cucumber-salad",
+          "sort": 2
+        },
+        {
+          "name": "紫菜蛋花汤",
+          "mealRole": "SOUP",
+          "dishId": "seed-dish-seaweed-soup",
+          "sort": 3
+        }
+      ],
+      "prepSequence": [
+        {
+          "minute": 0,
+          "action": "鲈鱼去鳞、去鳃、去内脏，冲洗干净后在鱼身两面各划3道斜口；生姜15g切丝，葱20g一半切葱段、一半切葱花备用。"
+        },
+        {
+          "minute": 2,
+          "action": "将15ml料酒均匀涂抹在鱼身内外，鱼肚中塞入1/2姜丝和全部葱段。"
+        },
+        {
+          "minute": 4,
+          "action": "静置腌制5分钟，使鱼肉初步去腥入味。"
+        },
+        {
+          "minute": 6,
+          "action": "蒸锅中加入足量清水，放入蒸架，开大火加热。"
+        },
+        {
+          "minute": 8,
+          "action": "等待蒸锅中的水完全沸腾。"
+        },
+        {
+          "minute": 10,
+          "action": "将腌制好的鲈鱼放在蒸架上，盖上锅盖。"
+        },
+        {
+          "minute": 12,
+          "action": "大火蒸8分钟至鱼肉完全熟透。"
+        },
+        {
+          "minute": 14,
+          "action": "取出蒸好的鲈鱼，倒掉盘中蒸出的汁水，淋上30ml蒸鱼豉油，撒上剩余姜丝和葱花。"
+        },
+        {
+          "minute": 16,
+          "action": "炒锅中倒入20ml食用油，大火烧至七成热，淋在葱姜丝上激出香味即可。"
+        },
+        {
+          "minute": 18,
+          "action": "黄瓜拍碎切段"
+        },
+        {
+          "minute": 21,
+          "action": "加盐、生抽、白糖拌匀"
+        },
+        {
+          "minute": 24,
+          "action": "紫菜泡发，鸡蛋打散"
+        },
+        {
+          "minute": 26,
+          "action": "水烧开下紫菜"
+        },
+        {
+          "minute": 28,
+          "action": "淋蛋液划散，加盐调味"
+        }
+      ]
+    },
+    {
+      "menuId": "pipeline-menu-07",
+      "name": "蒜香西兰花炒虾仁套餐",
+      "scene": "WEEKDAY_FAST",
+      "serves": 4,
+      "totalActiveMinutes": 20,
+      "status": "DRAFT",
+      "dishes": [
+        {
+          "name": "蒜香西兰花炒虾仁",
+          "mealRole": "MAIN",
+          "dishId": "cmtnpn9re002w0wpgmxn110qi",
+          "sort": 1
+        },
+        {
+          "name": "蒜蓉青菜",
+          "mealRole": "SIDE",
+          "dishId": "seed-dish-garlic-greens",
+          "sort": 2
+        },
+        {
+          "name": "紫菜蛋花汤",
+          "mealRole": "SOUP",
+          "dishId": "seed-dish-seaweed-soup",
+          "sort": 3
+        }
+      ],
+      "prepSequence": [
+        {
+          "minute": 0,
+          "action": "虾仁解冻后开背去虾线，洗净沥干，加入10ml料酒、3g玉米淀粉抓拌均匀"
+        },
+        {
+          "minute": 2,
+          "action": "虾仁静置腌制10分钟"
+        },
+        {
+          "minute": 4,
+          "action": "西兰花切小朵，洗净沥干；大蒜剁成蒜末"
+        },
+        {
+          "minute": 6,
+          "action": "炒锅中加清水烧开，放入1g食用盐，倒入西兰花焯水1分钟，捞出沥干备用"
+        },
+        {
+          "minute": 8,
+          "action": "热锅倒入20ml食用油，下蒜末爆香，放入虾仁翻炒至表面泛红变色"
+        },
+        {
+          "minute": 10,
+          "action": "倒入西兰花，加入15ml生抽、1g食用盐，快速翻炒均匀即可出锅"
+        },
+        {
+          "minute": 12,
+          "action": "青菜洗净，蒜切末"
+        },
+        {
+          "minute": 14,
+          "action": "热锅下油爆香蒜末"
+        },
+        {
+          "minute": 16,
+          "action": "下青菜大火快炒，加盐调味"
+        },
+        {
+          "minute": 18,
+          "action": "紫菜泡发，鸡蛋打散"
+        },
+        {
+          "minute": 20,
+          "action": "水烧开下紫菜"
+        },
+        {
+          "minute": 22,
+          "action": "淋蛋液划散，加盐调味"
+        }
+      ]
+    },
+    {
+      "menuId": "pipeline-menu-08",
+      "name": "土豆炖鸡块套餐",
+      "scene": "WEEKEND",
+      "serves": 4,
+      "totalActiveMinutes": 38,
+      "status": "DRAFT",
+      "dishes": [
+        {
+          "name": "土豆炖鸡块",
+          "mealRole": "MAIN",
+          "dishId": "cmtnpn9rs003h0wpgj7wlkoky",
+          "sort": 1
+        },
+        {
+          "name": "凉拌黄瓜",
+          "mealRole": "SIDE",
+          "dishId": "seed-dish-cucumber-salad",
+          "sort": 2
+        },
+        {
+          "name": "紫菜蛋花汤",
+          "mealRole": "SOUP",
+          "dishId": "seed-dish-seaweed-soup",
+          "sort": 3
+        },
+        {
+          "name": "蛋炒饭",
+          "mealRole": "STAPLE",
+          "dishId": "seed-dish-egg-fried-rice",
+          "sort": 4
+        }
+      ],
+      "prepSequence": [
+        {
+          "minute": 0,
+          "action": "鸡腿肉洗净切成3cm见方的块；土豆、胡萝卜去皮切滚刀块；姜切片，八角冲洗干净"
+        },
+        {
+          "minute": 3,
+          "action": "鸡块冷水下锅，加入10ml料酒、一半姜片，大火煮开后撇去浮沫，捞出沥干水分"
+        },
+        {
+          "minute": 6,
+          "action": "热锅倒入20ml食用油，放入冰糖，小火炒至冰糖融化呈焦糖色"
+        },
+        {
+          "minute": 9,
+          "action": "下入焯好的鸡块，快速翻炒至表面均匀裹上糖色"
+        },
+        {
+          "minute": 12,
+          "action": "加入剩余姜片、八角、生抽、老抽、剩余10ml料酒，翻炒出香味"
+        },
+        {
+          "minute": 15,
+          "action": "加入没过食材的开水，大火煮开后转小火盖盖，炖煮20分钟"
+        },
+        {
+          "minute": 18,
+          "action": "开盖加入土豆块、胡萝卜块，放入盐调味，翻拌均匀"
+        },
+        {
+          "minute": 21,
+          "action": "转小火盖盖，继续炖煮12分钟至食材软烂、汤汁浓稠即可"
+        },
+        {
+          "minute": 24,
+          "action": "黄瓜拍碎切段"
+        },
+        {
+          "minute": 27,
+          "action": "加盐、生抽、白糖拌匀"
+        },
+        {
+          "minute": 30,
+          "action": "紫菜泡发，鸡蛋打散"
+        },
+        {
+          "minute": 32,
+          "action": "水烧开下紫菜"
+        },
+        {
+          "minute": 34,
+          "action": "淋蛋液划散，加盐调味"
+        },
+        {
+          "minute": 36,
+          "action": "隔夜米饭打散，鸡蛋打散"
+        },
+        {
+          "minute": 39,
+          "action": "热锅下油炒蛋"
+        },
+        {
+          "minute": 42,
+          "action": "下米饭翻炒，加盐调味"
+        }
+      ]
+    },
+    {
+      "menuId": "pipeline-menu-09",
+      "name": "番茄土豆炖牛腩套餐",
+      "scene": "WEEKEND",
+      "serves": 4,
+      "totalActiveMinutes": 40,
+      "status": "DRAFT",
+      "dishes": [
+        {
+          "name": "番茄土豆炖牛腩",
+          "mealRole": "MAIN",
+          "dishId": "cmtnpn9s600470wpggf0kogbp",
+          "sort": 1
+        },
+        {
+          "name": "蒜蓉青菜",
+          "mealRole": "SIDE",
+          "dishId": "seed-dish-garlic-greens",
+          "sort": 2
+        },
+        {
+          "name": "紫菜蛋花汤",
+          "mealRole": "SOUP",
+          "dishId": "seed-dish-seaweed-soup",
+          "sort": 3
+        },
+        {
+          "name": "蛋炒饭",
+          "mealRole": "STAPLE",
+          "dishId": "seed-dish-egg-fried-rice",
+          "sort": 4
+        }
+      ],
+      "prepSequence": [
+        {
+          "minute": 0,
+          "action": "牛腩切成2cm见方的小块，冷水下锅加入10ml料酒，大火煮开后撇去浮沫，继续煮2分钟，捞出沥干水分备用"
+        },
+        {
+          "minute": 3,
+          "action": "番茄去皮后切成小块，土豆、胡萝卜切滚刀块，姜切片，葱切段备用"
+        },
+        {
+          "minute": 6,
+          "action": "热锅倒入20ml食用油，放入冰糖，小火炒至冰糖完全融化呈琥珀色糖色"
+        },
+        {
+          "minute": 9,
+          "action": "倒入焯好的牛腩，快速翻炒2分钟，使每块牛腩均匀裹上糖色"
+        },
+        {
+          "minute": 12,
+          "action": "加入姜片、葱段、剩余10ml料酒、生抽、老抽，继续翻炒1分钟炒出香味"
+        },
+        {
+          "minute": 15,
+          "action": "加入700ml热水，大火煮开后撇去表面浮末"
+        },
+        {
+          "minute": 18,
+          "action": "盖上锅盖，转最小火慢炖20分钟"
+        },
+        {
+          "minute": 21,
+          "action": "打开锅盖，加入番茄块、土豆块、胡萝卜块、番茄酱、盐，搅拌均匀"
+        },
+        {
+          "minute": 24,
+          "action": "盖上锅盖，继续小火炖12分钟至土豆、胡萝卜软烂即可"
+        },
+        {
+          "minute": 27,
+          "action": "青菜洗净，蒜切末"
+        },
+        {
+          "minute": 29,
+          "action": "热锅下油爆香蒜末"
+        },
+        {
+          "minute": 31,
+          "action": "下青菜大火快炒，加盐调味"
+        },
+        {
+          "minute": 33,
+          "action": "紫菜泡发，鸡蛋打散"
+        },
+        {
+          "minute": 35,
+          "action": "水烧开下紫菜"
+        },
+        {
+          "minute": 37,
+          "action": "淋蛋液划散，加盐调味"
+        },
+        {
+          "minute": 39,
+          "action": "隔夜米饭打散，鸡蛋打散"
+        },
+        {
+          "minute": 42,
+          "action": "热锅下油炒蛋"
+        },
+        {
+          "minute": 45,
+          "action": "下米饭翻炒，加盐调味"
+        }
+      ]
+    }
+  ]
+}

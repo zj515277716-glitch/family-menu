@@ -1,0 +1,75 @@
+{
+  "firstRun": {
+    "before": {
+      "draftDishes": 9,
+      "draftMenus": 9
+    }
+  },
+  "thisRun": {
+    "draftDishes": 0,
+    "draftMenus": 0,
+    "dishesPublished": 0,
+    "menusPublished": 0
+  },
+  "after": {
+    "publishedDishTotal": 18,
+    "publishedMenuTotal": 12,
+    "draftMenuTotal": 1,
+    "pipelineMenus": [
+      {
+        "id": "pipeline-menu-01",
+        "name": "青椒炒鸡丁套餐",
+        "scene": "WEEKDAY_FAST",
+        "status": "PUBLISHED"
+      },
+      {
+        "id": "pipeline-menu-02",
+        "name": "家常蒸蛋羹套餐",
+        "scene": "WEEKDAY_FAST",
+        "status": "PUBLISHED"
+      },
+      {
+        "id": "pipeline-menu-03",
+        "name": "青椒肉丝套餐",
+        "scene": "WEEKDAY_FAST",
+        "status": "PUBLISHED"
+      },
+      {
+        "id": "pipeline-menu-04",
+        "name": "葱烧嫩豆腐套餐",
+        "scene": "WEEKDAY_FAST",
+        "status": "PUBLISHED"
+      },
+      {
+        "id": "pipeline-menu-05",
+        "name": "杭椒牛柳套餐",
+        "scene": "WEEKDAY_FAST",
+        "status": "PUBLISHED"
+      },
+      {
+        "id": "pipeline-menu-06",
+        "name": "清蒸鲈鱼套餐",
+        "scene": "WEEKDAY_FAST",
+        "status": "PUBLISHED"
+      },
+      {
+        "id": "pipeline-menu-07",
+        "name": "蒜香西兰花炒虾仁套餐",
+        "scene": "WEEKDAY_FAST",
+        "status": "PUBLISHED"
+      },
+      {
+        "id": "pipeline-menu-08",
+        "name": "土豆炖鸡块套餐",
+        "scene": "WEEKEND",
+        "status": "PUBLISHED"
+      },
+      {
+        "id": "pipeline-menu-09",
+        "name": "番茄土豆炖牛腩套餐",
+        "scene": "WEEKEND",
+        "status": "PUBLISHED"
+      }
+    ]
+  }
+}

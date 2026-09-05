@@ -1,0 +1,84 @@
+{
+  "id": "draft-1786251020275",
+  "name": "香葱鸡蛋羹",
+  "mealRole": "MAIN",
+  "cuisine": "家常",
+  "flavorTags": [
+    "清淡",
+    "鲜香"
+  ],
+  "spicyLevel": 0,
+  "splitFlavor": false,
+  "activeMinutes": 7,
+  "totalMinutes": 20,
+  "equipment": [
+    "steamer"
+  ],
+  "steps": [
+    {
+      "order": 1,
+      "text": "小葱洗净切成葱花备用"
+    },
+    {
+      "order": 2,
+      "text": "鸡蛋打入大碗中，加入1g食盐，用筷子充分搅打至蛋清蛋黄完全融合"
+    },
+    {
+      "order": 3,
+      "text": "往蛋液中加入40℃左右的温水320ml，搅拌均匀后用细筛网过滤2次，去除表面浮沫，盖上保鲜膜并在膜上扎3个小孔"
+    },
+    {
+      "order": 4,
+      "text": "蒸锅中加适量清水大火烧开，放入蛋液碗，转中小火蒸12分钟",
+      "parallel": true
+    },
+    {
+      "order": 5,
+      "text": "取出蒸好的鸡蛋羹，撕掉保鲜膜，淋上生抽、香油，撒上葱花即可"
+    }
+  ],
+  "status": "DRAFT",
+  "origin": "LLM_DRAFT",
+  "ingredients": [
+    {
+      "name": "鸡蛋",
+      "category": "蛋奶",
+      "defaultUnit": "个",
+      "qty": 4,
+      "unit": "个",
+      "optional": false
+    },
+    {
+      "name": "小葱",
+      "category": "蔬菜",
+      "defaultUnit": "g",
+      "qty": 10,
+      "unit": "g",
+      "optional": false
+    },
+    {
+      "name": "食用盐",
+      "category": "调料",
+      "defaultUnit": "g",
+      "qty": 1,
+      "unit": "g",
+      "optional": false
+    },
+    {
+      "name": "生抽",
+      "category": "调料",
+      "defaultUnit": "ml",
+      "qty": 10,
+      "unit": "ml",
+      "optional": false
+    },
+    {
+      "name": "香油",
+      "category": "调料",
+      "defaultUnit": "ml",
+      "qty": 5,
+      "unit": "ml",
+      "optional": false
+    }
+  ]
+}

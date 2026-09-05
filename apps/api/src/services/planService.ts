@@ -141,6 +141,7 @@ async function loadEventViews(familyId: string) {
   const events = await prisma.event.findMany({
     where: { familyId, createdAt: { gte: since } },
     orderBy: { createdAt: 'desc' },
+    include: { plan: { select: { lockedMenuId: true } } },
   });
   return events.map(toEventView);
 }

@@ -1,0 +1,149 @@
+{
+  "id": "draft-1786255113751",
+  "name": "家常红烧鲈鱼",
+  "mealRole": "MAIN",
+  "cuisine": "家常",
+  "flavorTags": [
+    "咸香",
+    "鲜美"
+  ],
+  "spicyLevel": 0,
+  "splitFlavor": false,
+  "activeMinutes": 21,
+  "totalMinutes": 51,
+  "equipment": [
+    "wok"
+  ],
+  "steps": [
+    {
+      "order": 1,
+      "text": "鲈鱼去鳞、去鳃、去内脏，冲洗干净，两面各划3道斜刀；取10ml料酒、2g食用盐均匀涂抹鱼身及腹腔"
+    },
+    {
+      "order": 2,
+      "text": "将鲈鱼静置腌制15分钟",
+      "parallel": true
+    },
+    {
+      "order": 3,
+      "text": "生姜切片，大葱切段，大蒜切片，香菜切段备用"
+    },
+    {
+      "order": 4,
+      "text": "热锅倒入30ml食用油，放入鲈鱼，中小火煎至两面金黄，盛出备用"
+    },
+    {
+      "order": 5,
+      "text": "锅中留底油，放入姜片、蒜片、葱段爆香，加入剩余10ml料酒、30ml生抽、10ml老抽、10g白砂糖，倒入200ml清水大火煮开"
+    },
+    {
+      "order": 6,
+      "text": "放入煎好的鲈鱼，转小火焖煮20分钟，期间往鱼身浇淋2-3次汤汁帮助入味",
+      "parallel": true
+    },
+    {
+      "order": 7,
+      "text": "开大火收浓汤汁，加入剩余3g食用盐调味，撒上香菜段即可出锅"
+    }
+  ],
+  "status": "DRAFT",
+  "origin": "LLM_DRAFT",
+  "ingredients": [
+    {
+      "name": "鲈鱼",
+      "category": "水产",
+      "defaultUnit": "g",
+      "qty": 600,
+      "unit": "g",
+      "optional": false
+    },
+    {
+      "name": "生姜",
+      "category": "蔬菜",
+      "defaultUnit": "g",
+      "qty": 20,
+      "unit": "g",
+      "optional": false
+    },
+    {
+      "name": "大葱",
+      "category": "蔬菜",
+      "defaultUnit": "g",
+      "qty": 30,
+      "unit": "g",
+      "optional": false
+    },
+    {
+      "name": "大蒜",
+      "category": "蔬菜",
+      "defaultUnit": "g",
+      "qty": 15,
+      "unit": "g",
+      "optional": false
+    },
+    {
+      "name": "香菜",
+      "category": "蔬菜",
+      "defaultUnit": "g",
+      "qty": 10,
+      "unit": "g",
+      "optional": true
+    },
+    {
+      "name": "生抽",
+      "category": "调料",
+      "defaultUnit": "ml",
+      "qty": 30,
+      "unit": "ml",
+      "optional": false
+    },
+    {
+      "name": "老抽",
+      "category": "调料",
+      "defaultUnit": "ml",
+      "qty": 10,
+      "unit": "ml",
+      "optional": false
+    },
+    {
+      "name": "料酒",
+      "category": "调料",
+      "defaultUnit": "ml",
+      "qty": 20,
+      "unit": "ml",
+      "optional": false
+    },
+    {
+      "name": "白砂糖",
+      "category": "调料",
+      "defaultUnit": "g",
+      "qty": 10,
+      "unit": "g",
+      "optional": false
+    },
+    {
+      "name": "食用盐",
+      "category": "调料",
+      "defaultUnit": "g",
+      "qty": 5,
+      "unit": "g",
+      "optional": false
+    },
+    {
+      "name": "食用油",
+      "category": "调料",
+      "defaultUnit": "ml",
+      "qty": 30,
+      "unit": "ml",
+      "optional": false
+    },
+    {
+      "name": "清水",
+      "category": "调料",
+      "defaultUnit": "ml",
+      "qty": 200,
+      "unit": "ml",
+      "optional": false
+    }
+  ]
+}

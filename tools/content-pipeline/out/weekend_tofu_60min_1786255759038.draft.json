@@ -1,0 +1,124 @@
+{
+  "id": "draft-1786255759035",
+  "name": "香菇豆腐煲",
+  "mealRole": "MAIN",
+  "cuisine": "家常",
+  "flavorTags": [
+    "咸香",
+    "鲜美"
+  ],
+  "spicyLevel": 0,
+  "splitFlavor": false,
+  "activeMinutes": 26,
+  "totalMinutes": 51,
+  "equipment": [
+    "wok"
+  ],
+  "steps": [
+    {
+      "order": 1,
+      "text": "北豆腐切成3cm见方的块，用厨房纸吸干表面水分；鲜香菇去蒂后切十字花刀；小油菜洗净对半切开；生姜切片，葱花切沫备用"
+    },
+    {
+      "order": 2,
+      "text": "热锅倒入食用油，放入豆腐块，中小火煎至四面金黄，盛出备用"
+    },
+    {
+      "order": 3,
+      "text": "锅中留底油，放入姜片爆香，加入香菇翻炒1分钟，倒入生抽、蚝油和500ml清水，大火煮开"
+    },
+    {
+      "order": 4,
+      "text": "放入煎好的豆腐，转小火焖炖25分钟，期间尽量少翻动避免豆腐碎掉",
+      "parallel": true
+    },
+    {
+      "order": 5,
+      "text": "开盖后放入小油菜，转中大火煮2分钟，加入盐调味；玉米淀粉加10ml清水调成水淀粉，倒入锅中勾芡，翻炒均匀后撒上葱花即可出锅"
+    }
+  ],
+  "status": "DRAFT",
+  "origin": "LLM_DRAFT",
+  "ingredients": [
+    {
+      "name": "北豆腐",
+      "category": "蔬菜",
+      "defaultUnit": "g",
+      "qty": 400,
+      "unit": "g",
+      "optional": false
+    },
+    {
+      "name": "鲜香菇",
+      "category": "蔬菜",
+      "defaultUnit": "g",
+      "qty": 150,
+      "unit": "g",
+      "optional": false
+    },
+    {
+      "name": "小油菜",
+      "category": "蔬菜",
+      "defaultUnit": "g",
+      "qty": 100,
+      "unit": "g",
+      "optional": false
+    },
+    {
+      "name": "生姜",
+      "category": "蔬菜",
+      "defaultUnit": "g",
+      "qty": 10,
+      "unit": "g",
+      "optional": false
+    },
+    {
+      "name": "葱花",
+      "category": "蔬菜",
+      "defaultUnit": "g",
+      "qty": 10,
+      "unit": "g",
+      "optional": true
+    },
+    {
+      "name": "生抽",
+      "category": "调料",
+      "defaultUnit": "ml",
+      "qty": 20,
+      "unit": "ml",
+      "optional": false
+    },
+    {
+      "name": "蚝油",
+      "category": "调料",
+      "defaultUnit": "g",
+      "qty": 15,
+      "unit": "g",
+      "optional": false
+    },
+    {
+      "name": "盐",
+      "category": "调料",
+      "defaultUnit": "g",
+      "qty": 2,
+      "unit": "g",
+      "optional": false
+    },
+    {
+      "name": "玉米淀粉",
+      "category": "调料",
+      "defaultUnit": "g",
+      "qty": 5,
+      "unit": "g",
+      "optional": false
+    },
+    {
+      "name": "食用油",
+      "category": "调料",
+      "defaultUnit": "ml",
+      "qty": 20,
+      "unit": "ml",
+      "optional": false
+    }
+  ]
+}
