@@ -16,7 +16,7 @@ export default defineAppConfig({
   ],
   window: {
     backgroundTextStyle: 'light',
-    navigationBarBackgroundColor: '#FFF8F3',
+    navigationBarBackgroundColor: '#FBF6EC',
     navigationBarTitleText: '家庭菜谱',
     navigationBarTextStyle: 'black',
   },

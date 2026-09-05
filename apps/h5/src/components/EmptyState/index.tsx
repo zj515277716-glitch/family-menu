@@ -30,11 +30,11 @@ export default function EmptyState({
         mode="aspectFit"
         style={{ width: '240px', height: '180px' }}
       />
-      <Text style={{ fontSize: '30px', fontWeight: 600, color: '#2B2118', marginTop: '16px' }}>
+      <Text style={{ fontSize: '30px', fontWeight: 600, color: '#2A2018', marginTop: '16px' }}>
         {title}
       </Text>
       {desc && (
-        <Text style={{ fontSize: '26px', color: '#8C7B6B', marginTop: '8px', textAlign: 'center' }}>
+        <Text style={{ fontSize: '26px', color: '#7A6A55', marginTop: '8px', textAlign: 'center' }}>
           {desc}
         </Text>
       )}

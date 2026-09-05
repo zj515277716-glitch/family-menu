@@ -1,69 +1,78 @@
 /* apps/h5/src/app.css */
-/* 全局样式 + 主题 CSS 变量（方案 F 青瓷清新，UI 重设计） */
+/* 全局样式 + 主题 CSS 变量（方案 E 烟火朱砂，定稿基准 docs/ai-rebuild/ui/e-final.html） */
 
 page {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'PingFang SC', 'Noto Sans SC', sans-serif;
-  background-color: #F7F9FA;
-  color: #1A1A1A;
+  background-color: #FBF6EC;
+  color: #2A2018;
 }
 
 :root {
-  /* 方案 F：青瓷清新 */
-  --nutui-color-primary: #4A9D8F;
-  --nutui-color-primary-end: #5DB0A2;
-  --nutui-color-primary-disabled: #A0CCC4;
-  --nutui-color-primary-light: #E8F5F3;
-  --nutui-color-success: #4A9D8F;
-  --nutui-color-success-end: #5DB0A2;
-  --nutui-color-warning: #F0A050;
-  --nutui-color-warning-end: #F5B870;
-  --nutui-color-danger: #E85D5D;
-  --nutui-color-danger-end: #F07575;
+  /* 方案 E：烟火朱砂（NutUI 4 变量命名） */
+  --nutui-color-primary: #C8392E;
+  --nutui-color-primary-stop-1: #C8392E;
+  --nutui-color-primary-stop-2: #D85648;
+  --nutui-color-primary-pressed: #A82A20;
+  --nutui-color-primary-disabled: #E89A90;
+  --nutui-color-primary-icon: #C8392E;
+  --nutui-color-success: #5C8A4E;
+  --nutui-color-success-pressed: #72A064;
+  --nutui-color-warning: #D98C2B;
+  --nutui-color-warning-pressed: #E6A452;
+  --nutui-color-danger: #A82A20;
+  --nutui-color-danger-pressed: #C04035;
   --nutui-color-info: #5B8DEF;
-  --nutui-title-color: #1A1A1A;
-  --nutui-title-color2: #4A4A4A;
-  --nutui-text-color: #6B6B6B;
-  --nutui-text-help: #9B9B9B;
-  --nutui-disable-color: #C8C8C8;
-  --nutui-background-color: #F7F9FA;
-  --nutui-background-color2: #E8F5F3;
-  --nutui-background-color3: #D5EBE8;
-  --nutui-cell-background-color: #FFFFFF;
-  --nutui-cell-box-shadow: 0 4px 16px rgba(74, 157, 143, 0.06);
-  --nutui-tabbar-background-color: #FFFFFF;
-  --nutui-tab-text-color: #9B9B9B;
-  --nutui-tab-active-text-color: #4A9D8F;
-  --nutui-divider-color: #EDEDED;
-  --nutui-border-color: #EDEDED;
-  --nutui-border-radius: 16px;
-  --nutui-border-radius-small: 12px;
-  --nutui-border-radius-large: 20px;
-  --nutui-button-primary-background-color: #4A9D8F;
+  --nutui-color-title: #2A2018;
+  --nutui-color-text: #7A6A55;
+  --nutui-color-text-dark: #4A3A2C;
+  --nutui-color-text-help: #9A8A75;
+  --nutui-color-text-disabled: #C9BCAE;
+  --nutui-color-background: #FBF6EC;
+  --nutui-color-background-component: #FFFCF5;
+  --nutui-color-background-sunken: #F3E9D4;
+  --nutui-color-border: #E5D9C2;
+  --nutui-radius-base: 12px;
+  --nutui-radius-s: 8px;
+  --nutui-radius-l: 16px;
+  --nutui-button-primary-background-color: #C8392E;
   --nutui-button-primary-color: #FFFFFF;
-  --nutui-tag-color: #4A9D8F;
-  --nutui-checkbox-checked-color: #4A9D8F;
-  --nutui-radio-checked-color: #4A9D8F;
-  --nutui-stepper-button-icon-color: #4A9D8F;
-  --nutui-rate-icon-active-color: #4A9D8F;
-  --nutui-tabs-horizontal-checked-color: #4A9D8F;
+  --nutui-button-primary-border-color: #C8392E;
+  --nutui-button-primary-pressed: #A82A20;
+  --nutui-button-primary-disabled: #E89A90;
+  --nutui-button-primary-light-background-color: #F3E0DC;
+  --nutui-button-primary-light-color: #C8392E;
+  --nutui-button-primary-light-border-color: #F3E0DC;
+  --nutui-cell-background-color: #FFFCF5;
+  --nutui-cell-box-shadow: 0px 2px 12px rgba(200, 57, 46, 0.08);
+  --nutui-cell-title-color: #2A2018;
+  --nutui-cell-description-color: #9A8A75;
+  --nutui-tabbar-active-color: #C8392E;
+  --nutui-tabbar-inactive-color: #7A6A55;
+  --nutui-tag-color: #C8392E;
+  --nutui-tag-primary-background-color: #C8392E;
+  --nutui-switch-active-background-color: #C8392E;
+  --nutui-range-active-color: #C8392E;
+  --nutui-inputnumber-icon-color: #C8392E;
+  --nutui-divider-border-color: #E5D9C2;
+  --nutui-divider-text-color: #9A8A75;
 
-  /* fm 设计系统扩展 */
-  --fm-primary: #4A9D8F;
-  --fm-primary-light: #E8F5F3;
-  --fm-primary-dark: #3A7D72;
-  --fm-accent: #FFD96A;
-  --fm-bg: #F7F9FA;
-  --fm-card-bg: #FFFFFF;
-  --fm-title: #1A1A1A;
-  --fm-text: #4A4A4A;
-  --fm-text-secondary: #6B6B6B;
-  --fm-text-hint: #9B9B9B;
-  --fm-border: #EDEDED;
-  --fm-radius-sm: 12px;
-  --fm-radius: 16px;
-  --fm-radius-lg: 20px;
-  --fm-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
-  --fm-shadow-hover: 0 6px 20px rgba(74, 157, 143, 0.10);
+  /* fm 设计系统扩展（命名沿用页面既有引用，值对齐 e-final） */
+  --fm-primary: #C8392E;
+  --fm-primary-light: #F3E0DC;
+  --fm-primary-dark: #A82A20;
+  --fm-accent: #D85648;
+  --fm-bg: #FBF6EC;
+  --fm-card-bg: #FFFCF5;
+  --fm-title: #2A2018;
+  --fm-text: #4A3A2C;
+  --fm-text-secondary: #7A6A55;
+  --fm-text-hint: #9A8A75;
+  --fm-border: #E5D9C2;
+  --fm-radius-sm: 8px;
+  --fm-radius: 12px;
+  --fm-radius-lg: 16px;
+  --fm-shadow: 0 2px 12px rgba(200, 57, 46, 0.08);
+  --fm-shadow-hover: 0 8px 24px rgba(200, 57, 46, 0.10);
   --fm-space-xs: 8px;
   --fm-space-sm: 12px;
   --fm-space: 16px;
@@ -73,7 +82,7 @@ page {
   --fm-font-sm: 24px;
   --fm-font: 28px;
   --fm-font-lg: 32px;
-  --fm-font-xl: 36px;
+  --fm-font-xl: 38px;
 }
 
 /* 全局工具类 */
@@ -110,6 +119,6 @@ page {
   right: 0;
   padding: var(--fm-space) var(--fm-space) env(safe-area-inset-bottom);
   background-color: var(--fm-card-bg);
-  box-shadow: 0 -2px 12px rgba(0, 0, 0, 0.04);
+  box-shadow: 0 -2px 12px rgba(200, 57, 46, 0.06);
   z-index: 100;
 }

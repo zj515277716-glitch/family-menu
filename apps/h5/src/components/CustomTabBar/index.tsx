@@ -32,8 +32,8 @@ export default function CustomTabBar() {
       onSwitch={handleSwitch}
       fixed
       safeArea
-      activeColor="#FF6B35"
-      inactiveColor="#8C7B6B"
+      activeColor="#C8392E"
+      inactiveColor="#7A6A55"
     >
       {TABS.map((t) => (
         <TabbarItem key={t.path} title={t.text} icon={<t.Icon width={20} height={20} />} />
