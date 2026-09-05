@@ -1,10 +1,12 @@
 // packages/list-merger/test/merge.spec.ts
-// 采购清单合并测试：归一 -> 换算 -> 分组 -> 去常备（4.4）
+// 采购清单合并测试：归一 -> 换算 -> 缩放取整 -> 标记 -> 分组（4.4 + DEC-014）
 // 错误率 <1% 门槛（9.2 故障点）
 import { describe, it, expect } from 'vitest';
 import {
   mergeShoppingList,
   DEFAULT_PANTRY_STAPLES,
+  BASE_SERVINGS,
+  roundPurchase,
   normalize,
   canConvert,
   convert,
@@ -213,7 +215,7 @@ describe('mergeShoppingList 合并采购清单（4.4）', () => {
     expect(categories.indexOf('肉类')).toBeLessThan(categories.indexOf('主食'));
   });
 
-  it('去除家庭常备调料（默认清单）', () => {
+  it('常备调料标记保留不删除（C-8，DEC-014 裁决 4）', () => {
     const menu = makeMenu([
       [
         ing('ing-salt', '盐', [], '调料', 'g', 5, 'g'),
@@ -222,11 +224,13 @@ describe('mergeShoppingList 合并采购清单（4.4）', () => {
     ]);
     const result = mergeShoppingList(menu);
     const items = result.groups.flatMap((g) => g.items);
-    expect(items.find((i) => i.name === '盐')).toBeUndefined();
-    expect(items.find((i) => i.name === '番茄')).toBeDefined();
+    const salt = items.find((i) => i.name === '盐');
+    expect(salt).toBeDefined();
+    expect(salt!.pantryStaple).toBe(true);
+    expect(items.find((i) => i.name === '番茄')!.pantryStaple).toBeUndefined();
   });
 
-  it('按别名去除常备', () => {
+  it('按别名命中常备标记（蒜/大蒜）', () => {
     const menu = makeMenu([
       [
         ing('ing-garlic', '蒜', ['大蒜'], '调料', 'g', 10, 'g'),
@@ -235,10 +239,12 @@ describe('mergeShoppingList 合并采购清单（4.4）', () => {
     ]);
     const result = mergeShoppingList(menu);
     const items = result.groups.flatMap((g) => g.items);
-    expect(items.find((i) => i.name === '蒜')).toBeUndefined();
+    const garlic = items.find((i) => i.name === '蒜');
+    expect(garlic).toBeDefined();
+    expect(garlic!.pantryStaple).toBe(true);
   });
 
-  it('自定义常备清单', () => {
+  it('自定义常备清单命中标记保留', () => {
     const menu = makeMenu([
       [
         ing('ing-tomato', '番茄', [], '蔬菜', 'g', 100, 'g'),
@@ -249,8 +255,10 @@ describe('mergeShoppingList 合并采购清单（4.4）', () => {
       pantryStaples: new Set(['ing-beef']),
     });
     const items = result.groups.flatMap((g) => g.items);
-    expect(items.find((i) => i.ingredientId === 'ing-beef')).toBeUndefined();
-    expect(items.find((i) => i.ingredientId === 'ing-tomato')).toBeDefined();
+    const beef = items.find((i) => i.ingredientId === 'ing-beef');
+    expect(beef).toBeDefined();
+    expect(beef!.pantryStaple).toBe(true);
+    expect(items.find((i) => i.ingredientId === 'ing-tomato')!.pantryStaple).toBeUndefined();
   });
 
   it('空菜单返回空分组', () => {
@@ -294,5 +302,119 @@ describe('mergeShoppingList 合并采购清单（4.4）', () => {
     const result = mergeShoppingList(menu);
     const lastGroup = result.groups[result.groups.length - 1];
     expect(lastGroup.category).toBe('其他');
+  });
+});
+
+// ───── 人数缩放与取整（DEC-014 裁决 1/2，PD-005） ─────
+
+describe('roundPurchase 购买量取整', () => {
+  it('小数向上取整到整数', () => {
+    expect(roundPurchase(1.5)).toBe(2);
+    expect(roundPurchase(0.3)).toBe(1);
+    expect(roundPurchase(2.01)).toBe(3);
+  });
+
+  it('最小 1（不出现 0 量）', () => {
+    expect(roundPurchase(0.1)).toBe(1);
+    expect(roundPurchase(0)).toBe(1);
+  });
+
+  it('整数原样返回', () => {
+    expect(roundPurchase(225)).toBe(225);
+    expect(roundPurchase(1)).toBe(1);
+  });
+});
+
+describe('mergeShoppingList 人数缩放（DEC-014）', () => {
+  it('people=2：分量减半（500g -> 250g）', () => {
+    const menu = makeMenu([
+      [ing('ing-tomato', '番茄', [], '蔬菜', 'g', 500, 'g')],
+    ]);
+    const result = mergeShoppingList(menu, { people: 2 });
+    const tomato = result.groups.flatMap((g) => g.items).find((i) => i.name === '番茄');
+    expect(tomato!.qty).toBe(250);
+  });
+
+  it('people=8：分量翻倍（500g -> 1000g）', () => {
+    const menu = makeMenu([
+      [ing('ing-tomato', '番茄', [], '蔬菜', 'g', 500, 'g')],
+    ]);
+    const result = mergeShoppingList(menu, { people: 8 });
+    const tomato = result.groups.flatMap((g) => g.items).find((i) => i.name === '番茄');
+    expect(tomato!.qty).toBe(1000);
+  });
+
+  it('people=3：计数单位向上取整（3 个 x 0.75 = 2.25 -> 3 个）', () => {
+    const menu = makeMenu([
+      [ing('ing-egg', '鸡蛋', [], '蛋奶', '个', 3, '个')],
+    ]);
+    const result = mergeShoppingList(menu, { people: 3 });
+    const egg = result.groups.flatMap((g) => g.items).find((i) => i.name === '鸡蛋');
+    expect(egg!.qty).toBe(3);
+  });
+
+  it('缩放后不足 1 时保底为 1（people=1：3g x 0.25 = 0.75 -> 1g）', () => {
+    const menu = makeMenu([
+      [ing('ing-salt', '盐', [], '调料', 'g', 3, 'g')],
+    ]);
+    const result = mergeShoppingList(menu, { people: 1 });
+    const salt = result.groups.flatMap((g) => g.items).find((i) => i.name === '盐');
+    expect(salt!.qty).toBe(1);
+  });
+
+  it('合并后总量一次性取整（2 条各 1 个，people=2 -> 1 个而非 2 个）', () => {
+    const menu = makeMenu([
+      [ing('ing-egg', '鸡蛋', [], '蛋奶', '个', 1, '个')],
+      [ing('ing-egg', '鸡蛋', [], '蛋奶', '个', 1, '个')],
+    ]);
+    const result = mergeShoppingList(menu, { people: 2 });
+    const eggItems = result.groups
+      .flatMap((g) => g.items)
+      .filter((i) => i.name === '鸡蛋');
+    expect(eggItems).toHaveLength(1);
+    expect(eggItems[0].qty).toBe(1); // 合并 2 个再 x 0.5 = 1；逐条取整会错成 1+1=2
+  });
+
+  it('缺省 people 不缩放（基准 4 人份）', () => {
+    expect(BASE_SERVINGS).toBe(4);
+    const menu = makeMenu([
+      [ing('ing-tomato', '番茄', [], '蔬菜', 'g', 500, 'g')],
+    ]);
+    const result = mergeShoppingList(menu);
+    const tomato = result.groups.flatMap((g) => g.items).find((i) => i.name === '番茄');
+    expect(tomato!.qty).toBe(500);
+  });
+});
+
+describe('mergeShoppingList 已有·必消标记（DEC-014 裁决 5，PD-004）', () => {
+  it('命中 alreadyHaveIds 的条目标 alreadyHave=true 且不删除', () => {
+    const menu = makeMenu([
+      [
+        ing('ing-tomato', '番茄', [], '蔬菜', 'g', 200, 'g'),
+        ing('ing-egg', '鸡蛋', [], '蛋奶', '个', 3, '个'),
+      ],
+    ]);
+    const result = mergeShoppingList(menu, {
+      alreadyHaveIds: new Set(['ing-tomato']),
+    });
+    const items = result.groups.flatMap((g) => g.items);
+    const tomato = items.find((i) => i.name === '番茄');
+    const egg = items.find((i) => i.name === '鸡蛋');
+    expect(tomato).toBeDefined();
+    expect(tomato!.alreadyHave).toBe(true);
+    expect(egg!.alreadyHave).toBeUndefined();
+  });
+
+  it('缩放与标记可同时生效', () => {
+    const menu = makeMenu([
+      [ing('ing-tomato', '番茄', [], '蔬菜', 'g', 200, 'g')],
+    ]);
+    const result = mergeShoppingList(menu, {
+      people: 2,
+      alreadyHaveIds: new Set(['ing-tomato']),
+    });
+    const tomato = result.groups.flatMap((g) => g.items).find((i) => i.name === '番茄');
+    expect(tomato!.qty).toBe(100);
+    expect(tomato!.alreadyHave).toBe(true);
   });
 });

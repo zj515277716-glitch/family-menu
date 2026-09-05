@@ -45,7 +45,9 @@
 - **TP-02 完成标志已达成**：输入「番茄」→ 推荐/不推荐判定可证据复现（e2e 7/7 含空手用例）；输入「苦瓜」→ 200+`{candidates:[], unmetMustUse:["苦瓜"]}`+不建 Plan；单测 166/166 + 禁忌 69/69 + h5 类型检查全绿。
 - 已完成：**TP-03 换菜切片（真实替换）**（2026-09-04，证据见 [evidence/TP-03-2026-09-04.md](./evidence/TP-03-2026-09-04.md)）——契约 v0.4（DEC-013：reason 选填+newDishId+SwapOptions 三 schema）；engine `filterSwapCandidates` 五层过滤（安全>一切，PD-001 不因换菜被击穿）；API `GET /swap-options`（空候选=200+空数组）+ `swap` 服务端复检（400+中文原因）+ 锁定候选 menu 快照重写 + 清单/备菜顺序联动重算（勾选保留）；h5 删假合并+换菜弹窗两态（候选带耗时/口味+「共 N 个」如实展示+原因选填）。
 - **TP-03 完成标志已达成**：换菜后界面、数据库、清单三者一致——e2e 28 PASS / 0 FAIL 含 PG 直查三一致（库=界面、库=清单）+SWAP_DISH 事件落库；全量 258/258 + 禁忌 82/82 + h5 类型检查全绿。
-- 进行中：按 [TECHNICAL-PLAN.md](./docs/ai-rebuild/TECHNICAL-PLAN.md) 切片序列执行，下一切片 **TP-04（购物清单）**。
+- 已完成：**TP-04 购物清单切片**（2026-09-04，证据见 [evidence/TP-04-2026-09-04.md](./evidence/TP-04-2026-09-04.md)）——契约 v0.5（DEC-014：ShoppingListItemSchema 结构化+alreadyHave/pantryStaple 标记+Rescale schema+RESCALE 事件）；必消食材标「已有」不删（PD-004）；常备调料标「家里常备」保留不删（C-8/DEC-014 裁决 4）；按人数缩放分量取整（PD-005：qty×people/4，保底 1）+ 新路由 `POST /shopping-list/rescale`（按 ingredientId 保留勾选与标记重算+同步情境人数）；h5 采购清单人数步进器+绿/灰标签+提示+「就按这个买」按钮。
+- **TP-04 完成标志已达成**：人数缩放与「已有」标记数值证据可复现——e2e 19 PASS / 0 FAIL（番茄 200g→100g→50g→200g 往返一致、alreadyHave 全程保留、勾选跨 rescale 保留、PG 直查 RESCALE 事件 payload from/to）；全量 274/275（1 项性能抖动单跑即过）+ 禁忌 82/82 + h5 类型检查全绿。**e2e 抓住一处产品级遗漏**（数据库枚举未迁移）并已修复，过程记录见证据 §2.3/§5。
+- 进行中：按 [TECHNICAL-PLAN.md](./docs/ai-rebuild/TECHNICAL-PLAN.md) 切片序列执行，下一切片 **TP-05（反馈学习）**。
 - 边界：UI 基准 = [e-final.html](./docs/ai-rebuild/ui/e-final.html) + [design-spec.md](./docs/ai-rebuild/ui/design-spec.md)，UI 改动须先改确认书 B 节再动代码；预览 http://localhost:8888/docs/ai-rebuild/ui/e-final.html。
 
-下一步：TP-04 → 依次推进至 TP-08（TP-07 前单独询问服务器/域名/备案；「整套换」在推迟清单，实施时须一并处理 swapPlan 全换分支 mustUse 原文映射）。
+下一步：TP-05 → 依次推进至 TP-08（TP-07 前单独询问服务器/域名/备案；「整套换」在推迟清单，实施时须一并处理 swapPlan 全换分支 mustUse 原文映射）。

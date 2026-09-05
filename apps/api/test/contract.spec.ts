@@ -51,6 +51,7 @@ vi.mock('../src/services/planService.js', () => {
       getSwapOptions: vi.fn(),
       getShoppingList: vi.fn(),
       patchShoppingList: vi.fn(),
+      rescaleShoppingList: vi.fn(),
       addFeedback: vi.fn(),
       listPlans: vi.fn(),
       repeatPlan: vi.fn(),
@@ -606,6 +607,54 @@ describe('API contract tests', () => {
         url: '/api/plans/test-plan-id/shopping-list',
         cookies: { access_token: 'test-token' },
         body: { checked: true },
+      });
+      expect(response.statusCode).toBe(400);
+    });
+  });
+
+  // ── F4: POST /api/plans/:id/shopping-list/rescale（TP-04/DEC-014） ──
+
+  describe('POST /api/plans/:id/shopping-list/rescale (TP-04)', () => {
+    it('returns 200 with rescaled ShoppingListResponse', async () => {
+      vi.mocked(planService.rescaleShoppingList).mockResolvedValue(mockShoppingList);
+      const response = await app.inject({
+        method: 'POST',
+        url: '/api/plans/test-plan-id/shopping-list/rescale',
+        cookies: { access_token: 'test-token' },
+        body: { people: 6 },
+      });
+      expect(response.statusCode).toBe(200);
+      const body = parseResponse(response.body);
+      expect(() => ShoppingListResponseSchema.parse(body)).not.toThrow();
+      expect(planService.rescaleShoppingList).toHaveBeenCalledWith('test-plan-id', 6);
+    });
+
+    it('returns 400 with people=0', async () => {
+      const response = await app.inject({
+        method: 'POST',
+        url: '/api/plans/test-plan-id/shopping-list/rescale',
+        cookies: { access_token: 'test-token' },
+        body: { people: 0 },
+      });
+      expect(response.statusCode).toBe(400);
+    });
+
+    it('returns 400 with non-integer people', async () => {
+      const response = await app.inject({
+        method: 'POST',
+        url: '/api/plans/test-plan-id/shopping-list/rescale',
+        cookies: { access_token: 'test-token' },
+        body: { people: 2.5 },
+      });
+      expect(response.statusCode).toBe(400);
+    });
+
+    it('returns 400 with missing people', async () => {
+      const response = await app.inject({
+        method: 'POST',
+        url: '/api/plans/test-plan-id/shopping-list/rescale',
+        cookies: { access_token: 'test-token' },
+        body: {},
       });
       expect(response.statusCode).toBe(400);
     });

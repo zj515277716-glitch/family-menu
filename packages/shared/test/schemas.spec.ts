@@ -27,6 +27,7 @@ import {
   EventSchema,
   PlanStatusSchema,
   EventTypeSchema,
+  ShoppingListSchema,
   // api
   RecommendRequestSchema,
   SwapPlanRequestSchema,
@@ -34,6 +35,7 @@ import {
   SwapOptionsResponseSchema,
   FeedbackRequestSchema,
   PatchShoppingListRequestSchema,
+  RescaleShoppingListRequestSchema,
   PutFamilyRulesRequestSchema,
   PutExclusionsRequestSchema,
   GetExclusionsResponseSchema,
@@ -314,7 +316,38 @@ describe('plan schemas', () => {
 
   it('EventTypeSchema 枚举校验', () => {
     expect(EventTypeSchema.safeParse('SWAP_DISH').success).toBe(true);
+    expect(EventTypeSchema.safeParse('RESCALE').success).toBe(true); // DEC-014
     expect(EventTypeSchema.safeParse('DELETE').success).toBe(false);
+  });
+
+  it('ShoppingListSchema 结构化校验（DEC-014 精化）', () => {
+    // 完整条目：带两个 optional 标记
+    expect(ShoppingListSchema.safeParse({
+      groups: [{
+        category: '蔬菜',
+        items: [{
+          ingredientId: 'ing1', name: '番茄', category: '蔬菜',
+          qty: 2, unit: '个', checked: false,
+          alreadyHave: true, pantryStaple: false,
+        }],
+      }],
+    }).success).toBe(true);
+    // 旧形态兼容：两个布尔缺省直接过（DEC-014 optional 缺省=未标）
+    expect(ShoppingListSchema.safeParse({
+      groups: [{
+        category: '肉类',
+        items: [{ ingredientId: 'ing2', name: '猪肉', category: '肉类', qty: 300, unit: 'g', checked: true }],
+      }],
+    }).success).toBe(true);
+    // 缺 checked 拒绝
+    expect(ShoppingListSchema.safeParse({
+      groups: [{
+        category: '蔬菜',
+        items: [{ ingredientId: 'ing1', name: '番茄', category: '蔬菜', qty: 2, unit: '个' }],
+      }],
+    }).success).toBe(false);
+    // 缺 groups 拒绝
+    expect(ShoppingListSchema.safeParse({}).success).toBe(false);
   });
 
   it('PlanStatusSchema 枚举校验', () => {
@@ -465,6 +498,14 @@ describe('api schemas', () => {
       itemId: 'it1', checked: true,
     }).success).toBe(true);
     expect(PatchShoppingListRequestSchema.safeParse({ itemId: 'it1' }).success).toBe(false);
+  });
+
+  it('RescaleShoppingListRequestSchema people>=1（DEC-014）', () => {
+    expect(RescaleShoppingListRequestSchema.safeParse({ people: 3 }).success).toBe(true);
+    expect(RescaleShoppingListRequestSchema.safeParse({ people: 1 }).success).toBe(true);
+    expect(RescaleShoppingListRequestSchema.safeParse({ people: 0 }).success).toBe(false);
+    expect(RescaleShoppingListRequestSchema.safeParse({ people: 2.5 }).success).toBe(false);
+    expect(RescaleShoppingListRequestSchema.safeParse({}).success).toBe(false);
   });
 
   it('PutFamilyRulesRequestSchema 等价于 FamilyRuleSchema', () => {

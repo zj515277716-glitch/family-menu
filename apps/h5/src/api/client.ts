@@ -132,6 +132,14 @@ export const api = {
     })
   },
 
+  // 14. POST /api/plans/:id/shopping-list/rescale <- { people } -> ShoppingListData（TP-04/DEC-014）
+  rescaleShoppingList(planId: string, people: number): Promise<ShoppingListData> {
+    return request<ShoppingListData>(`/api/plans/${planId}/shopping-list/rescale`, {
+      method: 'POST',
+      data: { people },
+    })
+  },
+
   // 10. POST /api/plans/:id/feedback <- { result, actualMinutes?, cookResult?, failPoints? } -> Plan
   addFeedback(
     planId: string,

@@ -34,6 +34,8 @@ import {
   CandidateSchema,
   CandidateBreakdownSchema,
   ShoppingListSchema,
+  ShoppingListItemSchema,
+  ShoppingListGroupSchema,
   EventPayloadSchema,
 } from '../schemas/plan.js';
 import {
@@ -49,6 +51,7 @@ import {
   SwapOptionSchema,
   SwapOptionsResponseSchema,
   PatchShoppingListRequestSchema,
+  RescaleShoppingListRequestSchema,
   FeedbackRequestSchema,
   FamilyRulesResponseSchema,
   GetExclusionsResponseSchema,
@@ -91,6 +94,8 @@ export type PlanContext = z.infer<typeof PlanContextSchema>;
 export type Candidate = z.infer<typeof CandidateSchema>;
 export type CandidateBreakdown = z.infer<typeof CandidateBreakdownSchema>;
 export type ShoppingList = z.infer<typeof ShoppingListSchema>;
+export type ShoppingListItem = z.infer<typeof ShoppingListItemSchema>;
+export type ShoppingListGroup = z.infer<typeof ShoppingListGroupSchema>;
 export type EventPayload = z.infer<typeof EventPayloadSchema>;
 
 // ───── api ─────
@@ -106,6 +111,7 @@ export type SwapOptionsQuery = z.infer<typeof SwapOptionsQuerySchema>;
 export type SwapOption = z.infer<typeof SwapOptionSchema>;
 export type SwapOptionsResponse = z.infer<typeof SwapOptionsResponseSchema>;
 export type PatchShoppingListRequest = z.infer<typeof PatchShoppingListRequestSchema>;
+export type RescaleShoppingListRequest = z.infer<typeof RescaleShoppingListRequestSchema>;
 export type FeedbackRequest = z.infer<typeof FeedbackRequestSchema>;
 export type FamilyRulesResponse = z.infer<typeof FamilyRulesResponseSchema>;
 export type GetExclusionsResponse = z.infer<typeof GetExclusionsResponseSchema>;

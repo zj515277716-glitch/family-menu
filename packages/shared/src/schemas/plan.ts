@@ -7,13 +7,14 @@ import { z } from 'zod';
 /** 计划状态 */
 export const PlanStatusSchema = z.enum(['PROPOSED', 'LOCKED', 'COOKED', 'SKIPPED']);
 
-/** 行为事件类型（隐式反馈源+埋点，④推翻清单#4） */
+/** 行为事件类型（隐式反馈源+埋点，④推翻清单#4）；RESCALE=改人数重算清单（DEC-014） */
 export const EventTypeSchema = z.enum([
   'GENERATE',
   'VIEW',
   'LOCK',
   'SWAP_MENU',
   'SWAP_DISH',
+  'RESCALE',
   'COOKED',
   'NOT_COOKED',
   'REPEAT',
@@ -45,11 +46,29 @@ export const CandidateSchema = z.object({
 });
 
 /**
- * 合并后采购清单快照 + 勾选状态。
- * 3.2 仅标注为 Json，结构由 list-merger（STEP-04）决定，本步不预先固定。
- * 采用 z.record(z.string(), z.unknown()) 承载，待 STEP-04 精化。
+ * 合并后采购清单快照 + 勾选状态（DEC-014 精化，取代 record(unknown) 占位）。
+ * 形态与 list-merger 输出一致；alreadyHave=已有·必消（PD-004），pantryStaple=家里常备（C-8）。
+ * 两个布尔 optional 缺省=未标（旧存库 JSON 无此字段直接兼容）。
  */
-export const ShoppingListSchema = z.record(z.string(), z.unknown());
+export const ShoppingListItemSchema = z.object({
+  ingredientId: z.string(),
+  name: z.string(),
+  category: z.string(),
+  qty: z.number(),
+  unit: z.string(),
+  checked: z.boolean(),
+  alreadyHave: z.boolean().optional(),
+  pantryStaple: z.boolean().optional(),
+});
+
+export const ShoppingListGroupSchema = z.object({
+  category: z.string(),
+  items: z.array(ShoppingListItemSchema),
+});
+
+export const ShoppingListSchema = z.object({
+  groups: z.array(ShoppingListGroupSchema),
+});
 
 /**
  * 事件 payload（如 swap 时记 {reason: "太麻烦"}）。

@@ -84,7 +84,7 @@ function toPlan(row: PlanRow): Plan {
     context: row.context as PlanContext,
     candidates: row.candidates as Candidate[],
     lockedMenuId: row.lockedMenuId ?? undefined,
-    shoppingList: (row.shoppingList as Record<string, unknown> | null) ?? undefined,
+    shoppingList: (row.shoppingList as ShoppingList | null) ?? undefined,
     status: row.status as PlanStatus,
     createdAt: row.createdAt,
   };
@@ -264,12 +264,17 @@ async function runSwapFilter(
   });
 }
 
-/** 重算采购清单：merge 后按 ingredientId 保留旧清单勾选状态 */
+/** 重算采购清单（DEC-014）：merge（按今晚人数缩放+必消标「已有」）后按 ingredientId 保留旧勾选 */
 function computeShoppingList(
   menuView: MenuView,
+  people: number,
   previous?: ShoppingList | null,
+  mustUseIds?: ReadonlySet<string>,
 ): ShoppingList {
-  const merged = mergeShoppingList(toShoppingMenu(menuView));
+  const merged = mergeShoppingList(toShoppingMenu(menuView), {
+    people,
+    alreadyHaveIds: mustUseIds,
+  });
   if (!previous) {
     return merged;
   }
@@ -600,10 +605,14 @@ export const planService = {
       prepSequence: buildPrepSequence(newDishes),
     };
 
-    // 清单重算写回（按 ingredientId 保留勾选）+ 锁定候选快照原地重写
+    // 清单重算写回（按今晚人数缩放 + 必消标记，按 ingredientId 保留勾选）+ 锁定候选快照原地重写
+    const swapContext = plan.context as PlanContext;
+    const swapMustUse = await resolveMustUseIds(swapContext.mustUse);
     const shoppingList = computeShoppingList(
       newMenuView,
+      swapContext.people,
       (plan.shoppingList as ShoppingList | null) ?? null,
+      new Set(swapMustUse.ids),
     );
     candidates[candidateIndex] = { ...candidates[candidateIndex], menu: newMenuView };
 
@@ -679,9 +688,13 @@ export const planService = {
     const { menuView } = await hydrateLockedMenu(
       plan as PlanRow & { lockedMenuId: string },
     );
+    const context = plan.context as PlanContext;
+    const mustUseResolved = await resolveMustUseIds(context.mustUse);
     const shoppingList = computeShoppingList(
       menuView,
+      context.people,
       (plan.shoppingList as ShoppingList | null) ?? null,
+      new Set(mustUseResolved.ids),
     );
 
     await prisma.plan.update({
@@ -723,6 +736,43 @@ export const planService = {
     });
 
     return updatedList;
+  },
+
+  /** 改人数重算清单（TP-04/DEC-014 裁决 3）：同步今晚人数 -> 重算清单（保留勾选）-> Event RESCALE */
+  async rescaleShoppingList(planId: string, people: number): Promise<ShoppingList> {
+    const plan = await requireLockedPlan(planId);
+    const context = plan.context as PlanContext;
+    const from = context.people;
+    context.people = people;
+
+    // 水合锁定菜单，按新人数重算（必消标「已有」+ 按 ingredientId 保留勾选）
+    const { menuView } = await hydrateLockedMenu(plan);
+    const mustUseResolved = await resolveMustUseIds(context.mustUse);
+    const shoppingList = computeShoppingList(
+      menuView,
+      people,
+      (plan.shoppingList as ShoppingList | null) ?? null,
+      new Set(mustUseResolved.ids),
+    );
+
+    await prisma.plan.update({
+      where: { id: planId },
+      data: {
+        context: context as unknown as object,
+        shoppingList: shoppingList as unknown as object,
+      },
+    });
+
+    await prisma.event.create({
+      data: {
+        familyId: FAMILY_ID,
+        planId,
+        type: 'RESCALE',
+        payload: { from, to: people },
+      },
+    });
+
+    return shoppingList;
   },
 
   // ── F6: 反馈 ──

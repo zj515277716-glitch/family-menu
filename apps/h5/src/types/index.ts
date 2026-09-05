@@ -66,29 +66,12 @@ export interface CandidateView extends Candidate {
   menu?: MenuSnapshot
 }
 
-// ───── ShoppingList 精化结构（对齐 list-merger 输出） ─────
-// shared v0.1 ShoppingListSchema 为 z.record(z.unknown())，此处精化为 list-merger 实际结构
+// ───── ShoppingList 精化结构（TP-04/DEC-014：shared v0.5 已结构化，直接收敛复用） ─────
 
-/** 采购清单单项 */
-export interface ShoppingListItem {
-  ingredientId: string
-  name: string
-  category: string
-  qty: number
-  unit: string
-  checked: boolean
-}
+export type { ShoppingListItem, ShoppingListGroup } from '@family-menu/shared'
 
-/** 采购清单分组 */
-export interface ShoppingListGroup {
-  category: string
-  items: ShoppingListItem[]
-}
-
-/** 采购清单（精化结构） */
-export interface ShoppingListData {
-  groups: ShoppingListGroup[]
-}
+/** 采购清单（别名兼容旧引用；含 alreadyHave/pantryStaple 标记字段） */
+export type ShoppingListData = ShoppingList
 
 // ───── API 响应扩展类型 ─────
 

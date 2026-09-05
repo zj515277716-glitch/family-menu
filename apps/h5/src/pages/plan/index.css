@@ -241,6 +241,89 @@
   font-weight: 500;
 }
 
+/* ── TP-04：人数步进器（PD-005） ── */
+.fm-people-bar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  margin: 12px 16px 0;
+  padding: 14px 20px;
+  background-color: #FFFFFF;
+  border-radius: 16px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
+}
+
+.fm-people-label {
+  font-size: 26px;
+  color: var(--fm-title);
+}
+
+.fm-people-btn {
+  width: 56px;
+  height: 56px;
+  line-height: 52px;
+  text-align: center;
+  font-size: 32px;
+  color: var(--fm-primary);
+  border: 1.5px solid var(--fm-primary);
+  border-radius: 50%;
+  background-color: var(--fm-primary-light);
+}
+
+.fm-people-btn.disabled {
+  opacity: 0.35;
+}
+
+.fm-people-num {
+  min-width: 60px;
+  text-align: center;
+  font-size: 34px;
+  font-weight: 700;
+  color: var(--fm-title);
+}
+
+/* ── TP-04：C-8 提示 + 「已有/家里常备」标记（design-spec 第77行：已有=绿；家里常备=灰） ── */
+.fm-list-hint {
+  display: block;
+  margin: 10px 20px 0;
+  font-size: 22px;
+  color: var(--fm-text-secondary);
+  line-height: 1.6;
+}
+
+.fm-item-main {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  flex-wrap: wrap;
+}
+
+.fm-tag-have {
+  flex-shrink: 0;
+  padding: 2px 14px;
+  font-size: 20px;
+  border-radius: 12px;
+  background-color: #E8F5E9;
+  color: #4CAF50;
+}
+
+.fm-tag-pantry {
+  flex-shrink: 0;
+  padding: 2px 14px;
+  font-size: 20px;
+  border-radius: 12px;
+  background-color: #F2F2F2;
+  color: #8A8A8A;
+}
+
+/* ── TP-04：就按这个买（C-8，会话态） ── */
+.fm-buy-confirm {
+  margin: 16px 16px 24px;
+}
+
 .fm-timeline {
   padding: 28px 20px;
 }

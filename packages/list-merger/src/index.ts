@@ -5,6 +5,8 @@ export const PACKAGE_NAME = '@family-menu/list-merger';
 export {
   mergeShoppingList,
   DEFAULT_PANTRY_STAPLES,
+  BASE_SERVINGS,
+  roundPurchase,
   type MergeOptions,
   type ShoppingIngredient,
   type ShoppingMenuDish,

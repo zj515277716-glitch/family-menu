@@ -9,6 +9,7 @@ import {
   SwapOptionsQuerySchema,
   SwapOptionsResponseSchema,
   PatchShoppingListRequestSchema,
+  RescaleShoppingListRequestSchema,
   FeedbackRequestSchema,
   PlanResponseSchema,
   PlanListResponseSchema,
@@ -98,6 +99,24 @@ export const planRoutes: FastifyPluginAsync = async (app) => {
       params.data.id,
       parsed.data.itemId,
       parsed.data.checked,
+    );
+    return ShoppingListResponseSchema.parse(shoppingList);
+  });
+
+  // ── F4: 改人数重算清单（TP-04/DEC-014 裁决 3） ──
+  // POST /api/plans/:id/shopping-list/rescale { people }
+  app.post('/plans/:id/shopping-list/rescale', async (request, reply) => {
+    const params = PlanIdParamsSchema.safeParse(request.params);
+    if (!params.success) {
+      return reply.code(400).send({ error: 'Invalid plan id' });
+    }
+    const parsed = RescaleShoppingListRequestSchema.safeParse(request.body);
+    if (!parsed.success) {
+      return reply.code(400).send({ error: 'Validation error', details: parsed.error.issues });
+    }
+    const shoppingList = await planService.rescaleShoppingList(
+      params.data.id,
+      parsed.data.people,
     );
     return ShoppingListResponseSchema.parse(shoppingList);
   });

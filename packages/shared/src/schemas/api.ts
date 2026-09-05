@@ -3,6 +3,8 @@
 // v0.2（2026-08-07）：新增 ExclusionRule 路由契约 + FeedbackRequest 扩展 cookResult/failPoints
 // v0.4（2026-09-04，DEC-013/TP-03）：SwapPlanRequest reason 改 optional + 新增 newDishId 条件必填（superRefine）；
 //   新增 GET /api/plans/:id/swap-options 契约（SwapOptionsQuery/SwapOption/SwapOptionsResponse）
+// v0.5（2026-09-04，DEC-014/TP-04）：新增 POST /api/plans/:id/shopping-list/rescale 契约（RescaleShoppingListRequest）；
+//   ShoppingListSchema 精化为结构化（条目增 alreadyHave/pantryStaple optional 标记，见 plan.ts）
 import { z } from 'zod';
 import { MealRoleSchema } from './dish.js';
 import { FamilyRuleSchema, ExclusionRuleSchema } from './family.js';
@@ -117,6 +119,15 @@ export const SwapOptionsResponseSchema = z.object({
 export const PatchShoppingListRequestSchema = z.object({
   itemId: z.string(),
   checked: z.boolean(),
+});
+
+/**
+ * POST /api/plans/:id/shopping-list/rescale 请求体（v0.5，DEC-014）。
+ * people = 改后的今晚人数（>=1）；服务端按新人数重算清单并持久化，
+ * 同步更新 plan.context.people，按 ingredientId 保留勾选状态，写 Event RESCALE。
+ */
+export const RescaleShoppingListRequestSchema = z.object({
+  people: z.number().int().min(1),
 });
 
 /**

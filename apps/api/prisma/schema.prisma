@@ -224,4 +224,5 @@ enum EventType {
   COOKED
   NOT_COOKED
   REPEAT
+  RESCALE
 }

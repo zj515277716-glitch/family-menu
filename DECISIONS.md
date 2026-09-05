@@ -161,3 +161,98 @@
   冻结 tag：v0.4（代码合并后由队长打 tag；v0.3 保留可回滚）。
   批准状态：架构师评估=批准（2026-09-04，持久化三方案对比/mustUse 联动口径/备菜顺序算法
   均已裁决）；shared+engine 修改由主控按本条执行并补测试；合入待用户批准（DEC-005）。
+- DEC-014 契约变更 v0.4->v0.5（TP-04 购物清单切片，PD-012 自主开发授权）：2026-09-04 架构师
+  （fm-arch）影响评估——草案（待用户批准）。
+  背景：TP-04 要求清单支持必消食材标"已有"不删（PD-004）、按今晚人数缩放分量并取整（PD-005）、
+  顶部改人数自动缩放、常备调料标"家里常备"（C-8）。现状缺口：ShoppingListSchema 仍为
+  z.record(z.string(), z.unknown()) 占位（plan.ts 52 行）；merge.ts 常备调料为删除式 continue、
+  无人数缩放、无标记字段；planService.computeShoppingList 仅做合并+勾选保留。
+  变更内容（packages/shared/src/schemas/plan.ts + api.ts）：
+  ①ShoppingListSchema 精化：record(unknown) -> 结构化 schema——
+  ShoppingListItemSchema = {ingredientId, name, category, qty: number, unit, checked: boolean,
+  alreadyHave?: boolean（已有·必消，PD-004）, pantryStaple?: boolean（家里常备，C-8）}；
+  ShoppingListGroupSchema = {category, items: ShoppingListItem[]}；
+  ShoppingListSchema = {groups: ShoppingListGroup[]}。两个新布尔为 optional 缺省=未标
+  （前端按 false 渲染）。groups 形态与 list-merger 现行输出一致，不再双重定义。
+  ②新增 RescaleShoppingListRequestSchema = {people: z.number().int().min(1)}
+  （POST /api/plans/:id/shopping-list/rescale 请求体，见裁决 3）。
+  ③EventTypeSchema 新增 'RESCALE'（additive，rescale 留痕；全仓 EventType 无穷举 switch，
+  消费面仅 EventPayloadSchema/埋点，纯枚举扩展无破坏）。
+  向后兼容性：①③为就地扩展，先例同 DEC-011/012/013（additive-optional 无破坏性，不建 V2）。
+  ②为纯新增 schema。zod v4 对象默认 strip、全仓无 .strict()/.passthrough()（DEC-012/013 已两度
+  grep 核实，沿用结论）。关键事实核正：数据库已存 shoppingList JSON 的唯一写入方是
+  getShoppingList/swapPlan/patchShoppingList（planService），写入内容即 list-merger 输出形态
+  （merge.ts ShoppingListItem 六字段 + groups），与新 schema 字段全对齐——"旧形态"只存在于
+  zod 契约层（record(unknown) 未定型），不存在存库形态分叉，故无需迁移脚本；极端脏数据由
+  getShoppingList 每次 GET 重算自愈。prisma/schema.prisma 零改动（Json 纯内容演化，先例同 DEC-013）。
+  架构裁决（五项）：
+  ·裁决 2 人数缩放与取整：缩放落在 list-merger 纯函数层——mergeShoppingList 增
+  options.people（缺省 = BASE_SERVINGS = 4，即 qty×4/4 原样，既有单测零破坏）；公式
+  qty × people / 4；取整规则 = 所有单位一律向上取整到整数、最小 1（ceil，计数单位与 g/ml
+  统一口径）。理由：单一规则可解释（"宁多勿少，凑整好买"）、确定性可测试、与 PD-005 示例
+  （1.5 个鸡蛋 -> 2 个）及"偶尔少量剩余属预期"一致；g/ml 取整后仍为可购买整数。否决
+  "按单位分级取整（10g 步长等）"——引入配置与口径争议，违背可测试性。取整时机 = 单位换算
+  合并之后的总量一次性取整（不做逐条目取整，避免误差复合）；新增 roundPurchase 纯函数与
+  units.ts 的 round2（防浮点误差）职责分开、分开测。基准人数硬编码 BASE_SERVINGS=4
+  （PD-005 定死 4 人份；Menu.serves 字段存在但不动用，见遗留）。
+  ·裁决 3 改人数接口：选 b——新增 POST /api/plans/:id/shopping-list/rescale {people}，
+  否决 a 扩展 PATCH。理由：rescale 是带副作用的重算动作，与本仓动作类端点先例一致
+  （POST /lock、/swap、/repeat 均为 POST 子资源）；扩展 PATCH 会把"条目勾选"与"整单重算"
+  两种语义混载一个入口。行为：rescale 同步更新 plan.context.people（今晚人数单一事实源，
+  做法页 C-4 未来按人数换算同源；recommend 仅在新建/复做时消费 context，锁定态快照理论安全，
+  且"全换"若启用本就应随新人数——语义正确非副作用）+ 用换后 menuView 重算清单 +
+  按 ingredientId 保留勾选（复用 computeShoppingList 内核 checkedIds 逻辑）+ 写 Event RESCALE
+  {from, to}；响应 = 完整新清单（ShoppingListResponse）。computeShoppingList 签名扩为
+  (menuView, people, previous, mustUseIds)；swapPlan/getShoppingList 两处调用点同步改；
+  patchShoppingList 维持只改勾选、不触发缩放。
+  ·裁决 4 常备调料口径偏离声明：merge.ts 由"删除式 continue"改为"标记显示"
+  （命中 DEFAULT_PANTRY_STAPLES 的 canonicalId/name/aliases -> pantryStaple=true 保留在清单）。
+  此为对 TECHNICAL-PLAN TP-04"常备调料不出现（回归既有能力）"与确认书 A 部分第 28/36 行的
+  明确偏离；依据 = 用户已锁定 C 部分（C-8"常备调料标「家里常备」"，PD-012 定稿效力高于
+  A 部分）+ design-spec.md 第 77 行 .tag-pantry（家里常备=灰）。不改 TECHNICAL-PLAN 正文
+  （先例同 DEC-011），偏离记录在本条，供用户知情批准。
+  ·裁决 5 alreadyHave 判定：item.ingredientId（= list-merger 归一 canonicalId，恒为
+  DB ingredientId）∈ resolveMustUseIds(context.mustUse).ids。复用 TP-02 同一映射机制
+  （trim -> name 精确 -> aliases 精确 -> 大小写不敏感），与推荐引擎匹配口径同源，不建第二套
+  匹配。实现上 planService 先解析出 id 集合，以 MergeOptions.alreadyHaveIds 传入纯函数
+  （list-merger 保持零 IO）。可靠性边界：原文在 DB 无 name/alias 命中时 resolveMustUseIds
+  回退原文为伪 id，清单项不可能命中——该场景推荐引擎同样匹配不到（PD-001 必然空手、无清单
+  可言），故不存在"该标未标"的独立伪阴性面；别名覆盖不足导致的漏标与推荐层风险同源，
+  由 TP-02 别名机制兜底。
+  ·裁决 1 附（旧数据读取兼容）：无需 write-through 迁移。读取路径 parse 失败即降级重算
+  （getShoppingList 现有行为已覆盖）；两个 optional 布尔在旧 JSON 中缺省，zod optional 直接过。
+  PlanResponseSchema/PlanListResponseSchema 继承精化后 PlanSchema.shoppingList，旧 Plan 行
+  JSON 形态一致，parse 通过；planService.toPlan 第 87 行 cast 需随之调整类型断言（编译面，
+  非运行面）。
+  影响范围（主控按本条派发执行，本评估不改任何业务代码）：
+  ·packages/shared：schemas/plan.ts（①③）、schemas/api.ts（② + 版本头注释 v0.5）；
+    types/index.ts 由 z.infer 自动变形，无需手工改；test/schemas.spec.ts 增结构化校验/
+    optional 缺省/RESCALE 枚举用例；
+  ·packages/list-merger：src/merge.ts（people/BASE_SERVINGS/roundPurchase/pantryStaple 标记/
+    alreadyHaveIds，MergeOptions 扩参）、src/index.ts 按需补导出；
+    test/merge.spec.ts（原"去常备删除"断言改为"标记保留"断言 + 缩放/取整/标记/缩放后勾选
+    保留用例）；不触 engine（铁律 8 不适用，全量 pnpm test 照跑）；
+  ·apps/api：services/planService.ts（computeShoppingList 扩签名 + toPlan cast 调整 +
+    新增 rescaleShoppingList：requireLockedPlan 校验 -> 更新 context.people -> 重算写回 ->
+    Event RESCALE）、routes/plans.ts（新增 POST /plans/:id/shopping-list/rescale）；
+    test/contract.spec.ts（rescale 契约/alreadyHave+pantryStaple 字段/旧形态 JSON 兼容用例；
+    现有清单断言随口径更新）；不触 prisma/schema.prisma；
+  ·apps/h5：types/index.ts（ShoppingListItem 增 alreadyHave?/pantryStaple?；建议顺势改为
+    re-export shared 类型，消灭与 shared/list-merger 的三处重复定义，由主控定夺）、
+    api/client.ts（rescaleShoppingList）、pages/plan/index.tsx（顶部人数步进器联动 rescale、
+    .tag-have/.tag-pantry 两标签、C-8 提示文案、「就按这个买」->「✓ 已按这个买」完成标记）、
+    pages/plan/index.css；
+  ·不改 prisma/schema.prisma；不改 TECHNICAL-PLAN/实施方案正文（偏离记录于本条）。
+  遗留与风险（主控注意）：
+  ·「就按这个买」= 会话内完成标记不持久化（PD-012 文本"仅作完成标记，不引入其他功能"）；
+    若用户要求刷新后保留，需另立 list 级 bought 契约决策，勿塞入本切片。
+  ·BASE_SERVINGS 硬编码 4：未来菜库出现 serves≠4 的菜单时，缩放口径需产品重定（记遗留）。
+  ·人数步进器初始值来源 = store 中 plan.context.people；刷新后 store 重建依赖今晚流程，
+    如需独立 GET /plans/:id 详情端点另行评估（YAGNI 暂不做）。
+  ·h5/shared/list-merger 三处 ShoppingList 结构重复定义，建议本切片内收敛为 shared 单一
+    事实源（纯类型收敛，低风险）；STATUS.md 当前任务卡仍停留在 STEP-08（四件套未随 ai-rebuild
+    轨道更新），派发前建议队长同步，避免 DEC-004 恢复协议歧义。
+  冻结 tag：v0.5（代码合并后由队长打 tag；v0.4 保留可回滚）。
+  批准状态：已生效（2026-09-04）——PD-012 自主开发授权覆盖；契约细节均对应已定稿产品决策
+  （PD-004/PD-005/C-8），常备调料口径依用户锁定 C-8 执行（A 部分冲突已记录在案）；主控按本条
+  派发执行（同 DEC-013 生效惯例）。

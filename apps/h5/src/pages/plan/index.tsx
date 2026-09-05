@@ -2,6 +2,7 @@
 // F4/F5 采购清单 + 备菜顺序（/pages/plan，流式页）
 // 对齐 wireframes.md 第238-314行：Tabs切换清单/备菜，勾选PATCH，Timeline备菜
 // TP-03（DEC-013）：新增今晚菜单菜卡区 + 「换一道」真实换菜弹窗（e-final 屏②③④）
+// TP-04（DEC-014/PD-004/PD-005）：人数步进器联动重算清单 + 「已有/家里常备」标记 + C-8「就按这个买」
 // 弹窗两态：有候选（屏③：挑选+原因可选） / 无候选（屏④：共 0 个如实展示）
 import { useEffect, useState } from 'react'
 import Taro from '@tarojs/taro'
@@ -38,6 +39,12 @@ export default function PlanPage() {
   const [shoppingList, setShoppingList] = useState<ShoppingListData | null>(null)
   const [loading, setLoading] = useState(true)
   const [activeTab, setActiveTab] = useState<string | number>('list')
+
+  // ── TP-04：人数步进器（PD-005，初值=今晚情境人数；rescale 成功后同步 store） ──
+  const [people, setPeople] = useState(() => useStore.getState().tonightContext.people)
+  const [rescaling, setRescaling] = useState(false)
+  // ── TP-04：C-8「就按这个买」（仅会话态，不持久化） ──
+  const [bought, setBought] = useState(false)
 
   // ── 换菜弹窗状态（TP-03） ──
   const [swapVisible, setSwapVisible] = useState(false)
@@ -86,6 +93,28 @@ export default function PlanPage() {
       console.error('[Plan] patch error', e)
       setShoppingList(shoppingList) // 回滚
       Taro.showToast({ title: '更新失败，重试', icon: 'none' })
+    }
+  }
+
+  // ── TP-04/PD-005：改人数 -> 服务端重算清单（按 ingredientId 保留勾选）-> 同步 store ──
+  // UI 防误触范围 1-20 人（契约只要求 >=1 整数）；加载态防连点
+  async function handleRescale(next: number) {
+    if (!currentPlanId || rescaling) return
+    if (next < 1 || next > 20 || next === people) return
+    setRescaling(true)
+    try {
+      const list = await api.rescaleShoppingList(currentPlanId, next)
+      setShoppingList(list)
+      setPeople(next)
+      useStore.getState().setTonightPeople(next)
+    } catch (e) {
+      console.error('[Plan] rescale error', e)
+      Taro.showToast({
+        title: e instanceof Error && e.message ? e.message : '改人数失败，重试',
+        icon: 'none',
+      })
+    } finally {
+      setRescaling(false)
     }
   }
 
@@ -237,6 +266,28 @@ export default function PlanPage() {
       <Tabs value={activeTab} onChange={(v) => setActiveTab(v as string | number)}>
         <TabPane value="list" title={`采购清单(${checkedCount}/${totalItems})`}>
           <ScrollView scrollY className="fm-plan-scroll">
+            {/* 人数步进器（PD-005：按今晚人数自动缩放分量并取整） */}
+            <View className="fm-people-bar">
+              <Text className="fm-people-label">按</Text>
+              <Text
+                className={`fm-people-btn${rescaling || people <= 1 ? ' disabled' : ''}`}
+                onClick={() => handleRescale(people - 1)}
+              >
+                −
+              </Text>
+              <Text className="fm-people-num">{people}</Text>
+              <Text
+                className={`fm-people-btn${rescaling || people >= 20 ? ' disabled' : ''}`}
+                onClick={() => handleRescale(people + 1)}
+              >
+                ＋
+              </Text>
+              <Text className="fm-people-label">人买{rescaling ? ' · 调整中…' : ''}</Text>
+            </View>
+            {/* C-8 提示（DEC-014 裁决 4：常备/已有标记保留，不删除条目） */}
+            <Text className="fm-list-hint">
+              标了「已有」的不用买——留在清单里是为了提醒你别漏用；「家里常备」的一般不用买。
+            </Text>
             {loading && <Text className="fm-text-secondary">加载中...</Text>}
             {shoppingList?.groups.map((group) => (
               <View key={group.category} className="fm-group">
@@ -250,13 +301,18 @@ export default function PlanPage() {
                       checked={item.checked}
                       onChange={(v) => handleCheck(item.ingredientId, !!v)}
                     />
-                    <Text
-                      className={
-                        item.checked ? 'fm-item-name fm-item-checked' : 'fm-item-name'
-                      }
-                    >
-                      {item.name}
-                    </Text>
+                    <View className="fm-item-main">
+                      <Text
+                        className={
+                          item.checked ? 'fm-item-name fm-item-checked' : 'fm-item-name'
+                        }
+                      >
+                        {item.name}
+                      </Text>
+                      {/* TP-04/PD-004：已有·必消标绿「已有」；家里常备标灰（C-8/DEC-014） */}
+                      {item.alreadyHave && <Text className="fm-tag-have">已有</Text>}
+                      {item.pantryStaple && <Text className="fm-tag-pantry">家里常备</Text>}
+                    </View>
                     <Text className="fm-item-qty">
                       {item.qty}
                       {item.unit}
@@ -265,6 +321,17 @@ export default function PlanPage() {
                 ))}
               </View>
             ))}
+            {/* C-8：就按这个买（点击后变已确认，仅本次会话） */}
+            <View className="fm-buy-confirm">
+              <Button
+                type={bought ? 'default' : 'primary'}
+                block
+                disabled={bought}
+                onClick={() => setBought(true)}
+              >
+                {bought ? '✓ 已按这个买' : '就按这个买'}
+              </Button>
+            </View>
           </ScrollView>
         </TabPane>
 
