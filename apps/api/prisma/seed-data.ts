@@ -53,7 +53,7 @@ export const ingredients = [
   { id: 'seed-ing-tomato', name: '番茄', aliases: ['西红柿', '洋柿子'], category: '蔬菜', defaultUnit: 'g' },
   { id: 'seed-ing-potato', name: '土豆', aliases: ['马铃薯', '洋芋'], category: '蔬菜', defaultUnit: 'g' },
   { id: 'seed-ing-greens', name: '青菜', aliases: ['小白菜', '油菜', '上海青'], category: '蔬菜', defaultUnit: 'g' },
-  { id: 'seed-ing-broccoli', name: '西兰花', aliases: ['花椰菜', '绿菜花'], category: '蔬菜', defaultUnit: 'g' },
+  { id: 'seed-ing-broccoli', name: '西兰花', aliases: ['花椰菜', '绿菜花', '西蓝花'], category: '蔬菜', defaultUnit: 'g' },
   { id: 'seed-ing-seaweed', name: '紫菜', aliases: ['海苔'], category: '蔬菜', defaultUnit: 'g' },
   { id: 'seed-ing-cucumber', name: '黄瓜', aliases: ['青瓜'], category: '蔬菜', defaultUnit: 'g' },
   // 肉类

@@ -146,6 +146,13 @@ page {
   justify-content: center;
 }
 
+/* TabBar emoji 图标：必须写在 CSS 里走 pxtransform（设计稿 40px → 375 手机约 20px，对齐 e-final 定稿）。
+   不能用内联 style：内联 px 不被转换，手机上 40px 图标 + 48px 行高会撑爆 72px 容器，把下方文字挤出被裁 */
+.fm-tab-emoji {
+  font-size: 40px;
+  line-height: 52px;
+}
+
 /* ===== 公共组件类（与 e-final.html 一一对应，值为定稿预览 ×2 = 750 设计稿） ===== */
 
 /* 页头 */

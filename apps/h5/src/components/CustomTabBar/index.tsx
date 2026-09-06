@@ -39,7 +39,7 @@ export default function CustomTabBar() {
         <TabbarItem
           key={t.path}
           title={t.text}
-          icon={<Text style={{ fontSize: '40px', lineHeight: '48px' }}>{t.emoji}</Text>}
+          icon={<Text className="fm-tab-emoji">{t.emoji}</Text>}
         />
       ))}
     </Tabbar>

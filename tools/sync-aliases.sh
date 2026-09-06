@@ -22,7 +22,7 @@ const addAliases = [
   { name: "番茄", aliases: ["西红柿", "洋柿子"] },
   { name: "土豆", aliases: ["马铃薯", "洋芋"] },
   { name: "青菜", aliases: ["小白菜", "油菜", "上海青"] },
-  { name: "西兰花", aliases: ["花椰菜", "绿菜花"] },
+  { name: "西兰花", aliases: ["花椰菜", "绿菜花", "西蓝花"] },
   { name: "紫菜", aliases: ["海苔"] },
   { name: "黄瓜", aliases: ["青瓜"] },
   { name: "猪肉", aliases: ["五花肉", "瘦肉"] },
