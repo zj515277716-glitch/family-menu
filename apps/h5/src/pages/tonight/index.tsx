@@ -113,7 +113,23 @@ export default function TonightPage() {
     }
   }
 
+  // 输入框里有没按"完成"确认的文字时，点推荐先自动收进来再推荐，
+  // 防止"输完字直接点推荐"导致必消被静默丢弃、按无必消正常出菜单（用户实测踩坑）
   async function handleRecommend() {
+    const v = mustUseInput.trim()
+    if (v && tonightContext.mustUse.includes(v)) {
+      setMustUseInput('') // 与已有必消重复：清掉输入框即可
+    } else if (v) {
+      if (tonightContext.mustUse.length >= 3) {
+        Taro.showToast({ title: '最多3个食材', icon: 'none' })
+        return
+      }
+      const merged = [...tonightContext.mustUse, v]
+      setTonightMustUse(merged)
+      setMustUseInput('')
+      await runRecommend(merged)
+      return
+    }
     await runRecommend(tonightContext.mustUse)
   }
 
