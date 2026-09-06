@@ -1,0 +1,51 @@
+server {
+    listen 80;
+    server_name menu.jijingkongjian.xin;
+
+    location /.well-known/acme-challenge/ {
+        root /opt/family-menu/h5-dist;
+        try_files $uri =404;
+    }
+
+    location / {
+        return 301 https://$host$request_uri;
+    }
+}
+
+server {
+    listen 443 ssl http2;
+    server_name menu.jijingkongjian.xin;
+
+    ssl_certificate     /etc/letsencrypt/live/menu.jijingkongjian.xin/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/menu.jijingkongjian.xin/privkey.pem;
+
+    root /opt/family-menu/h5-dist;
+    index index.html;
+
+    location /api/ {
+        proxy_pass http://127.0.0.1:3001;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_read_timeout 60s;
+    }
+
+    # 带指纹的静态资源：一年强缓存（内容变了文件名必变，不怕旧）
+    location ~* \.(js|css|png|jpg|jpeg|gif|svg|woff|woff2|ttf)$ {
+        add_header Cache-Control "public, max-age=31536000, immutable";
+    }
+
+    # 入口页禁止缓存三连：部分手机浏览器无视 no-cache 仍用旧缓存，
+    # 升级为 no-store + Pragma + Expires=0，强制每次回源拿最新入口页
+    location = /index.html {
+        add_header Cache-Control "no-store, no-cache, must-revalidate, max-age=0";
+        add_header Pragma "no-cache";
+        add_header Expires "0";
+    }
+
+    location / {
+        try_files $uri $uri/ /index.html;
+    }
+}
