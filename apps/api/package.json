@@ -15,6 +15,7 @@
     "@family-menu/list-merger": "workspace:*",
     "@family-menu/shared": "workspace:*",
     "@fastify/cookie": "^11.1.2",
+    "@fastify/cors": "^11.3.0",
     "@prisma/adapter-pg": "^7.7.0",
     "@prisma/client": "^7.7.0",
     "dotenv": "^16.4.0",

@@ -1,9 +1,10 @@
 // apps/api/src/app.ts
-// 插件装配：zod type provider + auth(口令) + 错误处理（对齐实施方案第368行）
+// 插件装配：zod type provider + cors(E1) + auth(口令) + 错误处理（对齐实施方案第368行）
 // server.ts 调用 buildApp() 创建实例，测试调用 buildApp() + inject
 
 import Fastify, { type FastifyInstance, type FastifyRequest, type FastifyReply } from 'fastify';
 import cookie from '@fastify/cookie';
+import cors from '@fastify/cors';
 import {
   ZodTypeProvider,
   validatorCompiler,
@@ -44,6 +45,23 @@ export async function buildApp(): Promise<FastifyInstance> {
 
   // 注册 @fastify/cookie（用于 auth 读取 cookie）
   await app.register(cookie);
+
+  // 注册 @fastify/cors（E1 修复：dev 跨源预检落入 authHook 返回 401 且零 CORS 头）
+  // 机制自证（@fastify/cors 11.3.0 源码 index.js）：
+  //   - 预检 OPTIONS 由 onRequest 钩子短路 204 返回（index.js:192-212），官方注释明示
+  //     "reply to preflight requests BEFORE possible authentication plugins"（index.js:72-75），
+  //     onRequest 先于 preHandler 的 authHook → 预检不再 401；
+  //   - 非预检请求（含跨源真实请求）注入 CORS 头后 next() 继续完整生命周期 → 鉴权语义不变；
+  //   - origin 数组为全等白名单（index.js:289-305）：不匹配时仅不写 ACAO 头、请求照常放行
+  //     （index.js:219-226 注释引用上游 issue#127）→ 生产同源部署：同源请求不产生跨源预检，
+  //     同源 POST 携带的生产 Origin 不在白名单 → 只是不加 CORS 头，业务行为不变。
+  // 白名单=H5 dev server 两个本机源（对齐 E1 探针口径）；credentials 必须 true（本站 cookie 鉴权）。
+  await app.register(cors, {
+    origin: ['http://127.0.0.1:10086', 'http://localhost:10086'],
+    credentials: true,
+    methods: ['GET', 'HEAD', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+  });
 
   // auth 中间件插槽（AC9：口令鉴权，预留阶段2微信登录替换）
   app.addHook('preHandler', authHook);
