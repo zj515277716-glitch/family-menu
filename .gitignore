@@ -4,6 +4,8 @@ coverage/
 .env
 .env.local
 .env.*.local
+# 生产构建注入配置（含线上地址与访问口令，只留在本机构建机，绝不入库）
+.env.production
 .turbo/
 *.log
 .DS_Store
