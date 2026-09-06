@@ -2,7 +2,7 @@
 
 > **维护规则**：状态每次实质变化后由 AI 更新本文件。产品负责人无需阅读审核。
 > 与 [PRODUCT-CONFIRMATION.md](./PRODUCT-CONFIRMATION.md) 冲突时，以后者为准。
-> 快照时间：2026-09-04 ｜ 基线 git HEAD：`bc8d9ff`（main 分支）
+> 快照时间：2026-09-06 ｜ 基线 git HEAD：`58f7535`（分支 feat/tp-06-menu-expansion；EMPTYFIX 构建产物 39eeb0c6 已部署公网）
 
 ## 一句话现状
 
@@ -54,7 +54,10 @@
 - 已完成：**TP-07 公网部署切片**（2026-09-05，证据见 [evidence/TP-07-2026-09-05.md](./evidence/TP-07-2026-09-05.md)）——阿里云 ECS 8.136.32.223 Docker 化部署 + 阿里云 RDS 独立新库 family_menu_v2（迁移+种子+数据导入）+ 子域名 menu.jijingkongjian.xin（已备案域名）+ certbot HTTPS（80 强制 301 跳 443）+ 口令保护（无令牌 401）+ 旧部署全量备份 /opt/family-menu.bak-TP07（回滚资产，旧 caddy 未动）。**卡外修复**：planService.getExclusions Prisma null 与契约 zod optional 不兼容致公网 400——服务层 null→undefined 归一化（契约零改动），公网 200 生效。
 - **TP-07 完成标志已达成**：公网 URL 可用证据（https://menu.jijingkongjian.xin 首页 200）+ 冒烟清单 9 项全绿（鉴权 401/计划 45 条/禁忌 2 条/推荐 3 候选真实建 Plan 等）+ 回滚预案成文；本地 apps/api 回归 68/68。
 - 已完成：**TP-08 UAT 交付切片**（2026-09-05）——通俗中文交付消息发给产品负责人：固定地址 https://menu.jijingkongjian.xin（打开即用，口令已内置）+ 测试家庭张家四口 + 6 个真实任务（打开网站/设置页看禁忌/必消食材推荐 3 候选/选定锁定看清单备菜/人数缩放分量/反馈三问+历史四色标签）+ 每步预期；交付前逐页核实真实按钮文案与口令内置事实。
-- 进行中：待产品负责人按 6 任务 UAT；发现问题→后台修复循环。
+- 已完成：**TP-08 EMPTYFIX 上线修复**（2026-09-06，开发日志 TP-08-EMPTYFIX-COMPLETE）——必消输入未确认被静默丢弃：点推荐自动收进输入框文字（39eeb0c6 上线）；手机端服务未连接（生产构建 .env.production 注入线上地址）、TabBar 图标尺寸改走 pxtransform（与 e-final 口径一致）、食材库补「西蓝花」等日常写法别名（seed upsert update 分支补 aliases 同步治本，线上 6 词实测全部出套餐）、入口页 no-store 三连防旧版缓存；新增 H5 部署脚本（备份+原子切换）与线上必消验证脚本。
+- 进行中：产品负责人 6 任务 UAT 持续收集反馈；发现问题→后台修复循环。
+- 已完成：**T-P01 试点闭环**（2026-09-06，证据见 [evidence/T-P01-2026-09-06.md](./evidence/T-P01-2026-09-06.md)）——四角色闭环首次完整跑通：fm-dev 交付必消回归测试（17 断言真实 HTTP+PG 直查，零业务改动）→ fm-reviewer 静态复审**通过**（对抗性审查无阻断，6 条建议级问题记录在案）→ fm-verify 本地独立验收**通过**（17 PASS/0 FAIL/EXIT=0 + 独立抽样 8 PASS + 停服端口复测）→ 主控清理验收残留测试数据（Plan 56→51、Event 95→90）。挂账：回归脚本无 teardown（下张测试卡强制项）、组合必消空手语义（unmetMustUse=[]）待产品裁决。
+- 工作流切换：2026-09-06 起四角色工作流（主控 PM / fm-dev / fm-reviewer / fm-verify）生效，能力验证五项通过（派发/独立返回/失败拦截/权限隔离/新会话恢复，见 [evidence/WF-VERIFY-2026-09-06.md](./evidence/WF-VERIFY-2026-09-06.md)）。挂账：浏览器级页面验收（截图/渲染/真机）未验证，待授权 Playwright。
 - 边界：UI 基准 = [e-final.html](./docs/ai-rebuild/ui/e-final.html) + [design-spec.md](./docs/ai-rebuild/ui/design-spec.md)，UI 改动须先改确认书 B 节再动代码；预览 http://localhost:8888/docs/ai-rebuild/ui/e-final.html。
 
-下一步：等产品负责人 UAT 反馈；分支合 main 等收尾类决策须先问产品负责人。
+下一步：等用户审核 T-P01（裁决 ①git 提交与否 ②组合必消空手 unmetMustUse=[] 是否需产品提示）；UAT 反馈并行收集；浏览器级验收待授权 Playwright。

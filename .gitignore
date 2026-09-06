@@ -21,3 +21,6 @@ apps/api/src/generated/
 
 # 本机便携版 PostgreSQL（binaries + 数据目录，不入库）
 .pg/
+
+# 四角色工作流验收沙箱（临时验证脚本与运行时证据落盘，不入库）
+.workflow-verify/

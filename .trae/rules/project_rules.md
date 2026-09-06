@@ -1,5 +1,9 @@
 # family-menu 项目规则（对本工作区所有智能体生效）
 
+> **【现行入口 · 2026-09-06】** 本项目已切换**四角色工作流**：主控 PM（SOLO 主会话，不另建）/ 开发 DEV（fm-dev）/ 技术审查 REVIEW（fm-reviewer，工具级只读）/ 产品验收 VERIFY（fm-verify）。
+> 开工前必读（权威顺序）：①根目录《AI开发与改造优化操作流程_四角色协作与证据验收_V1.0.md》→ ②[docs/workflow/00-START-HERE.md](../../docs/workflow/00-START-HERE.md) → ③PRODUCT-CONFIRMATION.md → ④CURRENT.md → ⑤evidence/。
+> 下方"四件套"条款（STATUS.md 当前任务卡 / 开发日志五段式 / STEP 审核等）自即日起**降为历史追溯**，不再作为当前任务的指挥来源；冲突时一律以现行入口为准。历史文件原样保留，不删除。
+
 本仓库是"家庭晚餐规划工具（个人自用版）"，按 `docs/plan/实施方案.md` 运转，采用四件套对齐机制：AGENTS.md / STATUS.md / DECISIONS.md / 开发日志.md。
 
 ## 全员纪律
