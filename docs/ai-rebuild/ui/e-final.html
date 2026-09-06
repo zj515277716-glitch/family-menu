@@ -506,7 +506,7 @@
       <button class="btn-primary" style="opacity:.55">正在生成菜单…</button>
     </section>
 
-    <!-- ⑥ 空手场景（必消无法满足的空态） -->
+    <!-- ⑥ 空手场景（必消无法满足的空态；PD-014 补组合必消凑不进一桌变体） -->
     <section class="screen" id="s6">
       <h1 class="page">今晚吃什么</h1>
       <div class="sub">必消食材：番茄、苦瓜</div>
@@ -520,6 +520,21 @@
       <div class="gap-lg"></div>
 
       <button class="btn-primary" onclick="go('s5')">去掉「苦瓜」再试</button>
+      <button class="btn-ghost" onclick="go('s1')">返回修改必消食材</button>
+
+      <div class="gap-lg"></div>
+      <div class="hint">变体B · 组合必消凑不进一桌（PD-014/C-7a）：每样单独都有菜能用上，但没有一桌菜能同时用上全部——服务返回候选为空且未指明哪个食材用不上。</div>
+      <div class="gap-md"></div>
+      <div class="sub">必消食材：西红柿、西蓝花</div>
+      <div class="gap-md"></div>
+
+      <div class="card empty-card">
+        <div class="empty-emoji">🤔</div>
+        <div class="empty-title">西红柿、西蓝花这两样今晚凑不进同一桌菜</div>
+        <div class="empty-text">每样单独都能做，但没有一桌能同时用上它们。</div>
+      </div>
+      <div class="gap-lg"></div>
+
       <button class="btn-ghost" onclick="go('s1')">返回修改必消食材</button>
     </section>
 

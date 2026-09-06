@@ -12,6 +12,14 @@ import { TIME_BUDGETS } from '@family-menu/shared'
 import type { ExclusionRule } from '@family-menu/shared'
 import './index.css'
 
+// PD-014/C-7a：组合空手标题（食材名 = 今晚实际必消，顿号连接；量词随个数：
+// 这一样/这两样/这三样，mustUse 上限 3 个。例：「西红柿、西蓝花这两样今晚凑不进同一桌菜」）
+function composeEmptyTitle(mustUse: string[]): string {
+  const numCn = ['', '一', '两', '三']
+  const n = numCn[Math.min(Math.max(mustUse.length, 1), 3)] ?? ''
+  return `${mustUse.join('、')}这${n}样今晚凑不进同一桌菜`
+}
+
 export default function TonightPage() {
   const {
     tonightContext,
@@ -97,7 +105,8 @@ export default function TonightPage() {
       const result = await api.recommend({ ...tonightContext, mustUse })
       if (result.candidates.length === 0) {
         // 空手（PD-001）：unmetMustUse = 消耗不了的必消原文；可能为空（必消能分别被
-        // 不同菜单消耗、但没有一整套同时用上全部——DEC-012 兜底场景）
+        // 不同菜单消耗、但没有一整套同时用上全部——PD-014/C-7a 组合凑不进一桌变体，
+        // 与 DEC-012 兜底场景共用本分支，渲染层按今晚必消是否非空区分文案）
         setEmptyReason(result.unmetMustUse ?? [])
         return
       }
@@ -198,12 +207,17 @@ export default function TonightPage() {
           <View className="fm-empty-title">
             {emptyReason.length > 0
               ? `今晚没有能用上「${emptyReason.join('、')}」的做法`
-              : '今晚没有找到合适的搭配'}
+              : tonightContext.mustUse.length > 0
+                ? // PD-014/C-7a：组合必消凑不进一桌（candidates=[] 且 unmetMustUse 空/缺省）
+                  composeEmptyTitle(tonightContext.mustUse)
+                : '今晚没有找到合适的搭配'}
           </View>
           <View className="fm-empty-text">
             {emptyReason.length > 0
               ? `必消食材是硬要求，用不上的方案不会推荐。现在的菜库里暂时没有用上${emptyReason.join('、')}的菜，我们不会随便给你一套凑数的菜单。`
-              : '这些食材没能同时出现在同一套菜单里，我们不会随便给你一套凑数的菜单。可以试试调整必消食材或时间。'}
+              : tonightContext.mustUse.length > 0
+                ? '每样单独都能做，但没有一桌能同时用上它们。'
+                : '这些食材没能同时出现在同一套菜单里，我们不会随便给你一套凑数的菜单。可以试试调整必消食材或时间。'}
           </View>
         </View>
       ) : (
