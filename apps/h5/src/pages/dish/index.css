@@ -1,64 +1,382 @@
 /* apps/h5/src/pages/dish/index.css */
-/* 做法页局部样式（e-final 屏⑪）：返回链接 + 步骤行；其余复用 app.css 公共类 */
+/* 做法页局部样式（e-final 屏⑪，PD-016 方向 A 沉浸大图流，基准 dish-detail-vA.html）
+   单位说明：本文件 px 为 750 设计稿值（Taro 编译减半 → 375 视觉），
+   与 app.css 公共类同口径；vA 静稿 375px 视觉值 ×2 落此。 */
 
 .dish-page {
-  padding-top: 24px;
-  /* 底部让位：仅 fixed 底部条（无 TabBar），留缓冲 */
+  /* 底部让位：悬浮胶囊 dock（fixed）+ 页尾换道条缓冲 */
   padding-bottom: 400px;
 }
 
-/* back 链接（dz-sm 可点） */
-.fm-back {
-  display: inline-block;
-  margin: 0 16px 8px;
-  font-size: var(--fm-font-sm);
-  color: var(--fm-text-secondary);
+/* ===== ① 首屏大图区：340px 全出血（vA hero 340 视觉 → 680） ===== */
+.dish-hero {
+  position: relative;
+  height: 680px;
+  background: var(--fm-bg-sunken);
+  overflow: hidden;
 }
 
-/* Taro H5 Text 渲染为自定义元素，e-final 的 .photo-ph span 子选择器不可靠 → 显式 class */
-.fm-photo-ph-note {
-  font-size: 20px;
+.dish-hero-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+/* 图底渐变遮罩：图上叠名可读（vA fade 84 视觉 → 168） */
+.dish-hero-fade {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 168px;
+  background: linear-gradient(180deg, transparent, rgba(42, 32, 24, 0.42));
+  pointer-events: none;
+}
+
+/* 图上叠信息：菜名 + 时长/菜系 chips（AC2） */
+.dish-hero-overlay {
+  position: absolute;
+  left: 32px;
+  right: 32px;
+  bottom: 24px;
+  pointer-events: none;
+}
+
+.dish-hero-name {
+  display: block;
+  font-size: var(--fm-font-xxl);
+  font-weight: 600;
+  color: #fffcf5;
+  line-height: 1.4;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+}
+
+.dish-hero-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 12px;
+}
+
+/* 无图降级：220 视觉（vA hero-empty → 440px）色块 + 菜名占位，不留空白 */
+.dish-hero.dish-hero-empty {
+  height: 440px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+}
+
+.dish-hero-dash {
+  position: absolute;
+  inset: 20px;
+  border: 3px dashed var(--fm-border);
+  border-radius: var(--fm-radius);
+  pointer-events: none;
+}
+
+.dish-hero-empty-emoji {
+  font-size: 112px;
+  line-height: 1.2;
+}
+
+.dish-hero-empty-name {
+  font-size: var(--fm-font-xl);
+  font-weight: 600;
+  color: var(--fm-title);
+}
+
+.dish-hero-empty-note {
+  font-size: var(--fm-font-xs);
   color: var(--fm-text-hint);
 }
 
-/* 做法步骤行（step-li flex baseline + step-no 圆形序号） */
-.fm-step-li {
+/* 返回浮钮（左上圆形，vA float-btn 34 视觉 → 68） */
+.dish-float-back {
+  position: absolute;
+  top: 28px;
+  left: 28px;
+  width: 68px;
+  height: 68px;
+  border-radius: 50%;
+  background: rgba(255, 252, 245, 0.88);
+  color: var(--fm-text);
+  font-size: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+  z-index: 3;
+}
+
+/* ===== ② 图侧换道箭头（vA side-nav 32 视觉 → 64） ===== */
+.dish-side-nav {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: rgba(255, 252, 245, 0.55);
+  color: var(--fm-text);
+  font-size: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 3;
+}
+
+.dish-side-nav.prev {
+  left: 20px;
+}
+
+.dish-side-nav.next {
+  right: 20px;
+}
+
+/* ===== 无图态：chips 行落在 hero 下（vA head/meta-chips） ===== */
+.dish-head {
+  padding: 24px 32px 0;
+}
+
+.dish-meta-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+/* 信息 chips（时长 hot / 常规） */
+.dish-chip {
+  font-size: var(--fm-font-xs);
+  color: var(--fm-text);
+  background: var(--fm-bg-sunken);
+  padding: 6px 20px;
+  border-radius: 999px;
+}
+
+.dish-chip-hot {
+  color: var(--fm-primary);
+  background: var(--fm-primary-light);
+  font-weight: 600;
+}
+
+/* 图上叠的 chips 反白 */
+.dish-hero-chips .dish-chip {
+  color: #fffcf5;
+  background: rgba(42, 32, 24, 0.38);
+}
+
+.dish-hero-chips .dish-chip-hot {
+  color: #fffcf5;
+  background: rgba(200, 57, 46, 0.78);
+}
+
+/* ===== ③ 用料卡：主料/调料分组双列网格（vA ing-grid） ===== */
+.dish-ing-label {
   display: flex;
   align-items: baseline;
-  gap: 20px;
-  padding: 18px 0;
+  gap: 16px;
 }
 
-.fm-step-no {
-  flex-shrink: 0;
-  width: 44px;
-  height: 44px;
+.dish-people {
+  font-size: var(--fm-font-xs);
+  color: var(--fm-text-hint);
+  font-weight: 400;
+}
+
+.dish-ing-group-label {
+  font-size: var(--fm-font-sm);
+  color: var(--fm-text-secondary);
+  font-weight: 600;
+  margin: 8px 0 4px;
+}
+
+.dish-ing-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0 32px;
+}
+
+.dish-ing-li {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 16px;
+  padding: 16px 0;
+  border-bottom: 1px dashed var(--fm-border);
+  font-size: var(--fm-font);
+}
+
+/* 双列网格末行去分隔线：奇数行最后一项也去掉 */
+.dish-ing-li:nth-last-child(-n + 2) {
+  border-bottom: none;
+}
+
+.dish-ing-n {
+  color: var(--fm-title);
+  min-width: 0;
+}
+
+.dish-ing-q {
+  color: var(--fm-primary);
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.dish-ing-opt .dish-ing-n {
+  color: var(--fm-text-secondary);
+}
+
+.dish-opt-tag {
+  font-size: 18px;
+  color: var(--fm-text-hint);
+  background: var(--fm-bg-sunken);
+  padding: 2px 10px;
+  border-radius: 999px;
+  margin-left: 8px;
+}
+
+/* 用料待补齐态（AC4：FETCHED 草稿菜不虚构、不留破版） */
+.dish-pending {
+  background: var(--fm-bg-sunken);
+  border-radius: var(--fm-radius-sm);
+  padding: 24px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.dish-pending-tag {
+  font-size: var(--fm-font-sm);
+  font-weight: 600;
+  color: var(--fm-text-secondary);
+}
+
+.dish-pending-text {
+  font-size: var(--fm-font-xs);
+  color: var(--fm-text-hint);
+  line-height: var(--fm-line-height);
+}
+
+/* ===== ④ 笔记式步骤流（vA step：24 视觉圆号 → 48） ===== */
+.dish-step {
+  display: flex;
+  gap: 24px;
+  padding: 28px 0;
+}
+
+.dish-step + .dish-step {
+  border-top: 1px solid var(--fm-border);
+}
+
+.dish-step-no {
+  flex: none;
+  width: 48px;
+  height: 48px;
   border-radius: 50%;
+  margin-top: 4px;
   background: var(--fm-primary-light);
   color: var(--fm-primary);
-  font-size: var(--fm-font-xs);
+  font-size: var(--fm-font-sm);
   font-weight: 600;
-  text-align: center;
-  line-height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
-.fm-step-body {
+.dish-step-body {
   flex: 1;
   min-width: 0;
 }
 
-.fm-step-text {
+.dish-step-text {
   display: block;
   font-size: var(--fm-font);
-  color: var(--fm-title);
+  color: var(--fm-text);
   line-height: var(--fm-line-height);
 }
 
-.fm-step-body .fm-tag {
-  margin-top: 8px;
+.dish-parallel-tag {
+  display: inline-block;
+  margin-top: 12px;
+  font-size: var(--fm-font-xs);
+  color: var(--fm-text-secondary);
+  background: var(--fm-bg-sunken);
+  padding: 4px 16px;
+  border-radius: 999px;
 }
 
-/* 卡内兜底提示去外边距 */
-.fm-card .fm-hint {
-  margin: 0;
+/* ===== ② 页尾换道导航（vA dish-switch 文本条） ===== */
+.dish-switch {
+  display: flex;
+  gap: 16px;
+  margin: 24px 32px 0;
+}
+
+.dish-sw {
+  flex: 1;
+  min-width: 0;
+  background: var(--fm-card-bg);
+  border: var(--fm-card-border);
+  border-radius: var(--fm-radius-sm);
+  padding: 18px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.dish-sw-none {
+  opacity: 0.45;
+}
+
+.dish-sw-next {
+  text-align: right;
+}
+
+.dish-sw-dir {
+  font-size: var(--fm-font-xs);
+  color: var(--fm-text-hint);
+}
+
+.dish-sw-name {
+  font-size: var(--fm-font);
+  font-weight: 600;
+  color: var(--fm-text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ===== ⑤ 悬浮胶囊操作条（vA dock：三态 R-3） ===== */
+.dish-dock {
+  position: fixed;
+  left: 24px;
+  right: 24px;
+  bottom: calc(32px + env(safe-area-inset-bottom));
+  z-index: 6;
+}
+
+.dish-dock-btn {
+  text-align: center;
+  color: #fff;
+  font-size: var(--fm-font);
+  font-weight: 600;
+  padding: 22px 0;
+  border-radius: 999px;
+  background: linear-gradient(135deg, var(--fm-primary), var(--fm-accent));
+  box-shadow: var(--fm-shadow-hover);
+}
+
+/* loading：禁点（灰 55%），R-3 防重复 */
+.dish-dock-btn.loading {
+  opacity: 0.55;
+  pointer-events: none;
+}
+
+/* 已提交：绿底，不可再点 */
+.dish-dock-btn.done {
+  background: var(--fm-success);
+  pointer-events: none;
 }

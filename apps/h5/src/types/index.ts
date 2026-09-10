@@ -47,8 +47,24 @@ export interface DishSnapshot {
   spicyLevel: number
   activeMinutes: number
   equipment: string[]
+  /**
+   * 菜品图（T-P06/PD-016：契约 Dish.imageUrl，单图）。
+   * 注意：当前 API 菜单快照未投影该字段（恒 undefined）→ 做法页走无图降级；
+   * 字段先行对齐契约，API 投影补齐后前端自动亮图，无需再改。
+   */
+  imageUrl?: string
+  /** 来源站点（契约字段，同上：API 未投影时不渲染来源徽标） */
+  sourceSite?: string
   /** 用料（做法页展示用；真 API 未返回时为 undefined） */
-  ingredients?: { ingredientName: string; qty: number; unit: string }[]
+  ingredients?: {
+    ingredientName: string
+    qty: number
+    unit: string
+    /** 食材分类（API 已返回；做法页按「调料/其余」分组展示） */
+    category?: string
+    /** 可选食材（API 已返回；灰显 + 可选标） */
+    optional?: boolean
+  }[]
   /** 烹饪步骤（做法页展示用；真 API 未返回时为 undefined） */
   steps?: { order: number; text: string; parallel?: boolean }[]
 }
