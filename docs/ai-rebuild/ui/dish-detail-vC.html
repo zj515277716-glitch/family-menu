@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>做法详情方向稿 C · 备菜动线手账（时间轴）</title>
+<!-- ============================================================
+  T-P06 方向稿 C「不只会做一道菜，更知道怎么安排这顿饭」—— 备菜动线手账
+  ─────────────────────────────────────────────────────────────
+  【差异化主张（自定第三方向）】
+  A 稿给情绪、B 稿给秩序，C 稿给「时间感」：
+  把做法页做成一页「火候手账」——大图上叠信息卡、备菜动线时间轴打头、
+  步骤挂在时间轴节点上。呼应本产品独有资产：备菜顺序（prepSequence 契约）
+  与「可拆调味 splitFlavor」。适合多菜同做、怕手忙脚乱的家庭主厨。
+
+  【信息层级】（自上而下）
+  1. 首屏大图（4:3）+ 信息卡上提叠加（-28px）+ 右下时间签 —— 开场层
+  2. 备菜动线条（横向时间 chips：0 分焯水 → 15 分下锅炖 → 90 分上桌）—— 本稿灵魂，
+     由 steps 顺序 + 时长推算（展示层字段；菜单级 prepSequence 契约已有，见 apps/h5/types）
+  3. 用料签：分类横滑签（主料/调料/工具）+ 组内清单 —— 备料层（工具组映射 equipment 契约）
+  4. 步骤时间轴（左侧竖线 + 节点分钟标 + 图卡交错 + parallel 可并行标注）—— 执行层
+  5. 视频做法位（预留，后期挂账）
+  6. 上一道/下一道双迷你卡（带 emoji 缩略，呈现「这顿饭的流动感」）—— 导航层
+  7. 底部操作栏（记一笔主按钮 + R-3 三态）—— 行动层
+
+  【图片策略】
+  - 来源约定：Dish.imageUrl（packages/shared/src/schemas/dish.ts，z.string().url().optional()）。
+    无 imageUrl 一律走「试做实拍位」空态块，前端不猜图、不兜底网图。
+  - 本稿配图用 T-C03 试采图（tools/content-pipeline/out/xhs/images/6a55c68e*.jpg，
+    WEBP 字节 .jpg 后缀）本地预览占位，不入库；正式按 DEC-007 换试做实拍。
+  - 头图 375×300（4:3 截切）；步骤图 16:9（高 158）；object-fit:cover。
+
+  【H5 375px 移动端适配】
+  - 375px 基线 1:1 排版；桌面浏览器居中呈现手机框。
+  - 信息卡上提叠加依赖 margin-top:-28px，需在低端 WebView 验证圆角溢出裁切（overflow:hidden）。
+  - 动线条与用料签均横向滚动，-webkit-overflow-scrolling: touch。
+
+  【视频位预留（后期挂账）】
+  - 步骤时间轴尾部预留「视频做法」封面卡位；本期虚线占位说明，不开发。
+
+  【R-3 防抖交互标注】（AC5）
+  - 底部主按钮三态：可点（朱砂渐变）→ loading（「正在记…」禁点 55%）→ 已点（绿底「记好了 ✓」）。
+  - 900ms 内重复点击忽略；已点态不可再点；真实防重在 services 层，前端只做态反馈。
+  - 计时器 chip 为静态示意（可点 → 启动 → 计时中），标注「实施期接系统计时」，本期仅占位。
+============================================================ -->
+<style>
+  /* ===== E 方案 tokens（与 e-final.html 一致，不动） ===== */
+  :root {
+    --nutui-color-primary: #C8392E;
+    --nutui-color-primary-end: #D85648;
+    --nutui-color-primary-light: #F3E0DC;
+    --nutui-color-success: #5C8A4E;
+    --nutui-color-warning: #D98C2B;
+    --nutui-color-danger: #A82A20;
+    --nutui-title-color: #2A2018;
+    --nutui-title-color2: #4A3A2C;
+    --nutui-text-color: #7A6A55;
+    --nutui-text-help: #9A8A75;
+    --nutui-background-color: #FBF6EC;
+    --nutui-background-color2: #F3E9D4;
+    --nutui-cell-background-color: #FFFCF5;
+    --nutui-divider-color: #E5D9C2;
+    --nutui-border-color: #E5D9C2;
+    --nutui-border-radius: 12px;
+    --nutui-border-radius-small: 8px;
+    --nutui-border-radius-large: 16px;
+    --fm-radius-card: 12px;
+    --fm-shadow-card: 0px 2px 12px rgba(200,57,46,.08);
+    --fm-shadow-lg: 0px 6px 20px rgba(200,57,46,.10);
+    --fm-card-border: 1px solid #E5D9C2;
+    --fm-card-accent-bar: 2px solid #C8392E;
+    --fm-line-height: 1.65;
+    --v-font-xs: 11px; --v-font-sm: 12px; --v-font-base: 14px;
+    --v-font-lg: 16px; --v-font-xl: 19px; --v-font-xxl: 23px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: #EFE9DD; font-family: -apple-system, "PingFang SC", "HarmonyOS Sans SC", "Source Han Sans SC", "Microsoft YaHei", sans-serif;
+    color: var(--nutui-title-color); display: flex; flex-direction: column; align-items: center;
+    padding: 28px 12px 56px; line-height: var(--fm-line-height);
+  }
+  /* ===== 预览工具条（非 App UI） ===== */
+  .page-title { font-size: 15px; font-weight: 600; color: #4A3A2C; margin-bottom: 4px; }
+  .page-sub { font-size: 12px; color: #7A6A55; margin-bottom: 16px; text-align: center; line-height: 1.6; }
+  .nav { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin-bottom: 20px; }
+  .nav button { border: 1px solid #DCD0B8; background: #FFFCF5; color: #4A3A2C; font-size: 12px;
+    padding: 6px 14px; border-radius: 999px; cursor: pointer; }
+  .nav button.on { background: var(--nutui-color-primary); border-color: var(--nutui-color-primary); color: #fff; }
+
+  /* ===== 手机框 ===== */
+  .phone { width: 375px; height: 780px; background: var(--nutui-background-color);
+    border-radius: 40px; border: 9px solid #2B2420; overflow: hidden; position: relative;
+    box-shadow: 0 24px 64px rgba(0,0,0,.22); }
+  .screen { display: none; height: 100%; overflow-y: auto; padding: 0 0 92px; }
+  .screen.active { display: block; }
+  .screen::-webkit-scrollbar { width: 0; }
+
+  /* ===== ① 首屏大图 + 信息卡上提叠加（开场层） ===== */
+  .hero { position: relative; height: 300px; background: var(--nutui-background-color2); }
+  .hero img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .hero .shade { position: absolute; left: 0; right: 0; top: 0; height: 64px;
+    background: linear-gradient(180deg, rgba(42,32,24,.38), transparent); pointer-events: none; }
+  .top-btn { position: absolute; top: 12px; width: 34px; height: 34px; border-radius: 50%;
+    background: rgba(255,252,245,.88); border: none; font-size: 15px; color: var(--nutui-title-color2);
+    display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 2px 8px rgba(0,0,0,.12); }
+  .top-btn.back { left: 12px; }
+  .top-btn.fav { right: 12px; }
+  .top-btn.fav.on { color: var(--nutui-color-danger); }
+  .time-tag { position: absolute; right: 12px; bottom: 40px; font-size: 11px; font-weight: 600;
+    color: #FFFCF5; background: rgba(200,57,46,.85); padding: 4px 10px; border-radius: 999px; }
+  .hero .side-nav { position: absolute; top: 50%; transform: translateY(-50%); width: 32px; height: 32px;
+    border-radius: 50%; border: none; background: rgba(255,252,245,.55); color: var(--nutui-title-color2);
+    font-size: 15px; cursor: pointer; }
+  .hero .side-nav.prev { left: 10px; }
+  .hero .side-nav.next { right: 10px; }
+  /* 信息卡上提叠加 */
+  .head-card { position: relative; z-index: 2; margin: -28px 14px 0; background: var(--nutui-cell-background-color);
+    border: var(--fm-card-border); border-radius: var(--nutui-border-radius-large);
+    box-shadow: var(--fm-shadow-lg); padding: 14px 16px; }
+  .dish-name { font-size: var(--v-font-xxl); font-weight: 600; }
+  .meta-row { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+  .m-chip { font-size: 11px; color: var(--nutui-title-color2); background: var(--nutui-background-color2);
+    padding: 3px 10px; border-radius: 999px; }
+  .m-chip.hot { color: var(--nutui-color-primary); background: var(--nutui-color-primary-light); font-weight: 600; }
+  /* 无图空态（简配态）：同 hero 高度收窄，虚线框 + emoji + 实拍位角标 */
+  .hero-empty { height: 210px; background: var(--nutui-background-color2); display: flex; flex-direction: column;
+    align-items: center; justify-content: center; gap: 8px; position: relative; }
+  .hero-empty .emoji { font-size: 52px; }
+  .hero-empty .note { font-size: 11px; color: var(--nutui-text-help); }
+  .hero-empty .dash { position: absolute; inset: 10px; border: 1.5px dashed #DCD0B8; border-radius: 0; pointer-events: none; }
+  .hero-empty .side-nav { top: 50%; }
+
+  /* ===== ② 备菜动线条（本稿灵魂：横向时间 chips） ===== */
+  .section-label { display: flex; align-items: baseline; gap: 8px; margin: 16px 16px 0; }
+  .section-label .t { font-size: 15px; font-weight: 600; }
+  .section-label .d { font-size: 10px; color: var(--nutui-text-help); }
+  .prep-line { display: flex; gap: 6px; overflow-x: auto; padding: 10px 16px 4px; -webkit-overflow-scrolling: touch; }
+  .prep-line::-webkit-scrollbar { height: 0; }
+  .prep-chip { flex: none; display: flex; flex-direction: column; gap: 1px; min-width: 74px;
+    background: var(--nutui-cell-background-color); border: var(--fm-card-border); border-radius: var(--nutui-border-radius-small);
+    padding: 7px 10px; position: relative; }
+  .prep-chip .m { font-size: 11px; font-weight: 600; color: var(--nutui-color-primary); }
+  .prep-chip .a { font-size: 11px; color: var(--nutui-title-color2); white-space: nowrap; }
+  .prep-chip::after { content: "→"; position: absolute; right: -8px; top: 50%; transform: translateY(-50%);
+    color: var(--nutui-text-help); font-size: 10px; z-index: 1; }
+  .prep-chip:last-child::after { content: none; }
+  .prep-chip.wait .m { color: var(--nutui-color-warning); }
+
+  /* ===== ③ 用料签（分类横滑 + 组内清单） ===== */
+  .ing-tabs { display: flex; gap: 8px; padding: 10px 16px 0; }
+  .ing-tab { font-size: 12px; padding: 6px 14px; border-radius: 999px; cursor: pointer;
+    border: 1px solid var(--nutui-border-color); color: var(--nutui-title-color2); background: #FFFCF5; }
+  .ing-tab.on { border-color: var(--nutui-color-primary); color: var(--nutui-color-primary);
+    background: var(--nutui-color-primary-light); font-weight: 600; }
+  .card { background: var(--nutui-cell-background-color); border-radius: var(--fm-radius-card);
+    box-shadow: var(--fm-shadow-card); border: var(--fm-card-border); padding: 12px 14px; margin: 10px 16px 0; }
+  .ing-panel .ing-li { display: flex; justify-content: space-between; gap: 8px; padding: 8px 0;
+    border-bottom: 1px dashed var(--nutui-divider-color); font-size: 13px; }
+  .ing-panel .ing-li:last-child { border-bottom: none; }
+  .ing-panel .n { color: var(--nutui-title-color); }
+  .ing-panel .q { color: var(--nutui-title-color2); font-weight: 600; white-space: nowrap; }
+  .ing-panel .opt .n { color: var(--nutui-text-color); }
+  .opt-tag { font-size: 9px; color: var(--nutui-text-help); background: var(--nutui-background-color2);
+    padding: 1px 5px; border-radius: 999px; margin-left: 4px; }
+  .card-link { display: block; text-align: center; font-size: 12px; color: var(--nutui-color-primary);
+    border-top: 1px solid var(--nutui-divider-color); margin-top: 6px; padding-top: 9px; cursor: pointer; }
+
+  /* ===== ④ 步骤时间轴（执行层：竖线 + 分钟节点 + 图卡交错） ===== */
+  .card.accent { border-top: var(--fm-card-accent-bar); }
+  .tl { position: relative; margin-top: 6px; padding-left: 20px; }
+  .tl::before { content: ""; position: absolute; left: 9px; top: 8px; bottom: 14px; width: 2px;
+    background: var(--nutui-divider-color); border-radius: 2px; }
+  .tl-step { position: relative; padding: 10px 0 14px; }
+  .tl-step + .tl-step { border-top: none; }
+  .tl-dot { position: absolute; left: -20px; top: 12px; width: 20px; height: 20px; border-radius: 50%;
+    background: var(--nutui-color-primary-light); color: var(--nutui-color-primary);
+    font-size: 9px; font-weight: 600; display: flex; align-items: center; justify-content: center;
+    border: 2px solid var(--nutui-cell-background-color); box-sizing: content-box; margin-left: -1px; }
+  .tl-min { font-size: 11px; font-weight: 600; color: var(--nutui-color-primary); }
+  .tl-text { font-size: 14px; color: var(--nutui-title-color2); margin-top: 2px; }
+  .tl-img { margin-top: 10px; border-radius: var(--nutui-border-radius-small); overflow: hidden; position: relative; }
+  .tl-img img { width: 100%; height: 158px; object-fit: cover; display: block; }
+  .tl-img .ph-tag { position: absolute; right: 6px; bottom: 6px; font-size: 9px; color: #FFFCF5;
+    background: rgba(42,32,24,.45); padding: 2px 7px; border-radius: 999px; }
+  .parallel-tag { display: inline-block; margin-top: 6px; font-size: 10px; color: var(--nutui-text-color);
+    background: var(--nutui-background-color2); padding: 2px 8px; border-radius: 999px; }
+  .timer-chip { display: inline-flex; align-items: center; gap: 6px; margin-top: 8px; font-size: 11px;
+    color: var(--nutui-color-warning); background: rgba(217,140,43,.12); border: 1px solid rgba(217,140,43,.3);
+    padding: 4px 10px; border-radius: 999px; cursor: pointer; }
+
+  /* ===== ⑤ 视频位（预留） ===== */
+  .video-slot { margin: 12px 16px 0; border: 1.5px dashed #DCD0B8; border-radius: var(--fm-radius-card);
+    padding: 16px 14px; text-align: center; color: var(--nutui-text-help); }
+  .video-slot .t { font-size: 13px; font-weight: 600; color: var(--nutui-text-color); }
+  .video-slot .d { font-size: 11px; margin-top: 4px; }
+
+  /* ===== ⑥ 上一道/下一道双迷你卡（导航层） ===== */
+  .dish-cards { display: flex; gap: 8px; margin: 12px 16px 0; }
+  .mini-card { flex: 1; display: flex; align-items: center; gap: 10px; background: var(--nutui-cell-background-color);
+    border: var(--fm-card-border); border-radius: var(--fm-radius-card); padding: 10px 12px; cursor: pointer; }
+  .mini-card .ava { flex: none; width: 40px; height: 40px; border-radius: var(--nutui-border-radius-small);
+    background: var(--nutui-background-color2); display: flex; align-items: center; justify-content: center; font-size: 20px; }
+  .mini-card .info { min-width: 0; }
+  .mini-card .dir { font-size: 10px; color: var(--nutui-text-help); }
+  .mini-card .name { font-size: 13px; font-weight: 600; color: var(--nutui-title-color2);
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .mini-card .dur { font-size: 10px; color: var(--nutui-text-help); }
+  .mini-card.next { flex-direction: row-reverse; text-align: right; }
+
+  /* ===== ⑦ 底部操作栏（行动层） ===== */
+  .bottom-bar { position: absolute; left: 0; right: 0; bottom: 0; z-index: 6;
+    padding: 10px 16px calc(12px + env(safe-area-inset-bottom, 0px));
+    background: rgba(255,252,245,.96); border-top: 1px solid var(--nutui-divider-color);
+    display: flex; gap: 10px; }
+  .btn-ghost { flex: none; padding: 0 14px; font-size: 13px; color: var(--nutui-text-color);
+    background: none; border: 1px solid var(--nutui-border-color); border-radius: var(--fm-radius-card); cursor: pointer; }
+  .btn-primary { flex: 1; text-align: center; color: #fff; font-size: 14px; font-weight: 600;
+    padding: 11px 0; border-radius: var(--fm-radius-card); border: none; cursor: pointer;
+    background: linear-gradient(135deg, var(--nutui-color-primary), var(--nutui-color-primary-end));
+    box-shadow: var(--fm-shadow-lg); }
+  .btn-primary.loading { opacity: .55; cursor: default; }
+  .btn-primary.done { background: var(--nutui-color-success); }
+  .r3-tag { position: absolute; right: 20px; bottom: 76px; z-index: 6; font-size: 9px; color: var(--nutui-text-help);
+    background: rgba(255,252,245,.9); border: 1px solid var(--nutui-divider-color); border-radius: 999px; padding: 2px 8px; }
+</style>
+</head>
+<body>
+  <div class="page-title">方向稿 C · 备菜动线手账（自定第三方向）— T-P06 方向稿，未定稿</div>
+  <div class="page-sub">主张：不只会做一道菜，更知道怎么安排这顿饭。大图叠信息卡 + 备菜动线时间轴打头 + 步骤挂时间节点。<br>呼应本产品独有资产（备菜顺序/可拆调味）；配图为 T-C03 试采占位（正式按 DEC-007 试做实拍）。</div>
+
+  <div class="nav">
+    <button id="navFull" class="on" onclick="showFull()">满配态 · 红烧肉（3 图 + 动线）</button>
+    <button id="navLite" onclick="showLite()">简配态 · 凉拌黄瓜（无图，即「下一道」）</button>
+  </div>
+
+  <div class="phone">
+
+    <!-- ============ 满配态：红烧肉 ============ -->
+    <section class="screen active" id="full">
+      <!-- ① 首屏大图：左上返回 / 右上收藏 / 图侧上下一道 / 右下时间签 -->
+      <div class="hero">
+        <img src="../../../tools/content-pipeline/out/xhs/images/6a55c68e000000001c025017_0.jpg" alt="红烧肉 头图占位">
+        <div class="shade"></div>
+        <button class="top-btn back">‹</button>
+        <button class="top-btn fav" onclick="favToggle(this)">♡</button>
+        <button class="side-nav prev" title="上一道：番茄炒蛋">‹</button>
+        <button class="side-nav next" title="下一道：凉拌黄瓜" onclick="showLite()">›</button>
+        <span class="time-tag">⏱ 总 90 分 · 动手 25 分</span>
+      </div>
+
+      <!-- 信息卡上提叠加 -->
+      <div class="head-card">
+        <div class="dish-name">红烧肉</div>
+        <div class="meta-row">
+          <span class="m-chip hot">主菜</span>
+          <span class="m-chip">家常 · 微甜咸香</span>
+          <span class="m-chip">炒锅</span>
+          <span class="m-chip">💡 可拆调味（孩子那份先盛）</span>
+        </div>
+      </div>
+
+      <!-- ② 备菜动线条（本稿灵魂）：时间 chips 横滑，等待段标黄 -->
+      <div class="section-label"><span class="t">备菜动线</span><span class="d">这 90 分钟怎么安排 · 从开火到上桌</span></div>
+      <div class="prep-line">
+        <div class="prep-chip"><span class="m">0 分</span><span class="a">切肉焯水</span></div>
+        <div class="prep-chip"><span class="m">8 分</span><span class="a">炒糖色</span></div>
+        <div class="prep-chip"><span class="m">15 分</span><span class="a">下锅慢炖</span></div>
+        <div class="prep-chip wait"><span class="m">15-75 分</span><span class="a">炖煮等待 · 可做配菜</span></div>
+        <div class="prep-chip"><span class="m">75 分</span><span class="a">开盖收汁</span></div>
+        <div class="prep-chip"><span class="m">90 分</span><span class="a">上桌</span></div>
+      </div>
+
+      <!-- ③ 用料签：分类横滑（主料/调料/工具），点击切换（工具组映射 equipment 契约） -->
+      <div class="section-label"><span class="t">用料</span><span class="d">4 人份</span></div>
+      <div class="ing-tabs">
+        <span class="ing-tab on" data-g="main" onclick="tabIng(this)">主料</span>
+        <span class="ing-tab" data-g="sauce" onclick="tabIng(this)">调料</span>
+        <span class="ing-tab" data-g="tools" onclick="tabIng(this)">工具</span>
+      </div>
+      <div class="card">
+        <div class="ing-panel" id="g-main">
+          <div class="ing-li"><span class="n">五花肉</span><span class="q">800g</span></div>
+          <div class="ing-li"><span class="n">冰糖</span><span class="q">30g</span></div>
+          <div class="ing-li opt"><span class="n">鹌鹑蛋<span class="opt-tag">可选</span></span><span class="q">8 个</span></div>
+        </div>
+        <div class="ing-panel" id="g-sauce" style="display:none">
+          <div class="ing-li"><span class="n">生抽</span><span class="q">3 汤匙</span></div>
+          <div class="ing-li"><span class="n">老抽</span><span class="q">1 汤匙</span></div>
+          <div class="ing-li"><span class="n">料酒</span><span class="q">2 汤匙</span></div>
+          <div class="ing-li"><span class="n">姜片 / 八角 / 桂皮</span><span class="q">5 片 / 2 颗 / 1 段</span></div>
+          <div class="ing-li"><span class="n">香葱</span><span class="q">2 根</span></div>
+        </div>
+        <div class="ing-panel" id="g-tools" style="display:none">
+          <div class="ing-li"><span class="n">炒锅（equipment）</span><span class="q">1 口</span></div>
+          <div class="ing-li"><span class="n">锅盖</span><span class="q">1 个</span></div>
+          <div class="ing-li"><span class="n">大碗（焯水用）</span><span class="q">1 只</span></div>
+        </div>
+        <span class="card-link">缺食材？回购物清单 →</span>
+      </div>
+
+      <!-- ④ 步骤时间轴：竖线 + 分钟节点 + 图卡交错 + 可并行标注 + 计时 chip 示意 -->
+      <div class="card accent" style="margin-top:14px">
+        <div class="section-label" style="margin:0 0 2px"><span class="t">做法</span><span class="d">挂在时间轴上看</span></div>
+        <div class="tl">
+          <div class="tl-step">
+            <span class="tl-dot">1</span>
+            <div class="tl-min">0-8 分</div>
+            <div class="tl-text">五花肉切 3cm 见方块，冷水下锅加料酒焯水，捞出温水冲净沥干。</div>
+          </div>
+          <div class="tl-step">
+            <span class="tl-dot">2</span>
+            <div class="tl-min">8-15 分</div>
+            <div class="tl-text">小火少油下冰糖，熬到琥珀色冒小泡；立刻下肉块翻炒裹色，煸到边缘微焦。</div>
+            <div class="tl-img">
+              <img src="../../../tools/content-pipeline/out/xhs/images/6a55c68e000000001c025017_1.jpg" alt="炒糖色 步骤图占位">
+              <span class="ph-tag">试做实拍位 · 试采占位</span>
+            </div>
+          </div>
+          <div class="tl-step">
+            <span class="tl-dot">3</span>
+            <div class="tl-min">15 分</div>
+            <div class="tl-text">下姜片、八角、桂皮炒香，烹料酒，加生抽老抽翻匀，倒热水没过肉面，盖盖转小火。</div>
+            <span class="timer-chip">⏱ 挂个计时：炖煮 60 分（示意，实施期接系统计时）</span>
+          </div>
+          <div class="tl-step">
+            <span class="tl-dot">4</span>
+            <div class="tl-min">15-75 分</div>
+            <div class="tl-text">炖煮等待。这段时间去做配菜和汤——动线见上方「备菜动线」。</div>
+            <span class="parallel-tag">⏸ 可与配菜 / 汤并行</span>
+          </div>
+          <div class="tl-step">
+            <span class="tl-dot">5</span>
+            <div class="tl-min">75-85 分</div>
+            <div class="tl-text">开盖转大火收汁，舀汁淋面，直到汁浓亮油。</div>
+            <div class="tl-img">
+              <img src="../../../tools/content-pipeline/out/xhs/images/6a55c68e000000001c025017_2.jpg" alt="收汁 步骤图占位">
+              <span class="ph-tag">试做实拍位 · 试采占位</span>
+            </div>
+          </div>
+          <div class="tl-step">
+            <span class="tl-dot">6</span>
+            <div class="tl-min">90 分 · 上桌</div>
+            <div class="tl-text">挑去香料装盘撒葱花。给小孩的那份可在收汁前先盛出（splitFlavor 可拆调味）。</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ⑤ 视频做法位（预留，后期挂账） -->
+      <div class="video-slot">
+        <div class="t">▶ 视频做法位（预留）</div>
+        <div class="d">接入视频源后这里出现封面卡；本期不实现。</div>
+      </div>
+
+      <!-- ⑥ 上一道/下一道双迷你卡 -->
+      <div class="dish-cards">
+        <div class="mini-card prev">
+          <span class="ava">🍅</span>
+          <span class="info"><span class="dir">◂ 上一道</span><span class="name">番茄炒蛋</span><span class="dur">约 15 分 · 主菜</span></span>
+        </div>
+        <div class="mini-card next" onclick="showLite()">
+          <span class="ava">🥒</span>
+          <span class="info"><span class="dir">下一道 ▸</span><span class="name">凉拌黄瓜</span><span class="dur">约 8 分 · 配菜</span></span>
+        </div>
+      </div>
+
+      <span class="r3-tag">R-3 防抖演示：点按钮看 可点→loading→已点</span>
+      <!-- ⑦ 底部操作栏 -->
+      <div class="bottom-bar">
+        <button class="btn-ghost">回菜单</button>
+        <button class="btn-primary" onclick="logDemo(this)">做完饭，记一笔</button>
+      </div>
+    </section>
+
+    <!-- ============ 简配态：凉拌黄瓜（无图/简配，即「下一道」） ============ -->
+    <section class="screen" id="lite">
+      <!-- 无图空态：虚线框 + emoji + 实拍位角标；侧箭头改纸面色 -->
+      <div class="hero-empty">
+        <div class="dash"></div>
+        <span class="emoji">🥒</span>
+        <span class="note">试做实拍位 · imageUrl 缺省时的空态</span>
+        <button class="side-nav prev on-paper" style="position:absolute; background:#FFFCF5; border:1px solid #E5D9C2" title="上一道：红烧肉" onclick="showFull()">‹</button>
+        <button class="side-nav next on-paper" style="position:absolute; right:10px; background:#FFFCF5; border:1px solid #E5D9C2" title="下一道：没有了">›</button>
+      </div>
+
+      <div class="head-card" style="margin-top:-24px">
+        <div class="dish-name">凉拌黄瓜</div>
+        <div class="meta-row">
+          <span class="m-chip hot">配菜</span>
+          <span class="m-chip">清爽 · 蒜香</span>
+          <span class="m-chip">免开火</span>
+          <span class="m-chip">⏱ 总 8 分 · 动手 8 分</span>
+        </div>
+      </div>
+
+      <!-- 简配动线：3 节点短动线 -->
+      <div class="section-label"><span class="t">备菜动线</span><span class="d">8 分钟一条线</span></div>
+      <div class="prep-line">
+        <div class="prep-chip"><span class="m">0 分</span><span class="a">拍蒜切段</span></div>
+        <div class="prep-chip"><span class="m">2 分</span><span class="a">盐腌挤水</span></div>
+        <div class="prep-chip"><span class="m">5 分</span><span class="a">调汁拌匀</span></div>
+        <div class="prep-chip"><span class="m">8 分</span><span class="a">上桌</span></div>
+      </div>
+
+      <div class="section-label"><span class="t">用料</span><span class="d">4 人份</span></div>
+      <div class="ing-tabs">
+        <span class="ing-tab on" onclick="tabIngLite(this,'gm')">食材</span>
+        <span class="ing-tab" onclick="tabIngLite(this,'gt')">工具</span>
+      </div>
+      <div class="card">
+        <div class="ing-panel" id="gm">
+          <div class="ing-li"><span class="n">黄瓜</span><span class="q">2 根</span></div>
+          <div class="ing-li"><span class="n">蒜</span><span class="q">3 瓣</span></div>
+          <div class="ing-li"><span class="n">生抽 / 香醋</span><span class="q">各 1 汤匙</span></div>
+          <div class="ing-li opt"><span class="n">香油 / 辣椒油<span class="opt-tag">可选</span></span><span class="q">几滴 / 半汤匙</span></div>
+        </div>
+        <div class="ing-panel" id="gt" style="display:none">
+          <div class="ing-li"><span class="n">拌碗（equipment：免开火）</span><span class="q">1 只</span></div>
+        </div>
+        <span class="card-link">缺食材？回购物清单 →</span>
+      </div>
+
+      <div class="card accent" style="margin-top:14px">
+        <div class="section-label" style="margin:0 0 2px"><span class="t">做法</span><span class="d">挂在时间轴上看</span></div>
+        <div class="tl">
+          <div class="tl-step">
+            <span class="tl-dot">1</span>
+            <div class="tl-min">0-2 分</div>
+            <div class="tl-text">黄瓜拍裂切段，蒜切末。拍过的更挂味。</div>
+          </div>
+          <div class="tl-step">
+            <span class="tl-dot">2</span>
+            <div class="tl-min">2-5 分</div>
+            <div class="tl-text">半茶匙盐腌 5 分钟，挤掉水分（脆的关键）。</div>
+          </div>
+          <div class="tl-step">
+            <span class="tl-dot">3</span>
+            <div class="tl-min">5-8 分</div>
+            <div class="tl-text">生抽、香醋、蒜末调汁浇上拌匀，淋几滴香油。</div>
+            <span class="parallel-tag">⏸ 可与热菜烹饪并行，最后再拌</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="video-slot">
+        <div class="t">▶ 视频做法位（预留）</div>
+        <div class="d">简配菜同样预留，接入后统一出现。</div>
+      </div>
+
+      <div class="dish-cards">
+        <div class="mini-card prev" onclick="showFull()">
+          <span class="ava">🍖</span>
+          <span class="info"><span class="dir">◂ 上一道</span><span class="name">红烧肉</span><span class="dur">约 90 分 · 主菜</span></span>
+        </div>
+        <div class="mini-card next">
+          <span class="ava">—</span>
+          <span class="info"><span class="dir">下一道 ▸</span><span class="name">没有了</span><span class="dur">本套共 3 道</span></span>
+        </div>
+      </div>
+
+      <span class="r3-tag">R-3 防抖演示：点按钮看 可点→loading→已点</span>
+      <div class="bottom-bar">
+        <button class="btn-ghost">回菜单</button>
+        <button class="btn-primary" onclick="logDemo(this)">做完饭，记一笔</button>
+      </div>
+    </section>
+  </div>
+
+<script>
+  /* ===== 预览态切换（非 App UI） ===== */
+  function showFull() {
+    document.getElementById('full').classList.add('active');
+    document.getElementById('lite').classList.remove('active');
+    document.getElementById('navFull').classList.add('on');
+    document.getElementById('navLite').classList.remove('on');
+  }
+  function showLite() {
+    document.getElementById('lite').classList.add('active');
+    document.getElementById('full').classList.remove('active');
+    document.getElementById('navLite').classList.add('on');
+    document.getElementById('navFull').classList.remove('on');
+  }
+  /* ===== 用料签切换（满配态三组） ===== */
+  function tabIng(tab) {
+    document.querySelectorAll('#full .ing-tab').forEach(t => t.classList.toggle('on', t === tab));
+    ['main', 'sauce', 'tools'].forEach(g => {
+      document.getElementById('g-' + g).style.display = (g === tab.dataset.g) ? 'block' : 'none';
+    });
+  }
+  /* ===== 用料签切换（简配态两组） ===== */
+  function tabIngLite(tab, groupId) {
+    document.querySelectorAll('#lite .ing-tab').forEach(t => t.classList.toggle('on', t === tab));
+    document.getElementById('gm').style.display = groupId === 'gm' ? 'block' : 'none';
+    document.getElementById('gt').style.display = groupId === 'gt' ? 'block' : 'none';
+  }
+  /* ===== 收藏态：可点 → 已点（即时切换） ===== */
+  function favToggle(btn) {
+    btn.classList.toggle('on');
+    btn.textContent = btn.classList.contains('on') ? '❤' : '♡';
+  }
+  /* ===== R-3 防抖演示：可点 → loading（900ms 禁点，重复点击被忽略） → 已点 ===== */
+  function logDemo(btn) {
+    if (btn.classList.contains('loading') || btn.classList.contains('done')) return; // 防重复提交
+    btn.classList.add('loading'); btn.textContent = '正在记…';
+    setTimeout(() => {
+      btn.classList.remove('loading'); btn.classList.add('done'); btn.textContent = '记好了 ✓';
+    }, 900);
+  }
+</script>
+</body>
+</html>
