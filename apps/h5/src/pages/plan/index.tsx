@@ -47,7 +47,8 @@ export default function PlanPage() {
   // ── 人数步进器（初值=今晚情境人数；rescale 成功后同步 store） ──
   const [people, setPeople] = useState(() => useStore.getState().tonightContext.people)
   const [rescaling, setRescaling] = useState(false)
-  // ── C-8「就按这个买」（仅会话态，不持久化） ──
+  // ── C-8「就按这个买」+ PD-015 两态（仅会话态，不持久化） ──
+  // 未确认：一次性确认（重复点击无副作用，不重复 set）；确认后：变「开始做菜」，点击跳备菜第一道
   const [bought, setBought] = useState(false)
 
   // ── 换菜弹窗状态 ──
@@ -269,6 +270,15 @@ export default function PlanPage() {
     ? MEAL_ROLE_LABELS[swapDish.mealRole] || swapDish.mealRole
     : ''
 
+  // PD-015：跳当晚备菜顺序第一道菜的详细做法页（与顶部菜卡同一入口）。
+  // 已核实（真实 API 实测）：lockedMenu.dishes 数组顺序 = MenuDish.sort 顺序，
+  // 且 prepSequence 即按 dishes 数组顺序串行展开——dishes[0] 就是备菜顺序第一道菜。
+  // （?. 仅为通过 TS 闭包收窄检查；主渲染分支已保证 lockedMenu 非空）
+  function goFirstDish() {
+    const first = lockedMenu?.dishes[0]
+    if (first) goDish(first)
+  }
+
   // 屏④文案：同样条件下（配菜 · 30 分钟内 · 避开花生和内脏）
   const hardNames = exclusions
     .filter((e) => e.severity === 'HARD')
@@ -444,11 +454,13 @@ export default function PlanPage() {
           </Button>
         ) : (
           <>
+            {/* PD-015 两态：未确认=「就按这个买」一次性确认；确认后=「开始做菜」跳备菜第一道。
+                不保留「✓ 已按这个买」静止文案。 */}
             <Button
               className="fm-btn-primary"
-              onClick={() => !bought && setBought(true)}
+              onClick={() => (bought ? goFirstDish() : setBought(true))}
             >
-              {bought ? '✓ 已按这个买' : '就按这个买'}
+              {bought ? '开始做菜' : '就按这个买'}
             </Button>
             <Button className="fm-btn-ghost" onClick={goFeedback}>
               做完饭回来记录一下 →

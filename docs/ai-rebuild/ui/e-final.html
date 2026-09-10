@@ -570,6 +570,9 @@
       <div class="gap-md"></div>
       <div class="hint">标了「已有」的不用买——留在清单里是为了提醒你别漏用。</div>
       <div class="gap-md"></div>
+      <!-- PD-015（2026-09-06）「就按这个买」两态：未确认=一次性确认（重复点击无副作用）；
+           确认后按钮变「开始做菜」，再点击跳转当晚备菜顺序第一道菜的详细做法页
+           （/pages/dish?dishId=<dishes[0]>，与顶部菜卡同一入口）；不再出现「✓ 已按这个买」静止文案。 -->
       <button class="btn-primary">就按这个买</button>
       <button class="btn-ghost" onclick="go('s9')">做完饭回来记录一下 →</button>
     </section>

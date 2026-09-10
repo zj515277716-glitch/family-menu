@@ -1,6 +1,6 @@
 # T-P03 dev API 跨域（CORS）处理（E1 修复）
 
-> 状态：**待用户审核**（fm-dev 交付 → fm-reviewer 复审**通过**（4 条建议级无阻断）→ fm-verify 验收**通过**（AC3 无挂具真实浏览器直调）→ 主控收敛完毕；证据 [evidence/T-P03-2026-09-06.md](../../../evidence/T-P03-2026-09-06.md)；git 提交与否由产品负责人裁决，**含新增依赖 @fastify/cors ^11.3.0 披露**）
+> 状态：**待用户审核**（fm-dev 交付 → fm-reviewer 复审**通过**（4 条建议级无阻断）→ fm-verify 验收**通过**（AC3 无挂具真实浏览器直调）→ 主控收敛完毕；证据 [evidence/T-P03-2026-09-06.md](../../../evidence/T-P03-2026-09-06.md)；2026-09-06 用户裁决后 git 提交 `f1b0954`（7 文件 +356/-8，**含新增依赖 @fastify/cors ^11.3.0**））
 > 依据：[evidence/T-P02-2026-09-06.md](../../../evidence/T-P02-2026-09-06.md) §5 卡外发现 E1（探针原文 .workflow-verify/e1-preflight-result.txt）；2026-09-06 产品负责人裁决开卡修复
 > WIP=1：本卡为当前唯一活动代码任务。派发者：主控 PM。执行者：fm-dev → fm-reviewer → fm-verify。
 
