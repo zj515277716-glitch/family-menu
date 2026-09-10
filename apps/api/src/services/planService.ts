@@ -117,11 +117,14 @@ async function loadExclusionViews(familyId: string) {
   );
 }
 
-async function loadMenuViews(): Promise<ReturnType<typeof toMenuView>[]> {
+// T-P07（R-2 挂账）：两条 dishes 关联查询补 orderBy: { sort: 'asc' }，与 listPlans 既有口径一致；
+// export 供集成测试直接断言「乱序写入后读出按 sort 序」（逻辑仍在 services，路由不经此）。
+export async function loadMenuViews(): Promise<ReturnType<typeof toMenuView>[]> {
   const menus = await prisma.menu.findMany({
     where: { status: 'PUBLISHED' },
     include: {
       dishes: {
+        orderBy: { sort: 'asc' },
         include: {
           dish: {
             include: {
@@ -216,6 +219,7 @@ async function hydrateLockedMenu(
     where: { id: plan.lockedMenuId },
     include: {
       dishes: {
+        orderBy: { sort: 'asc' }, // T-P07（R-2）：懒水合同样按 sort 序
         include: {
           dish: {
             include: {
@@ -231,6 +235,8 @@ async function hydrateLockedMenu(
   }
   return { menuView: toMenuView(menu), candidateIndex };
 }
+
+export { hydrateLockedMenu };
 
 /** 加载指定角色的 PUBLISHED 菜品候选池（含食材关联） */
 async function loadDishViews(mealRole: MealRole): Promise<DishView[]> {

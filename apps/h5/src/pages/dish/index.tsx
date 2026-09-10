@@ -74,7 +74,9 @@ export default function DishPage() {
       .getFeedback(planId)
       .then((fb) => setLogState(fb ? 'done' : 'idle'))
       .catch(() => {
-        /* 查询失败不动当前态（如实，不假装已提交） */
+        // R-1：查询失败不动 done/idle（如实，不假装已提交）；仅 loading 回退可点，
+        // 否则「点记一笔→feedback 返回→查询失败」会永久卡在「正在记…」禁点态
+        setLogState((s) => (s === 'loading' ? 'idle' : s))
       })
   })
 

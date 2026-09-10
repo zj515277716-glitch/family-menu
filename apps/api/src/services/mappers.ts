@@ -51,10 +51,15 @@ interface DishRow {
   equipment: string[];
   steps: unknown;
   status: string;
+  // T-P07 媒体投影字段（T-C01 既有列；null 投影为 undefined 走前端降级）
+  imageUrl: string | null;
+  sourceUrl: string | null;
+  sourceSite: string | null;
   ingredients: DishIngredientRow[];
 }
 
 interface MenuDishRow {
+  sort: number;
   dish: DishRow;
 }
 
@@ -135,7 +140,19 @@ export function toDishIngredientView(row: DishIngredientRow): DishIngredientView
   };
 }
 
-export function toDishView(row: DishRow): DishView {
+/**
+ * Dish 视图 + 媒体投影字段（T-P07）。
+ * engine 的 DishView 不含媒体字段（卡内禁改 engine），此处以交叉类型对齐 shared DishSchema
+ * 既有可选字段 imageUrl/sourceUrl/sourceSite（T-C01）：多出的字段随 JSON 透传给前端
+ * candidates.menu 快照，字段缺省（undefined）序列化后不出现，前端自动走无图降级。
+ */
+export type DishMediaView = DishView & {
+  imageUrl?: string;
+  sourceUrl?: string;
+  sourceSite?: string;
+};
+
+export function toDishView(row: DishRow): DishMediaView {
   return {
     id: row.id,
     name: row.name,
@@ -150,10 +167,18 @@ export function toDishView(row: DishRow): DishView {
     steps: row.steps as DishStep[],
     status: row.status as ContentStatus,
     ingredients: row.ingredients.map(toDishIngredientView),
+    // T-P07 媒体投影：null -> undefined（不编造，缺省即降级）
+    imageUrl: row.imageUrl ?? undefined,
+    sourceUrl: row.sourceUrl ?? undefined,
+    sourceSite: row.sourceSite ?? undefined,
   };
 }
 
 export function toMenuView(row: MenuRow): MenuView {
+  // T-P07（R-4 挂账）：防御性按 MenuDish.sort 升序排序后再映射——
+  // 与 planService 两条 dishes 关联查询的 orderBy: { sort: 'asc' } 口径一致，
+  // 查询层 orderBy 缺失/调用方传入乱序行时，dishes 数组序仍等于 sort 序（=备菜顺序）。
+  const dishes = [...row.dishes].sort((a, b) => a.sort - b.sort).map((md) => toDishView(md.dish));
   return {
     id: row.id,
     name: row.name,
@@ -162,7 +187,7 @@ export function toMenuView(row: MenuRow): MenuView {
     totalActiveMinutes: row.totalActiveMinutes,
     prepSequence: row.prepSequence as PrepSequenceItem[],
     status: row.status as ContentStatus,
-    dishes: row.dishes.map((md) => toDishView(md.dish)),
+    dishes,
   };
 }
 
