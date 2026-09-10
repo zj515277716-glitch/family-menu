@@ -24,3 +24,6 @@ apps/api/src/generated/
 
 # 四角色工作流验收沙箱（临时验证脚本与运行时证据落盘，不入库）
 .workflow-verify/
+
+# 内容管线抓取产物（含站点 token 与抓取内容/图片，只留本机，绝不入库；C-1 裁决 2026-09-10）
+tools/content-pipeline/out/

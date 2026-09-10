@@ -13,8 +13,10 @@ export const MealRoleSchema = z.enum(['MAIN', 'SIDE', 'SOUP', 'STAPLE']);
  */
 export const ContentStatusSchema = z.enum(['DRAFT', 'TESTED', 'PUBLISHED']);
 
-/** 内容来源：LLM_DRAFT（内容管线起草）| MANUAL（人工录入） */
-export const ContentOriginSchema = z.enum(['LLM_DRAFT', 'MANUAL']);
+/**
+ * 内容来源：LLM_DRAFT（内容管线起草）| MANUAL（人工录入）| FETCHED（外部站点抓取，T-C01）
+ */
+export const ContentOriginSchema = z.enum(['LLM_DRAFT', 'MANUAL', 'FETCHED']);
 
 // ───── 子结构（JSON 字段精确定义，非 z.unknown） ─────
 
@@ -46,6 +48,9 @@ export const DishSchema = z.object({
   steps: z.array(DishStepSchema),
   status: ContentStatusSchema.default('DRAFT'),
   origin: ContentOriginSchema.default('LLM_DRAFT'),
+  imageUrl: z.string().url().optional(), // 菜品图片 URL（可选，内容轨道抓取/人工录入，T-C01）
+  sourceUrl: z.string().url().optional(), // 外部来源原帖地址（可选，便于回查与微调对照）
+  sourceSite: z.string().optional(), // 来源站点（约定值 xiachufang/xiaohongshu，先宽松后收紧）
   licenseNote: z.string().optional(), // 内容授权台账字段
 });
 

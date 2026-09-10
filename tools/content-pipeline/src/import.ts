@@ -42,6 +42,9 @@ export interface DishDraftCreateInput {
   status: 'DRAFT'; // 字面量类型：双保险，编译期锁定
   origin: 'LLM_DRAFT'; // 字面量类型：双保险，编译期锁定
   licenseNote?: string;
+  imageUrl?: string; // T-C01：菜品图片 URL（缺省 undefined=不落库）
+  sourceUrl?: string; // T-C01：外部来源原帖地址（缺省 undefined=不落库）
+  sourceSite?: string; // T-C01：来源站点（缺省 undefined=不落库）
   ingredients: DishIngredientLinkInput[];
 }
 
@@ -116,6 +119,10 @@ export function prepareDraftDish(jsonRaw: unknown): DishDraftCreateInput {
     status: 'DRAFT', // 双保险：字面量类型，编译期锁定
     origin: 'LLM_DRAFT', // 双保险：字面量类型，编译期锁定
     licenseNote: validated.licenseNote,
+    // T-C01 透传：缺省 undefined -> Prisma create 忽略该字段 = 不落库（DB 保持 NULL）
+    imageUrl: validated.imageUrl,
+    sourceUrl: validated.sourceUrl,
+    sourceSite: validated.sourceSite,
     ingredients: validated.ingredients.map((ing) => ({
       name: ing.name,
       aliases: ing.aliases ?? [],

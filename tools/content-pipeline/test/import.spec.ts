@@ -65,6 +65,41 @@ describe('prepareDraftDish', () => {
     const input = prepareDraftDish(JSON.stringify(validDraft));
     expect(input.name).toBe('测试菜');
   });
+
+  // ───── T-C01：imageUrl/sourceUrl/sourceSite 透传 ─────
+
+  it('T-C01 带三新字段的草稿透传到写入数据', () => {
+    const fetched = {
+      ...validDraft,
+      imageUrl: 'https://i.xiachufang.com/recipe/cover.jpg',
+      sourceUrl: 'https://www.xiachufang.com/recipe/106733852/',
+      sourceSite: 'xiachufang',
+    };
+    const input = prepareDraftDish(fetched);
+    expect(input.imageUrl).toBe('https://i.xiachufang.com/recipe/cover.jpg');
+    expect(input.sourceUrl).toBe('https://www.xiachufang.com/recipe/106733852/');
+    expect(input.sourceSite).toBe('xiachufang');
+  });
+
+  it('T-C01 旧草稿（无新字段）缺省不落库（undefined）', () => {
+    const input = prepareDraftDish(validDraft);
+    expect(input.imageUrl).toBeUndefined();
+    expect(input.sourceUrl).toBeUndefined();
+    expect(input.sourceSite).toBeUndefined();
+  });
+
+  it('T-C01 新字段为非法 URL 时校验拒绝', () => {
+    expect(() =>
+      prepareDraftDish({ ...validDraft, imageUrl: 'not-a-url' }),
+    ).toThrow();
+    expect(() =>
+      prepareDraftDish({ ...validDraft, sourceUrl: 'xiachufang.com/recipe/1' }),
+    ).toThrow();
+  });
+
+  it('T-C01 新字段为空字符串时校验拒绝（URL 非法）', () => {
+    expect(() => prepareDraftDish({ ...validDraft, imageUrl: '' })).toThrow();
+  });
 });
 
 describe('importDraft', () => {

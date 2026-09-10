@@ -100,6 +100,9 @@ model Dish {
   steps         Json             // [{order, text, parallel?}]
   status        ContentStatus    @default(DRAFT)   // DRAFT->TESTED->PUBLISHED
   origin        ContentOrigin    @default(LLM_DRAFT)
+  imageUrl      String?          // 菜品图片 URL（可选，内容轨道，T-C01）
+  sourceUrl     String?          // 外部来源原帖地址（可选，便于回查与微调对照）
+  sourceSite    String?          // 来源站点（约定值 xiachufang/xiaohongshu，先宽松后收紧）
   licenseNote   String?          // 内容授权台账字段
   ingredients   DishIngredient[]
   menus         MenuDish[]
@@ -122,6 +125,7 @@ enum ContentStatus {
 enum ContentOrigin {
   LLM_DRAFT
   MANUAL
+  FETCHED
 }
 
 model DishIngredient {

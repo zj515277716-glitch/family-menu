@@ -204,6 +204,60 @@ describe('dish schemas', () => {
     expect(ContentOriginSchema.safeParse('MANUAL').success).toBe(true);
     expect(ContentOriginSchema.safeParse('AI').success).toBe(false);
   });
+
+  // T-C01：Dish 图片与来源追溯字段（imageUrl/sourceUrl/sourceSite）+ origin 扩展 FETCHED
+  it('DishSchema T-C01 三新字段全带合法值通过', () => {
+    const r = DishSchema.safeParse({
+      ...validDish,
+      imageUrl: 'https://i.xiachufang.com/recipe/cover.jpg',
+      sourceUrl: 'https://www.xiachufang.com/recipe/106733852/',
+      sourceSite: 'xiachufang',
+    });
+    expect(r.success).toBe(true);
+    if (r.success) {
+      expect(r.data.imageUrl).toBe('https://i.xiachufang.com/recipe/cover.jpg');
+      expect(r.data.sourceUrl).toBe('https://www.xiachufang.com/recipe/106733852/');
+      expect(r.data.sourceSite).toBe('xiachufang');
+    }
+  });
+
+  it('DishSchema T-C01 三新字段缺省兼容（旧数据不传=undefined）', () => {
+    const r = DishSchema.safeParse(validDish);
+    expect(r.success).toBe(true);
+    if (r.success) {
+      expect(r.data.imageUrl).toBeUndefined();
+      expect(r.data.sourceUrl).toBeUndefined();
+      expect(r.data.sourceSite).toBeUndefined();
+    }
+  });
+
+  it('DishSchema imageUrl 非法 URL 拒绝', () => {
+    expect(
+      DishSchema.safeParse({ ...validDish, imageUrl: 'not-a-url' }).success,
+    ).toBe(false);
+    expect(
+      DishSchema.safeParse({ ...validDish, imageUrl: 'http://' }).success,
+    ).toBe(false);
+  });
+
+  it('DishSchema sourceUrl 非法 URL 拒绝', () => {
+    expect(
+      DishSchema.safeParse({ ...validDish, sourceUrl: 'xiachufang.com/recipe/1' }).success,
+    ).toBe(false);
+  });
+
+  it('DishSchema sourceSite 先宽松（任意字符串通过）', () => {
+    expect(
+      DishSchema.safeParse({ ...validDish, sourceSite: 'xiaohongshu' }).success,
+    ).toBe(true);
+    expect(
+      DishSchema.safeParse({ ...validDish, sourceSite: '手工录入' }).success,
+    ).toBe(true);
+  });
+
+  it('ContentOriginSchema T-C01 扩展 FETCHED', () => {
+    expect(ContentOriginSchema.safeParse('FETCHED').success).toBe(true);
+  });
 });
 
 // ───── menu ─────
