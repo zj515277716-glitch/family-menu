@@ -20,7 +20,7 @@
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "lint": "eslint src",
-    "test": "vitest run",
+    "test": "vitest run --root ../..",
     "coverage": "tsx src/cli/coverage.ts",
     "draft": "tsx src/cli/draft.ts",
     "import": "tsx src/cli/import.ts",

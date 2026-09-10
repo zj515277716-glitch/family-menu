@@ -5,6 +5,10 @@
 import Fastify, { type FastifyInstance, type FastifyRequest, type FastifyReply } from 'fastify';
 import cookie from '@fastify/cookie';
 import cors from '@fastify/cors';
+import fastifyStatic from '@fastify/static';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { mkdirSync } from 'node:fs';
 import {
   ZodTypeProvider,
   validatorCompiler,
@@ -65,6 +69,13 @@ export async function buildApp(): Promise<FastifyInstance> {
 
   // auth 中间件插槽（AC9：口令鉴权，预留阶段2微信登录替换）
   app.addHook('preHandler', authHook);
+
+  // T-C03 AC1：静态图片服务（/images/** → apps/api/static/images/**）
+  // fetch2dish.mjs 将抓取图片按归一扩展名落 dishes/<noteId>/ 下，Dish.imageUrl 存指向本目录的 URL。
+  // 注册于 authHook 之后：preHandler 钩子对静态路由同样生效（图片不公开，需口令 cookie 访问，与全站安全口径一致）。
+  const imagesRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../static/images');
+  mkdirSync(imagesRoot, { recursive: true });
+  await app.register(fastifyStatic, { root: imagesRoot, prefix: '/images/' });
 
   // 错误处理
   app.setErrorHandler((error, request, reply) => {

@@ -1,8 +1,9 @@
 // tools/content-pipeline/test/import.spec.ts
 // AC12 单元测试：import 校验 + 双保险（mock writer）
+// T-C03 追加：origin 显式授权（R-4 处置）回归——默认路径不削弱，FETCHED 仅经显式授权放行
 
 import { describe, it, expect, vi } from 'vitest';
-import { prepareDraftDish, importDraft, type DraftWriter } from '../src/import.js';
+import { importDraft, normalizeOriginOption, prepareDraftDish, type DraftWriter } from '../src/import.js';
 
 // 合法草稿 JSON（draft 产出格式）
 const validDraft = {
@@ -183,5 +184,72 @@ describe('importDraft', () => {
     await expect(importDraft({}, writer)).rejects.toThrow();
     expect(writer.upsertIngredient).not.toHaveBeenCalled();
     expect(writer.createDishWithIngredients).not.toHaveBeenCalled();
+  });
+});
+
+// ───── T-C03：origin 显式授权（R-4 处置）回归 ─────
+
+describe('normalizeOriginOption（T-C03 授权归一）', () => {
+  it('缺省/空串 -> LLM_DRAFT（默认路径与 T-C03 之前完全一致）', () => {
+    expect(normalizeOriginOption(undefined)).toBe('LLM_DRAFT');
+    expect(normalizeOriginOption('')).toBe('LLM_DRAFT');
+  });
+
+  it('显式 FETCHED -> FETCHED（唯一放行的授权值）', () => {
+    expect(normalizeOriginOption('FETCHED')).toBe('FETCHED');
+  });
+
+  it('其余取值全部拒绝：MANUAL/PUBLISHED/TESTED/大小写变体/带空格', () => {
+    for (const bad of ['MANUAL', 'PUBLISHED', 'TESTED', 'fetched', 'Fetched', 'FETCHED ', ' FETCHED', 'LLM_DRAFT']) {
+      expect(() => normalizeOriginOption(bad)).toThrow(/origin 授权值非法/);
+    }
+  });
+});
+
+describe('prepareDraftDish origin 授权（T-C03）', () => {
+  it('显式授权 {origin:"FETCHED"} -> origin=FETCHED 且 status 仍强制 DRAFT', () => {
+    const input = prepareDraftDish(validDraft, { origin: 'FETCHED' });
+    expect(input.origin).toBe('FETCHED');
+    expect(input.status).toBe('DRAFT');
+  });
+
+  it('显式授权时覆盖输入中的任何 origin/status 值（输入 MANUAL/PUBLISHED 不透传）', () => {
+    const evil = { ...validDraft, status: 'PUBLISHED', origin: 'MANUAL' };
+    const input = prepareDraftDish(evil, { origin: 'FETCHED' });
+    expect(input.origin).toBe('FETCHED');
+    expect(input.status).toBe('DRAFT');
+  });
+
+  it('显式授权非 FETCHED 值 -> 抛错拒绝', () => {
+    expect(() => prepareDraftDish(validDraft, { origin: 'MANUAL' as 'FETCHED' })).toThrow();
+  });
+
+  it('默认路径（无 options）不回退：非法 origin 输入仍强制 LLM_DRAFT', () => {
+    const input = prepareDraftDish({ ...validDraft, origin: 'FETCHED' });
+    expect(input.origin).toBe('LLM_DRAFT');
+  });
+});
+
+describe('importDraft origin 授权透传（T-C03）', () => {
+  it('options.origin=FETCHED 透传到 writer 写入数据', async () => {
+    const writer: DraftWriter = {
+      upsertIngredient: vi.fn().mockResolvedValue({ id: 'ing-1' }),
+      createDishWithIngredients: vi.fn().mockResolvedValue({ id: 'dish-1' }),
+    };
+    await importDraft(validDraft, writer, { origin: 'FETCHED' });
+    const call = (writer.createDishWithIngredients as ReturnType<typeof vi.fn>).mock.calls[0][0];
+    expect(call.dish.origin).toBe('FETCHED');
+    expect(call.dish.status).toBe('DRAFT');
+  });
+
+  it('默认（无 options）恒 LLM_DRAFT（双保险默认语义不削弱）', async () => {
+    const writer: DraftWriter = {
+      upsertIngredient: vi.fn().mockResolvedValue({ id: 'ing-1' }),
+      createDishWithIngredients: vi.fn().mockResolvedValue({ id: 'dish-1' }),
+    };
+    await importDraft(validDraft, writer);
+    const call = (writer.createDishWithIngredients as ReturnType<typeof vi.fn>).mock.calls[0][0];
+    expect(call.dish.origin).toBe('LLM_DRAFT');
+    expect(call.dish.status).toBe('DRAFT');
   });
 });
