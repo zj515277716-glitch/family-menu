@@ -7,7 +7,7 @@
 // ④笔记式步骤流（有图嵌图无图纯文字——DishStep 契约无图字段，本版全部纯文字）
 // ⑤底部悬浮胶囊「做完饭，记一笔」三态（可点/loading 禁点/已提交，R-3 防抖）；
 //   提交逻辑沿用现状（跳 feedback 页三问），返回本页时查 getFeedback 回显已提交态
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import Taro, { useDidShow } from '@tarojs/taro'
 import { View, Text, Image } from '@tarojs/components'
 import { useStore } from '../../store'
@@ -35,6 +35,16 @@ const EQUIPMENT_LABELS: Record<string, string> = {
   rice_cooker: '用电饭煲',
   steamer: '用蒸锅',
   air_fryer: '用空气炸锅',
+}
+
+// R-10 基址策略 B：库中只存相对路径（/images/dishes/...），绝对 URL 由渲染层按环境拼接
+// 与 apps/h5 API client 同源 env（TARO_APP_API_BASE_URL：dev=http://127.0.0.1:3000 / prod=公网域名），
+// 避免 Plan.candidates 快照固化环境地址（重蹈 R-10）
+const API_BASE = (process.env.TARO_APP_API_BASE_URL || '').replace(/\/+$/, '')
+const toAbsoluteImageUrl = (url?: string | null): string | undefined => {
+  if (!url) return undefined
+  if (/^https?:\/\//.test(url)) return url // 防御：历史绝对 URL 原样直用
+  return `${API_BASE}${url}`
 }
 
 // R-3 操作条三态：idle 可点 / loading 提交中禁点 / done 已提交
@@ -65,6 +75,12 @@ export default function DishPage() {
 
   // ── R-3 三态（沿用现有反馈提交逻辑：本页只做态反馈，提交在 feedback 页三问） ──
   const [logState, setLogState] = useState<LogState>('idle')
+
+  // R-10 onError 降级：hero 图加载失败 → 切 hero-empty 同一降级分支；换道/换菜重置
+  const [imgError, setImgError] = useState(false)
+  useEffect(() => {
+    setImgError(false)
+  }, [dish?.id])
 
   // 每次页面显示（含从 feedback 返回）核对已提交态：有反馈记录=「记好了 ✓」，查询失败保持可点
   useDidShow(() => {
@@ -160,13 +176,22 @@ export default function DishPage() {
     </View>
   )
 
+  // hero 图展示判定：库值（相对/历史绝对）→ 拼接后的可加载 URL；加载失败（onError）切降级分支
+  const heroImageUrl = toAbsoluteImageUrl(dish.imageUrl)
+  const showHero = Boolean(heroImageUrl) && !imgError
+
   return (
     <View className="fm-page dish-page">
-      {/* ① 首屏大图区：340px 全出血；图上叠菜名+时长/菜系；无图降级色块+菜名占位 */}
-      <View className={`dish-hero${dish.imageUrl ? '' : ' dish-hero-empty'}`}>
-        {dish.imageUrl ? (
+      {/* ① 首屏大图区：340px 全出血；图上叠菜名+时长/菜系；无图/加载失败降级色块+菜名占位（.dish-hero 自带底色占位） */}
+      <View className={`dish-hero${showHero ? '' : ' dish-hero-empty'}`}>
+        {heroImageUrl && !imgError ? (
           <>
-            <Image className="dish-hero-img" src={dish.imageUrl} mode="aspectFill" />
+            <Image
+              className="dish-hero-img"
+              src={heroImageUrl}
+              mode="aspectFill"
+              onError={() => setImgError(true)}
+            />
             <View className="dish-hero-fade" />
             <View className="dish-hero-overlay">
               <Text className="dish-hero-name">{dish.name}</Text>
@@ -181,7 +206,9 @@ export default function DishPage() {
             </Text>
             <Text className="dish-hero-empty-name">{dish.name}</Text>
             <Text className="dish-hero-empty-note">
-              试做实拍位 · 拍好就换上（本菜暂无图，按契约 imageUrl 缺省降级）
+              {imgError
+                ? '图片加载失败 · 已自动降级占位'
+                : '试做实拍位 · 拍好就换上（本菜暂无图，按契约 imageUrl 缺省降级）'}
             </Text>
           </>
         )}
@@ -208,8 +235,8 @@ export default function DishPage() {
         )}
       </View>
 
-      {/* 无图态：信息 chips 落在图下（菜名已在降级色块中，不重复） */}
-      {!dish.imageUrl && (
+      {/* 无图/降级态：信息 chips 落在图下（菜名已在降级色块中，不重复） */}
+      {!showHero && (
         <View className="dish-head">{renderChips(false)}</View>
       )}
 

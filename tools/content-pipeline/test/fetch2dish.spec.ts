@@ -158,7 +158,7 @@ describe('buildStepsFromDesc', () => {
 
 describe('buildDishFromFetch（AC2 核心转换）', () => {
   it('正常转换：必填字段齐全，产出 fm-import 输入形状', () => {
-    const dish = buildDishFromFetch(validFetch, { baseUrl: 'http://127.0.0.1:3000', firstImageExt: '.webp' });
+    const dish = buildDishFromFetch(validFetch, { firstImageExt: '.webp' });
     expect(dish.name).toBe('简单家常菜');
     expect(dish.mealRole).toBe('MAIN');
     expect(dish.status).toBe('DRAFT');
@@ -166,9 +166,20 @@ describe('buildDishFromFetch（AC2 核心转换）', () => {
     expect(dish.ingredients).toEqual([]);
     expect(dish.sourceUrl).toBe(validFetch.sourceUrl); // 与 fetch.json 逐字一致
     expect(dish.sourceSite).toBe('xiaohongshu');
-    expect(dish.imageUrl).toBe('http://127.0.0.1:3000/images/dishes/6a55c68e000000001c025017/0.webp');
+    expect(dish.imageUrl).toBe('/images/dishes/6a55c68e000000001c025017/0.webp'); // R-10：相对路径入库，无环境前缀
     expect(typeof dish.licenseNote).toBe('string');
     expect(dish.licenseNote).toContain('6a55c68e000000001c025017');
+  });
+
+  it('R-10 防回归：任何 opts.baseUrl 都不影响产出——imageUrl 恒为相对路径', () => {
+    const dish = buildDishFromFetch(validFetch, { baseUrl: 'http://example.com:9999', firstImageExt: '.webp' } as never);
+    expect(dish.imageUrl).toBe('/images/dishes/6a55c68e000000001c025017/0.webp');
+    expect(String(dish.imageUrl)).not.toMatch(/^https?:\/\//);
+  });
+
+  it('firstImageIndex 定制：非 0 首图序号进入相对路径', () => {
+    const dish = buildDishFromFetch(validFetch, { firstImageExt: '.png', firstImageIndex: 2 });
+    expect(dish.imageUrl).toBe('/images/dishes/6a55c68e000000001c025017/2.png');
   });
 
   it('steps 生成：纯标签正文落占位步骤', () => {

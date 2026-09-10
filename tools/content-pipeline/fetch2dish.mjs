@@ -12,12 +12,13 @@
  *      - steps：从正文 desc 生成初稿（去话题标签后按句切分；无正文时落单个
  *        「待人工微调」占位步骤——不虚构内容，人工微调是质量总闸门）
  *      - ingredients：[]（试采笔记正文不含文字用料；不伪造数据，待人工补齐）
- *      - imageUrl/sourceUrl/sourceSite：回填三新字段；imageUrl=<--base-url>/images/dishes/<noteId>/0<ext>
+ *      - imageUrl/sourceUrl/sourceSite：回填三新字段；imageUrl=/images/dishes/<noteId>/0<ext>
+ *        （相对路径入库——R-10 处置：库中不固化环境地址，绝对 URL 由前端按环境拼接）
  *      - status=DRAFT / origin=FETCHED（声明值；实际入库以 fm-import --origin FETCHED 显式授权为准，
  *        不传授权参数时 fm-import 仍强制 LLM_DRAFT——双保险默认路径不削弱）
  *
  * 用法：
- *   node fetch2dish.mjs <fetch.json> [--base-url http://127.0.0.1:3000]
+ *   node fetch2dish.mjs <fetch.json>
  *        [--static-root apps/api/static/images] [--out <path>] [--max-images 3]
  *        [--redownload] [--meal-role MAIN] [--active-minutes 15] [--total-minutes 30]
  *
@@ -33,7 +34,6 @@ import path from 'node:path';
 const TOOL_DIR = path.dirname(fileURLToPath(import.meta.url)); // tools/content-pipeline
 const REPO_ROOT = path.resolve(TOOL_DIR, '..', '..');          // 仓库根
 const DEFAULT_STATIC_ROOT = path.join(REPO_ROOT, 'apps/api/static/images');
-const DEFAULT_BASE_URL = 'http://127.0.0.1:3000';
 const UA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36';
 
 const log = (...m) => console.log(`[${new Date().toISOString()}]`, ...m);
@@ -158,18 +158,17 @@ function requireFetchFields(fetchObj) {
 /**
  * 核心转换：fetch.json 对象 → fm-import 输入形状 Dish JSON（纯函数，可单测）。
  * @param fetchObj xhs-fetch.mjs 产物对象
- * @param opts.baseUrl      图片 URL 前缀（默认 http://127.0.0.1:3000）
  * @param opts.firstImageExt 首图归一后扩展名（如 '.webp'；null/undefined → 省略 imageUrl）
  * @param opts.mealRole/cuisine/flavorTags/spicyLevel/splitFlavor/activeMinutes/totalMinutes/equipment 默认字段（可覆盖）
  */
 export function buildDishFromFetch(fetchObj, opts = {}) {
   const noteId = requireFetchFields(fetchObj);
-  const baseUrl = String(opts.baseUrl || DEFAULT_BASE_URL).replace(/\/+$/, '');
   const firstImageExt = opts.firstImageExt || null;
   const firstImageIndex = Number.isInteger(opts.firstImageIndex) && opts.firstImageIndex >= 0 ? opts.firstImageIndex : 0;
 
+  // R-10：imageUrl 相对路径入库，不拼任何环境前缀（前端按 TARO_APP_API_BASE_URL 拼接）
   const imageUrl = firstImageExt
-    ? `${baseUrl}/images/dishes/${noteId}/${firstImageIndex}${firstImageExt}`
+    ? `/images/dishes/${noteId}/${firstImageIndex}${firstImageExt}`
     : undefined;
 
   const authorNick = (fetchObj.author && fetchObj.author.nickname) || '未知作者';
@@ -271,13 +270,17 @@ export async function placeImages(fetchObj, opts = {}) {
 
 function parseArgs(argv) {
   const a = {
-    fetchJson: null, baseUrl: DEFAULT_BASE_URL, staticRoot: DEFAULT_STATIC_ROOT,
+    fetchJson: null, staticRoot: DEFAULT_STATIC_ROOT,
     out: null, maxImages: 3, redownload: false,
     mealRole: 'MAIN', activeMinutes: 15, totalMinutes: 30,
   };
   for (let i = 0; i < argv.length; i++) {
     const k = argv[i];
-    if (k === '--base-url') a.baseUrl = argv[++i];
+    if (k === '--base-url') {
+      // R-10 处置：--base-url 已废弃（imageUrl 相对路径入库），显式报错防误用静默吞参
+      console.error('--base-url 已废弃（R-10：imageUrl 改相对路径入库，绝对 URL 由前端拼接）；请移除该参数');
+      process.exit(1);
+    }
     else if (k === '--static-root') a.staticRoot = path.resolve(argv[++i]);
     else if (k === '--out') a.out = path.resolve(argv[++i]);
     else if (k === '--max-images') a.maxImages = Math.max(1, parseInt(argv[++i], 10) || 3);
@@ -293,7 +296,7 @@ function parseArgs(argv) {
 export async function main(argv) {
   const args = parseArgs(argv);
   if (!args.fetchJson) {
-    console.error('用法：node fetch2dish.mjs <fetch.json> [--base-url ...] [--static-root ...] [--out ...] [--max-images 3] [--redownload]');
+    console.error('用法：node fetch2dish.mjs <fetch.json> [--static-root ...] [--out ...] [--max-images 3] [--redownload]');
     process.exit(1);
   }
   if (!existsSync(args.fetchJson)) {
@@ -325,7 +328,6 @@ export async function main(argv) {
   let dish;
   try {
     dish = buildDishFromFetch(fetchObj, {
-      baseUrl: args.baseUrl,
       firstImageExt: placed.length > 0 ? placed[0].ext : null,
       mealRole: args.mealRole,
       activeMinutes: args.activeMinutes,
