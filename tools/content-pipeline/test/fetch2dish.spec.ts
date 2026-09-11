@@ -5,9 +5,11 @@
 //     Content-Type 归一行为经 normalizeImageExt 纯函数真实覆盖；本地文件分支走真实 IO。
 
 import { describe, it, expect, afterAll } from 'vitest';
+import { spawnSync } from 'node:child_process';
 import { mkdtemp, writeFile, readFile, rm, mkdir } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import {
   Fetch2DishError,
   buildDishFromFetch,
@@ -310,5 +312,31 @@ describe('placeImages（AC4 落盘，本地文件分支走魔数归一）', () =
     await expect(placeImages({}, { fetchDir: await makeTmp(), staticRoot: await makeTmp() })).rejects.toThrow(
       Fetch2DishError,
     );
+  });
+});
+
+// ───── T-P09：--base-url 废弃拦截（空格/等号两种形式同口径显式报错，退出码 1）─────
+// parseArgs 在校验 fetch.json 之前就处理 --base-url，故子进程无需真实输入文件；
+// process.exit 无法在进程内断言，用 spawnSync 走真实 CLI 入口（非 mock）。
+
+describe('parseArgs --base-url 废弃拦截（R-10 空格形式回归 + T-P09 等号形式补漏）', () => {
+  const scriptPath = fileURLToPath(new URL('../fetch2dish.mjs', import.meta.url));
+
+  it('空格形式 --base-url 显式报错退出（既有行为回归）', () => {
+    const r = spawnSync(process.execPath, [scriptPath, '--base-url', 'http://example.com:9999'], {
+      encoding: 'utf-8',
+    });
+    expect(r.status).toBe(1);
+    expect(r.stderr).toContain('--base-url');
+    expect(r.stderr).toContain('已废弃');
+  });
+
+  it('等号形式 --base-url=xxx 显式报错退出（T-P09 补，不得静默吞参）', () => {
+    const r = spawnSync(process.execPath, [scriptPath, '--base-url=http://example.com:9999'], {
+      encoding: 'utf-8',
+    });
+    expect(r.status).toBe(1);
+    expect(r.stderr).toContain('--base-url');
+    expect(r.stderr).toContain('已废弃');
   });
 });

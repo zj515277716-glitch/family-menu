@@ -1,6 +1,6 @@
 # T-C03 fetch 内容入库链路（试采 JSON → Dish）
 
-> 状态：**待用户审核**（fm-dev 两轮交付 8/8 AC（第一轮代码中断、第二轮续作补齐并修复 CLI 默认路径缺陷；报告 [evidence/T-C03-dev-2026-09-10.md](../../../evidence/T-C03-dev-2026-09-10.md)）→ fm-reviewer 复审**通过**（无阻断；建议级 B-5 index 未校验/B-6 imageUrl 硬编码 index 0/R-8 管线 test script 怪癖/R-9 DRAFT 无只读口/R-10 绝对 URL vs 契约张力/R-11 static 目录未 gitignore）→ fm-verify 验收**通过**（V1~V7 全 PASS：双保险强制覆盖实证 LLM_DRAFT、授权路径 FETCHED、图片 SHA256×3 一致、97/97+346/346+tsc0、teardown 六表逐项一致；证据 .workflow-verify/tp-c03-verify/）→ 主控收敛完毕；git 提交与否由产品负责人裁决）
+> 状态：**待用户审核**（fm-dev 两轮交付 8/8 AC（第一轮代码中断、第二轮续作补齐并修复 CLI 默认路径缺陷；报告 [evidence/T-C03-dev-2026-09-10.md](../../../evidence/T-C03-dev-2026-09-10.md)）→ fm-reviewer 复审**通过**（无阻断；建议级 B-5 index 未校验/B-6 imageUrl 硬编码 index 0/R-8 管线 test script 怪癖/R-9 DRAFT 无只读口/R-10 绝对 URL vs 契约张力/R-11 static 目录未 gitignore）→ fm-verify 验收**通过**（V1~V7 全 PASS：双保险强制覆盖实证 LLM_DRAFT、授权路径 FETCHED、图片 SHA256×3 一致、97/97+346/346+tsc0、teardown 六表逐项一致；证据 .workflow-verify/tp-c03-verify/）→ 主控收敛完毕；2026-09-10 用户四项裁决（提交/R-8 test script/R-11 static gitignore/B-5 B-6 捎带修）后修补并 git 提交 `050d479`（15 文件 +1428/-29）→ **已完结**）
 
 ## 背景
 

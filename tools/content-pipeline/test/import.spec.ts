@@ -101,6 +101,36 @@ describe('prepareDraftDish', () => {
   it('T-C01 新字段为空字符串时校验拒绝（URL 非法）', () => {
     expect(() => prepareDraftDish({ ...validDraft, imageUrl: '' })).toThrow();
   });
+
+  // ───── T-P09：imageUrl 口径放宽（http(s) 绝对 URL 或 /images/ 相对路径二选一，契约 v0.7）─────
+
+  it('T-P09 imageUrl 为 /images/ 相对路径通过（R-10 相对路径入库）', () => {
+    const input = prepareDraftDish({
+      ...validDraft,
+      imageUrl: '/images/dishes/6a55c68e000000001c025017/0.webp',
+    });
+    expect(input.imageUrl).toBe('/images/dishes/6a55c68e000000001c025017/0.webp');
+  });
+
+  it('T-P09 imageUrl http(s) 绝对 URL 仍通过（放宽不收窄）', () => {
+    const input = prepareDraftDish({
+      ...validDraft,
+      imageUrl: 'http://i.xiachufang.com/recipe/cover.jpg',
+    });
+    expect(input.imageUrl).toBe('http://i.xiachufang.com/recipe/cover.jpg');
+  });
+
+  it('T-P09 imageUrl 既非 URL 又非 /images/ 相对路径拒绝', () => {
+    expect(() => prepareDraftDish({ ...validDraft, imageUrl: 'foo/bar.jpg' })).toThrow();
+    // 缺前导斜杠：两个分支都不匹配
+    expect(() =>
+      prepareDraftDish({ ...validDraft, imageUrl: 'images/dishes/abc/0.webp' }),
+    ).toThrow();
+  });
+
+  it('T-P09 imageUrl 空串拒绝（保持既有行为）', () => {
+    expect(() => prepareDraftDish({ ...validDraft, imageUrl: '' })).toThrow();
+  });
 });
 
 describe('importDraft', () => {

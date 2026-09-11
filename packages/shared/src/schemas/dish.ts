@@ -1,5 +1,10 @@
 // packages/shared/src/schemas/dish.ts
 // 内容资产契约，对齐实施方案 3.2 数据模型（Dish / DishIngredient / Ingredient / Substitution）
+// 契约版本 v0.7（2026-09-11，T-P09，用户已批准）：DishSchema.imageUrl 口径放宽为
+//   「http(s) 绝对 URL 或 /images/ 开头站内相对路径」二选一（z.union）——R-10 方案 B：
+//   DB 与 Plan.candidates 快照只存相对路径（fetch2dish 产物 /images/dishes/<id>/<i>.<ext>），
+//   前端按 TARO_APP_API_BASE_URL 拼基址；sourceUrl 保持 z.string().url() 不动（外部原帖必为 URL）；
+//   空串两个分支均不匹配，仍拒绝。历史版本 v0.2~v0.6 记录见 schemas/api.ts 头部。
 import { z } from 'zod';
 
 // ───── 枚举 ─────
@@ -48,7 +53,10 @@ export const DishSchema = z.object({
   steps: z.array(DishStepSchema),
   status: ContentStatusSchema.default('DRAFT'),
   origin: ContentOriginSchema.default('LLM_DRAFT'),
-  imageUrl: z.string().url().optional(), // 菜品图片 URL（可选，内容轨道抓取/人工录入，T-C01）
+  // v0.7（T-P09）：http(s) 绝对 URL 或 /images/ 开头站内相对路径，二选一（R-10 方案 B：DB 存相对路径，前端拼 TARO_APP_API_BASE_URL 基址）；空串两分支均不匹配，仍拒绝
+  imageUrl: z
+    .union([z.string().url(), z.string().regex(/^\/images\//)])
+    .optional(), // 菜品图片（可选，内容轨道抓取/人工录入，T-C01；sourceUrl 不动）
   sourceUrl: z.string().url().optional(), // 外部来源原帖地址（可选，便于回查与微调对照）
   sourceSite: z.string().optional(), // 来源站点（约定值 xiachufang/xiaohongshu，先宽松后收紧）
   licenseNote: z.string().optional(), // 内容授权台账字段

@@ -240,6 +240,30 @@ describe('dish schemas', () => {
     ).toBe(false);
   });
 
+  // T-P09（v0.7）：imageUrl 口径放宽——http(s) 绝对 URL 或 /images/ 站内相对路径二选一
+  it('DishSchema imageUrl /images/ 站内相对路径通过（T-P09 放宽）', () => {
+    const r = DishSchema.safeParse({
+      ...validDish,
+      imageUrl: '/images/dishes/6a55c68e000000001c025017/0.webp',
+    });
+    expect(r.success).toBe(true);
+    if (r.success) {
+      expect(r.data.imageUrl).toBe('/images/dishes/6a55c68e000000001c025017/0.webp');
+    }
+  });
+
+  it('DishSchema imageUrl 既非 URL 又非 /images/ 相对路径拒绝（T-P09）', () => {
+    expect(
+      DishSchema.safeParse({ ...validDish, imageUrl: 'foo/bar.jpg' }).success,
+    ).toBe(false);
+    // 缺前导斜杠：两个分支都不匹配
+    expect(
+      DishSchema.safeParse({ ...validDish, imageUrl: 'images/dishes/abc/0.webp' }).success,
+    ).toBe(false);
+    // 空串仍拒绝（保持既有行为）
+    expect(DishSchema.safeParse({ ...validDish, imageUrl: '' }).success).toBe(false);
+  });
+
   it('DishSchema sourceUrl 非法 URL 拒绝', () => {
     expect(
       DishSchema.safeParse({ ...validDish, sourceUrl: 'xiachufang.com/recipe/1' }).success,

@@ -276,8 +276,9 @@ function parseArgs(argv) {
   };
   for (let i = 0; i < argv.length; i++) {
     const k = argv[i];
-    if (k === '--base-url') {
+    if (k === '--base-url' || k.startsWith('--base-url=')) {
       // R-10 处置：--base-url 已废弃（imageUrl 相对路径入库），显式报错防误用静默吞参
+      // T-P09：补等号形式 --base-url= 拦截，与空格形式同口径显式报错（等号形式原来会静默吞参）
       console.error('--base-url 已废弃（R-10：imageUrl 改相对路径入库，绝对 URL 由前端拼接）；请移除该参数');
       process.exit(1);
     }
