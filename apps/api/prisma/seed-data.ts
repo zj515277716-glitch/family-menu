@@ -52,26 +52,26 @@ export const ingredients = [
   // 蔬菜
   { id: 'seed-ing-tomato', name: '番茄', aliases: ['西红柿', '洋柿子'], category: '蔬菜', defaultUnit: 'g' },
   { id: 'seed-ing-potato', name: '土豆', aliases: ['马铃薯', '洋芋'], category: '蔬菜', defaultUnit: 'g' },
-  { id: 'seed-ing-greens', name: '青菜', aliases: ['小白菜', '油菜', '上海青'], category: '蔬菜', defaultUnit: 'g' },
+  { id: 'seed-ing-greens', name: '青菜', aliases: ['小白菜', '油菜', '上海青', '小青菜'], category: '蔬菜', defaultUnit: 'g' },
   { id: 'seed-ing-broccoli', name: '西兰花', aliases: ['花椰菜', '绿菜花', '西蓝花'], category: '蔬菜', defaultUnit: 'g' },
   { id: 'seed-ing-seaweed', name: '紫菜', aliases: ['海苔'], category: '蔬菜', defaultUnit: 'g' },
   { id: 'seed-ing-cucumber', name: '黄瓜', aliases: ['青瓜'], category: '蔬菜', defaultUnit: 'g' },
   // 肉类
-  { id: 'seed-ing-pork', name: '猪肉', aliases: ['五花肉', '瘦肉'], category: '肉类', defaultUnit: 'g' },
-  { id: 'seed-ing-ribs', name: '排骨', aliases: ['肋排', '猪排骨'], category: '肉类', defaultUnit: 'g' },
+  { id: 'seed-ing-pork', name: '猪肉', aliases: ['五花肉', '瘦肉', '里脊'], category: '肉类', defaultUnit: 'g' },
+  { id: 'seed-ing-ribs', name: '排骨', aliases: ['肋排', '猪排骨', '小排', '仔排'], category: '肉类', defaultUnit: 'g' },
   { id: 'seed-ing-beef', name: '牛腩', aliases: ['牛肉'], category: '肉类', defaultUnit: 'g' },
   // 水产
   { id: 'seed-ing-bass', name: '鲈鱼', aliases: ['海鲈鱼'], category: '水产', defaultUnit: '条' },
-  { id: 'seed-ing-shrimp', name: '虾仁', aliases: ['虾米', '虾', '鲜虾', '基围虾'], category: '水产', defaultUnit: 'g' },
+  { id: 'seed-ing-shrimp', name: '虾仁', aliases: ['虾米', '虾', '明虾', '河虾'], category: '水产', defaultUnit: 'g' },
   // 蛋奶
   { id: 'seed-ing-egg', name: '鸡蛋', aliases: ['土鸡蛋', '蛋'], category: '蛋奶', defaultUnit: '个' },
   // 调料
   { id: 'seed-ing-soysauce', name: '生抽', aliases: ['酱油'], category: '调料', defaultUnit: 'ml' },
-  { id: 'seed-ing-salt', name: '盐', aliases: ['食盐'], category: '调料', defaultUnit: 'g' },
-  { id: 'seed-ing-sugar', name: '白糖', aliases: ['冰糖', '砂糖'], category: '调料', defaultUnit: 'g' },
+  { id: 'seed-ing-salt', name: '盐', aliases: ['食盐', '精盐'], category: '调料', defaultUnit: 'g' },
+  { id: 'seed-ing-sugar', name: '白糖', aliases: ['冰糖', '砂糖', '白砂糖'], category: '调料', defaultUnit: 'g' },
   { id: 'seed-ing-cookingwine', name: '料酒', aliases: ['黄酒'], category: '调料', defaultUnit: 'ml' },
   // 主食
-  { id: 'seed-ing-rice', name: '大米', aliases: ['白米', '米'], category: '主食', defaultUnit: 'g' },
+  { id: 'seed-ing-rice', name: '大米', aliases: ['白米', '米', '香米'], category: '主食', defaultUnit: 'g' },
 ];
 
 // ───── 菜品（10道：MAIN 6 / SIDE 2 / SOUP 1 / STAPLE 1；PUBLISHED 9 / TESTED 1）─────

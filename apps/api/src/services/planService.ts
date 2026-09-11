@@ -22,6 +22,7 @@ import type {
   Taste,
 } from '@family-menu/shared';
 import { prisma } from '../db.js';
+import { matchMustUseNames } from '../utils/must-use-matcher.js';
 import {
   toDishView,
   toEventView,
@@ -152,34 +153,22 @@ async function loadEventViews(familyId: string) {
 // ── 内部辅助：mustUse 用户原文 -> ingredientId 稳定映射（TP-02） ──
 
 /**
- * mustUse 用户原文 -> ingredientId 稳定映射。
- * 匹配顺序：trim -> name 精确 -> aliases 精确 -> 大小写不敏感；
+ * mustUse 用户原文 -> ingredientId 稳定映射（T-P05 方案 E 分层匹配）。
+ * 匹配纯函数在 utils/must-use-matcher.ts（零 IO）：层 1 精确等值（trim->小写，name/aliases
+ * 先到先得，与既有行为同构）-> 层 2 双向子串（恰好命中 1 个食材才采纳，≥2 个歧义不猜）；
  * 未映射的原文原样透传（引擎按 ingredientId 匹配不到 -> 必然空手，unmetMustUse 回传原文）。
  */
 async function resolveMustUseIds(
   rawNames: string[],
 ): Promise<{ ids: string[]; idToRaw: Map<string, string> }> {
-  const ids: string[] = [];
-  const idToRaw = new Map<string, string>();
   if (rawNames.length === 0) {
-    return { ids, idToRaw };
+    return { ids: [], idToRaw: new Map<string, string>() };
   }
   const ingredients = await prisma.ingredient.findMany();
-  const byKey = new Map<string, string>(); // 小写 name/alias -> ingredientId
-  for (const ing of ingredients) {
-    for (const key of [ing.name, ...ing.aliases]) {
-      const normalized = key.trim().toLowerCase();
-      if (normalized && !byKey.has(normalized)) {
-        byKey.set(normalized, ing.id);
-      }
-    }
-  }
-  for (const raw of rawNames) {
-    const trimmed = raw.trim();
-    const id = byKey.get(trimmed.toLowerCase()) ?? trimmed;
-    ids.push(id);
-    idToRaw.set(id, trimmed);
-  }
+  const { ids, idToRaw } = matchMustUseNames(
+    rawNames,
+    ingredients.map((i) => ({ id: i.id, name: i.name, aliases: i.aliases })),
+  );
   return { ids, idToRaw };
 }
 
@@ -491,21 +480,24 @@ export const planService = {
       const context = plan.context as PlanContext;
       const excludeMenuIds = candidates.map((c) => c.menuId);
 
-      const [rules, exclusions, library, history] = await Promise.all([
+      // 用推荐引擎获取所有评分候选（不只 top 3）
+      // T-P05（D2）：mustUse 同走 resolveMustUseIds 映射（修复遗留 bug——
+      // 此前 context.mustUse 原文直传当 id，引擎匹配不到导致全换分支必消失效）
+      const [rules, exclusions, library, history, mustUseResolved] = await Promise.all([
         loadFamilyRuleView(FAMILY_ID),
         loadExclusionViews(FAMILY_ID),
         loadMenuViews(),
         loadEventViews(FAMILY_ID),
+        resolveMustUseIds(context.mustUse),
       ]);
 
-      // 用推荐引擎获取所有评分候选（不只 top 3）
       const result = recommend({
         rules,
         exclusions,
         context: {
           people: context.people,
           timeBudgetMin: context.timeBudgetMin as 15 | 30 | 60,
-          mustUseIngredients: context.mustUse,
+          mustUseIngredients: mustUseResolved.ids,
         },
         library,
         history,
