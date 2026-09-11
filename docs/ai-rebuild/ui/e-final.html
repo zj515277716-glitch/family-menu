@@ -564,7 +564,7 @@
       <button class="btn-primary" style="opacity:.55">正在生成菜单…</button>
     </section>
 
-    <!-- ⑥ 空手场景（必消无法满足的空态；PD-014 补组合必消凑不进一桌变体） -->
+    <!-- ⑥ 空手场景（必消无法满足的空态；PD-014 补组合必消凑不进一桌变体；T-P10/PD-017 补时间型/混合型两变体——unmetReasons 原因细分） -->
     <section class="screen" id="s6">
       <h1 class="page">今晚吃什么</h1>
       <div class="sub">必消食材：番茄、苦瓜</div>
@@ -578,6 +578,38 @@
       <div class="gap-lg"></div>
 
       <button class="btn-primary" onclick="go('s5')">去掉「苦瓜」再试</button>
+      <button class="btn-ghost" onclick="go('s1')">返回修改必消食材</button>
+
+      <div class="gap-lg"></div>
+      <div class="hint">变体A2 · 时长型（T-P10/PD-017，unmetReasons={"土豆丝":"TIME_BUDGET"}）：菜库有器具齐全、含土豆丝的菜单，只是当次 30 分钟档排不下——标题含当次所选档位分钟数，正文给出换长时长或去掉食材的出路。</div>
+      <div class="gap-md"></div>
+      <div class="sub">必消食材：土豆丝</div>
+      <div class="gap-md"></div>
+
+      <div class="card empty-card">
+        <div class="empty-emoji">🤔</div>
+        <div class="empty-title">能用到「土豆丝」的菜，今晚 30 分钟内排不下</div>
+        <div class="empty-text">菜里有能用到它的做法，但整套工时超过了 30 分钟。<br>可以把时长换长一点再试，或去掉「土豆丝」按剩下的必消推荐。<br>必消食材是硬要求，我们不会随便凑数。</div>
+      </div>
+      <div class="gap-lg"></div>
+
+      <button class="btn-primary" onclick="go('s5')">去掉「土豆丝」再试</button>
+      <button class="btn-ghost" onclick="go('s1')">返回修改必消食材</button>
+
+      <div class="gap-lg"></div>
+      <div class="hint">变体A3 · 混合型（T-P10/PD-017，unmetReasons={"土豆丝":"TIME_BUDGET","苦瓜":"NO_DISH"}）：标题沿用现状模板，正文分句逐食材说明——时间型子句带出路暗示。</div>
+      <div class="gap-md"></div>
+      <div class="sub">必消食材：土豆丝、苦瓜</div>
+      <div class="gap-md"></div>
+
+      <div class="card empty-card">
+        <div class="empty-emoji">🤔</div>
+        <div class="empty-title">今晚没有能用上「土豆丝、苦瓜」的做法</div>
+        <div class="empty-text">能用到「土豆丝」的菜今晚 30 分钟内排不下，换个更长的时长也许能排上；<br>「苦瓜」暂时没有能用到它的菜。<br>必消食材是硬要求，我们不会随便凑数。</div>
+      </div>
+      <div class="gap-lg"></div>
+
+      <button class="btn-primary" onclick="go('s5')">去掉「土豆丝、苦瓜」再试</button>
       <button class="btn-ghost" onclick="go('s1')">返回修改必消食材</button>
 
       <div class="gap-lg"></div>

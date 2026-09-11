@@ -9,6 +9,10 @@
 //   FeedbackRequest = { didCook 必填, taste 条件必填（做了必填/没做禁传）, willRepeat 必填, actualMinutes 选填 }；
 //   新增 TasteSchema / FeedbackResponseSchema（GET /api/plans/:id/feedback）；
 //   删除 FeedbackResultSchema / CookResultSchema（旧 result/cookResult/failPoints 五项表单模型移除，breaking）。
+// v0.7（2026-09-11，T-P09）：dish.ts 内置契约精化，账本记录见 schemas/dish.ts 头部（api.ts 本身无变更）。
+// v0.8（2026-09-11，T-P10/PD-017，用户已批准）：RecommendResponseSchema 新增 optional unmetReasons ——
+//   空手原因分类侧车字段（key=必消食材用户原文，value='TIME_BUDGET'|'NO_DISH'），
+//   仅空手且 unmetMustUse 非空时由服务端携带；正常推荐与 C-7a 时缺省。
 import { z } from 'zod';
 import { MealRoleSchema } from './dish.js';
 import { FamilyRuleSchema, ExclusionRuleSchema } from './family.js';
@@ -188,7 +192,14 @@ export const GetExclusionsResponseSchema = z.array(ExclusionRuleSchema);
  */
 export const RecommendResponseSchema = z.object({
   candidates: z.array(CandidateSchema),
-  unmetMustUse: z.array(z.string()).optional(),
+  unmetMustUse: z.array(z.string()).optional(), // v0.3，语义不变
+  /**
+   * v0.8（T-P10/PD-017）：空手原因分类。
+   * key = 用户原文（与 unmetMustUse 元素一一对应）；value = TIME_BUDGET（有菜但时长档排不下）
+   * 或 NO_DISH（没有菜能消耗）。仅在空手且 unmetMustUse 非空时由服务端携带；正常推荐与
+   * 组合凑不进（C-7a）时缺省。向后兼容：optional 增量（先例同 v0.3 unmetMustUse）。
+   */
+  unmetReasons: z.record(z.string(), z.enum(['TIME_BUDGET', 'NO_DISH'])).optional(),
 });
 
 /** 单个计划响应（lock/swap/feedback/repeat） */

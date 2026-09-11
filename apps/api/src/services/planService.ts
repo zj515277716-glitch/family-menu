@@ -373,7 +373,13 @@ export const planService = {
 
   async generateRecommendation(
     context: PlanContext,
-  ): Promise<{ candidates: Candidate[]; planId?: string; unmetMustUse?: string[] }> {
+  ): Promise<{
+    candidates: Candidate[];
+    planId?: string;
+    unmetMustUse?: string[];
+    /** 空手原因分类（T-P10/PD-017）：key=必消食材用户原文，与 unmetMustUse 同键集一一对应 */
+    unmetReasons?: Record<string, 'TIME_BUDGET' | 'NO_DISH'>;
+  }> {
     const [rules, exclusions, library, history, mustUseResolved] = await Promise.all([
       loadFamilyRuleView(FAMILY_ID),
       loadExclusionViews(FAMILY_ID),
@@ -405,11 +411,18 @@ export const planService = {
     // 空手（PD-001/C-7）：没有任何方案能消耗全部必消 -> 不建 Plan、不写 Event、
     // 不改今晚设置；返回无法消耗的必消食材原文，供前端渲染空手说明页
     if (candidates.length === 0) {
+      // 空手原因分类（T-P10/PD-017）：与 unmetMustUse 用同一 idToRaw 映射回译，
+      // id 键 -> 用户原文键，同键集一一对应由构造保证（同源同序）
+      const unmetReasons: Record<string, 'TIME_BUDGET' | 'NO_DISH'> = {};
+      for (const [id, reason] of Object.entries(result.unsatisfiableMustUseReasons)) {
+        unmetReasons[mustUseResolved.idToRaw.get(id) ?? id] = reason;
+      }
       return {
         candidates,
         unmetMustUse: result.unsatisfiableMustUse.map(
           (id) => mustUseResolved.idToRaw.get(id) ?? id,
         ),
+        unmetReasons,
       };
     }
 

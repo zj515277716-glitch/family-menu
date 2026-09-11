@@ -397,6 +397,136 @@ async function main() {
     `lockedMenuId=${newLockedMenuId ?? 'undefined'} 含鸡蛋=${newLockedHasEgg}`,
   );
 
+  // ═══ T-P10 新增断言（只增不改：既有 35 断言保持原样，以下全部为 T-P10 新增） ═══
+  // 空手原因分类（PD-017 修订）：unmetReasons 侧车字段——
+  //   NO_DISH = 菜库没有能消耗该必消的可达菜单；TIME_BUDGET = 有器具齐全但超时的菜单含该必消（宽集归类）。
+  //   key = 用户原文（idToRaw 回译），与 unmetMustUse 同键集一一对应。
+
+  // ── T-P10 R1：苦瓜（库外词）空手 -> NO_DISH ──
+  const planBeforeP10 = await countRows('Plan');
+  const eventBeforeP10 = await countRows('Event');
+  const rKuei = await call('POST', '/api/recommend', {
+    body: { people: 4, timeBudgetMin: 30, mustUse: ['苦瓜'] },
+  });
+  const planAfterP10 = await countRows('Plan');
+  const eventAfterP10 = await countRows('Event');
+  step(
+    'T-P10 R1 苦瓜：200（真实 HTTP）',
+    rKuei.status === 200,
+    `status=${rKuei.status}`,
+  );
+  step(
+    'T-P10 R1 苦瓜：candidates=[]（空手行为零变化）',
+    Array.isArray(rKuei.data?.candidates) && rKuei.data.candidates.length === 0,
+    `candidates=${rKuei.data?.candidates?.length ?? '?'}`,
+  );
+  step(
+    "T-P10 R1 苦瓜：unmetMustUse=['苦瓜']（现状值零变化）",
+    JSON.stringify(rKuei.data?.unmetMustUse ?? null) === JSON.stringify(['苦瓜']),
+    `unmetMustUse=${JSON.stringify(rKuei.data?.unmetMustUse ?? null)}`,
+  );
+  step(
+    'T-P10 R1 苦瓜：unmetReasons={苦瓜:NO_DISH}（库外词无任何含它的菜单）',
+    JSON.stringify(rKuei.data?.unmetReasons ?? null) === JSON.stringify({ 苦瓜: 'NO_DISH' }),
+    `unmetReasons=${JSON.stringify(rKuei.data?.unmetReasons ?? null)}`,
+  );
+  step(
+    'T-P10 R1 苦瓜：响应无 planId（不建 Plan）',
+    rKuei.data?.planId === undefined,
+    `planId=${rKuei.data?.planId ?? 'undefined'}`,
+  );
+  step(
+    'T-P10 R1 苦瓜：Plan 落库零增量（空手不建 Plan）',
+    planAfterP10 === planBeforeP10,
+    `Plan ${planBeforeP10} -> ${planAfterP10}`,
+  );
+  step(
+    'T-P10 R1 苦瓜：Event 落库零增量（空手不写 Event）',
+    eventAfterP10 === eventBeforeP10,
+    `Event ${eventBeforeP10} -> ${eventAfterP10}`,
+  );
+
+  // ── T-P10 R2：土豆丝 30min 档空手 -> TIME_BUDGET（全链路核心用例：matcher 命中土豆 -> 引擎宽集归类 -> idToRaw 原文回译） ──
+  const planBeforeR2 = await countRows('Plan');
+  const eventBeforeR2 = await countRows('Event');
+  const rPotato30 = await call('POST', '/api/recommend', {
+    body: { people: 4, timeBudgetMin: 30, mustUse: ['土豆丝'] },
+  });
+  const planAfterR2 = await countRows('Plan');
+  const eventAfterR2 = await countRows('Event');
+  step(
+    'T-P10 R2 土豆丝30min：200（真实 HTTP）',
+    rPotato30.status === 200,
+    `status=${rPotato30.status}`,
+  );
+  step(
+    'T-P10 R2 土豆丝30min：candidates=[]（ matcher 命中土豆但 30min 档排不下，空手）',
+    Array.isArray(rPotato30.data?.candidates) && rPotato30.data.candidates.length === 0,
+    `candidates=${rPotato30.data?.candidates?.length ?? '?'}`,
+  );
+  step(
+    "T-P10 R2 土豆丝30min：unmetMustUse=['土豆丝']（原文回译）",
+    JSON.stringify(rPotato30.data?.unmetMustUse ?? null) === JSON.stringify(['土豆丝']),
+    `unmetMustUse=${JSON.stringify(rPotato30.data?.unmetMustUse ?? null)}`,
+  );
+  step(
+    'T-P10 R2 土豆丝30min：unmetReasons={土豆丝:TIME_BUDGET}（库里有器具齐全但超时的含土豆菜单）',
+    JSON.stringify(rPotato30.data?.unmetReasons ?? null) === JSON.stringify({ 土豆丝: 'TIME_BUDGET' }),
+    `unmetReasons=${JSON.stringify(rPotato30.data?.unmetReasons ?? null)}`,
+  );
+  step(
+    'T-P10 R2 土豆丝30min：响应无 planId（不建 Plan）',
+    rPotato30.data?.planId === undefined,
+    `planId=${rPotato30.data?.planId ?? 'undefined'}`,
+  );
+  step(
+    'T-P10 R2 土豆丝30min：Plan 落库零增量（空手不建 Plan）',
+    planAfterR2 === planBeforeR2,
+    `Plan ${planBeforeR2} -> ${planAfterR2}`,
+  );
+  step(
+    'T-P10 R2 土豆丝30min：Event 落库零增量（空手不写 Event）',
+    eventAfterR2 === eventBeforeR2,
+    `Event ${eventBeforeR2} -> ${eventAfterR2}`,
+  );
+
+  // ── T-P10 R3：土豆丝 60min 档对照 -> 候选非空（V2b 口径；本用例建 Plan/Event，计入 teardown 清理窗口） ──
+  const rPotato60 = await call('POST', '/api/recommend', {
+    body: { people: 4, timeBudgetMin: 60, mustUse: ['土豆丝'] },
+  });
+  const candPotato60 = Array.isArray(rPotato60.data?.candidates) ? rPotato60.data.candidates : [];
+  step(
+    'T-P10 R3 土豆丝60min：200 且候选非空（换长时长后出路可达，真实 HTTP）',
+    rPotato60.status === 200 && candPotato60.length > 0,
+    `status=${rPotato60.status} candidates=${candPotato60.length} planId=${rPotato60.data?.planId ?? 'undefined'}`,
+  );
+  step(
+    'T-P10 R3 土豆丝60min：正常推荐响应无 unmetReasons 键',
+    rPotato60.status === 200 && rPotato60.data && !('unmetReasons' in rPotato60.data),
+    `has unmetReasons=${rPotato60.data ? 'unmetReasons' in rPotato60.data : '?'}`,
+  );
+
+  // ── T-P10 R4：正常推荐（西红柿 60min）对照 -> 响应无 unmetReasons 键（本用例建 Plan/Event，计入 teardown 清理窗口） ──
+  const rTomatoP10 = await call('POST', '/api/recommend', {
+    body: { people: 4, timeBudgetMin: 60, mustUse: ['西红柿'] },
+  });
+  const candTomatoP10 = Array.isArray(rTomatoP10.data?.candidates) ? rTomatoP10.data.candidates : [];
+  step(
+    'T-P10 R4 西红柿：200 且候选非空（正常推荐）',
+    rTomatoP10.status === 200 && candTomatoP10.length > 0,
+    `status=${rTomatoP10.status} candidates=${candTomatoP10.length}`,
+  );
+  step(
+    'T-P10 R4 西红柿：响应无 unmetReasons 键（正常推荐时缺省，AC4 三态判定前置）',
+    rTomatoP10.status === 200 && rTomatoP10.data && !('unmetReasons' in rTomatoP10.data),
+    `has unmetReasons=${rTomatoP10.data ? 'unmetReasons' in rTomatoP10.data : '?'}`,
+  );
+  step(
+    'T-P10 R4 西红柿：unmetMustUse 空/缺省（现状零变化）',
+    !rTomatoP10.data?.unmetMustUse || rTomatoP10.data.unmetMustUse.length === 0,
+    `unmetMustUse=${JSON.stringify(rTomatoP10.data?.unmetMustUse ?? null)}`,
+  );
+
   await client.end();
   console.log(`\n== 结果: ${pass} PASS / ${fail} FAIL ==`);
   process.exit(fail === 0 ? 0 : 1);

@@ -98,9 +98,16 @@ export type ShoppingListData = ShoppingList
  * TP-02/PD-012（契约 v0.3）：planId 改为可选 —— 必消食材无方案时空手返回（candidates=[] 且不建 Plan）；
  * unmetMustUse 非空时为无法消耗的必消食材原文（渲染 C-7 空手文案 + 「去掉『X』再试」按钮）。
  * PD-014（C-7a）：candidates=[] 且 unmetMustUse 空/缺省 = 组合必消凑不进一桌（前端纯判定区分两种空手，无需新字段）。
+ * PD-017（契约 v0.8，T-P10）：unmetReasons = 空手原因分类侧车（key=必消食材用户原文，与 unmetMustUse 同键集），
+ * 仅空手且 unmetMustUse 非空时由服务端携带；正常推荐与 C-7a 时缺省。
  */
 export interface RecommendResult {
   candidates: CandidateView[]
   planId?: string
   unmetMustUse?: string[]
+  /** 空手原因分类（PD-017）：key=必消食材用户原文，与 unmetMustUse 同键集一一对应；缺省时按无菜型渲染 */
+  unmetReasons?: Record<string, UnmetReason>
 }
+
+/** 空手原因枚举（契约 v0.8）：TIME_BUDGET=菜库有器具齐全、含该食材的菜单，只是当次时长排不下；NO_DISH=菜库（经安全/器具过滤后）暂无能用到它的菜 */
+export type UnmetReason = 'TIME_BUDGET' | 'NO_DISH'

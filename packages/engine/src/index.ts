@@ -22,4 +22,5 @@ export type {
   ScoredMenu,
   FilterTrace,
   RecommendResult,
+  MustUseUnmetReason,
 } from './types.js';

@@ -50,5 +50,6 @@ export function recommend(input: RecommendInput): RecommendResult {
     candidates,
     filtered,
     unsatisfiableMustUse: feasibilityResult.unsatisfiable,
+    unsatisfiableMustUseReasons: feasibilityResult.unsatisfiableReasons,
   };
 }

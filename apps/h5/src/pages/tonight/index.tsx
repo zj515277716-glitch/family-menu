@@ -20,6 +20,22 @@ function composeEmptyTitle(mustUse: string[]): string {
   return `${mustUse.join('、')}这${n}样今晚凑不进同一桌菜`
 }
 
+// T-P10/PD-017：空手原因三态判定（仅 emptyReason 非空数组时调用）。
+// 对 emptyReason 各用户原文查 unmetReasons：缺省（同仓同发不可达，仅 h5 先发/旧后端防御）→ 全按无菜型；
+// 全 TIME_BUDGET → 时间型；混合 → 混合型；其余（全 NO_DISH）→ 无菜型（现状文案）。
+type EmptyKind = 'noDish' | 'timeBudget' | 'mixed'
+
+function classifyUnmet(
+  items: string[],
+  reasons: Record<string, 'TIME_BUDGET' | 'NO_DISH'> | null | undefined,
+): EmptyKind {
+  const kinds = items.map((raw) => reasons?.[raw] ?? 'NO_DISH')
+  const hasTime = kinds.includes('TIME_BUDGET')
+  const hasNoDish = kinds.includes('NO_DISH')
+  if (hasTime && hasNoDish) return 'mixed'
+  return hasTime ? 'timeBudget' : 'noDish'
+}
+
 export default function TonightPage() {
   const {
     tonightContext,
@@ -34,6 +50,10 @@ export default function TonightPage() {
   const [loading, setLoading] = useState(false)
   // TP-02 空手状态：保存 API 回传的"消耗不了的必消食材"（用户原文）；null=非空手
   const [emptyReason, setEmptyReason] = useState<string[] | null>(null)
+  // T-P10/PD-017：空手原因分类（key=用户原文，与 emptyReason 同键集）；null=缺省（按无菜型渲染）
+  const [emptyUnmetReasons, setEmptyUnmetReasons] = useState<
+    Record<string, 'TIME_BUDGET' | 'NO_DISH'> | null
+  >(null)
   // 定稿屏⑮：推荐失败 -> 页内错误视图（横幅+重试），不再用 toast
   const [connError, setConnError] = useState(false)
   // 定稿屏① sub 行：忌口信息来自禁忌规则
@@ -108,9 +128,11 @@ export default function TonightPage() {
         // 不同菜单消耗、但没有一整套同时用上全部——PD-014/C-7a 组合凑不进一桌变体，
         // 与 DEC-012 兜底场景共用本分支，渲染层按今晚必消是否非空区分文案）
         setEmptyReason(result.unmetMustUse ?? [])
+        setEmptyUnmetReasons(result.unmetReasons ?? null)
         return
       }
       setEmptyReason(null)
+      setEmptyUnmetReasons(null)
       setCandidates(result.candidates)
       setCurrentPlanId(result.planId ?? null)
       Taro.navigateTo({ url: '/pages/candidates/index' })
@@ -153,6 +175,7 @@ export default function TonightPage() {
   // 空手卡「返回修改必消食材」：关闭卡片回到表单
   function handleBackToEdit() {
     setEmptyReason(null)
+    setEmptyUnmetReasons(null)
   }
 
   // 定稿屏① sub 行：菜系 + 忌口（硬=过敏 / 软=不吃）；屏⑥ 空手时显示必消清单
@@ -180,6 +203,22 @@ export default function TonightPage() {
     return parts.join(' · ')
   }
 
+  // T-P10/PD-017：屏⑥空手原因细分派生（仅 emptyReason 非空数组时使用）。
+  // emptyKind=noDish 含缺省防御路径（unmetReasons 未携带）→ 现状文案原样。
+  const emptyKind =
+    emptyReason !== null && emptyReason.length > 0
+      ? classifyUnmet(emptyReason, emptyUnmetReasons)
+      : 'noDish'
+  // D-6：时间型文案里的档位分钟数取用户当次所选档位（与本次推荐请求参数同源）
+  const emptyMin = tonightContext.timeBudgetMin
+  // 混合型分句素材：按 unmetReasons 把空手必消拆成两型（缺省算 NO_DISH，与 classifyUnmet 防御口径一致）
+  const emptyTimeItems = (emptyReason ?? []).filter(
+    (raw) => (emptyUnmetReasons?.[raw] ?? 'NO_DISH') === 'TIME_BUDGET',
+  )
+  const emptyNoDishItems = (emptyReason ?? []).filter(
+    (raw) => (emptyUnmetReasons?.[raw] ?? 'NO_DISH') === 'NO_DISH',
+  )
+
   const subLine = buildSub()
 
   return (
@@ -205,19 +244,38 @@ export default function TonightPage() {
         <View className="fm-card fm-empty">
           <View className="fm-empty-emoji">🤔</View>
           <View className="fm-empty-title">
-            {emptyReason.length > 0
-              ? `今晚没有能用上「${emptyReason.join('、')}」的做法`
-              : tonightContext.mustUse.length > 0
-                ? // PD-014/C-7a：组合必消凑不进一桌（candidates=[] 且 unmetMustUse 空/缺省）
-                  composeEmptyTitle(tonightContext.mustUse)
-                : '今晚没有找到合适的搭配'}
+            {emptyReason.length > 0 ? (
+              emptyKind === 'timeBudget' ? (
+                // T-P10 时间型：标题含当次所选档位分钟数（D-6）
+                `能用到「${emptyReason.join('、')}」的菜，今晚 ${emptyMin} 分钟内排不下`
+              ) : (
+                // 无菜型/混合型：现状标题模板原样
+                `今晚没有能用上「${emptyReason.join('、')}」的做法`
+              )
+            ) : tonightContext.mustUse.length > 0 ? (
+              // PD-014/C-7a：组合必消凑不进一桌（candidates=[] 且 unmetMustUse 空/缺省）
+              composeEmptyTitle(tonightContext.mustUse)
+            ) : (
+              '今晚没有找到合适的搭配'
+            )}
           </View>
           <View className="fm-empty-text">
-            {emptyReason.length > 0
-              ? `必消食材是硬要求，用不上的方案不会推荐。现在的菜库里暂时没有用上${emptyReason.join('、')}的菜，我们不会随便给你一套凑数的菜单。`
-              : tonightContext.mustUse.length > 0
-                ? '每样单独都能做，但没有一桌能同时用上它们。'
-                : '这些食材没能同时出现在同一套菜单里，我们不会随便给你一套凑数的菜单。可以试试调整必消食材或时间。'}
+            {emptyReason.length > 0 ? (
+              emptyKind === 'timeBudget' ? (
+                // T-P10 时间型：新文案（档位分钟数 + 换长时长出路暗示）
+                `菜里有能用到它的做法，但整套工时超过了 ${emptyMin} 分钟。可以把时长换长一点再试，或去掉「${emptyReason.join('、')}」按剩下的必消推荐。必消食材是硬要求，我们不会随便凑数。`
+              ) : emptyKind === 'mixed' ? (
+                // T-P10 混合型（D-4）：正文分句——时间型子句带出路暗示，无菜型子句如实
+                `能用到「${emptyTimeItems.join('、')}」的菜今晚 ${emptyMin} 分钟内排不下，换个更长的时长也许能排上；「${emptyNoDishItems.join('、')}」暂时没有能用到它的菜。必消食材是硬要求，我们不会随便凑数。`
+              ) : (
+                // 无菜型（含缺省防御）：现状文案逐字不变
+                `必消食材是硬要求，用不上的方案不会推荐。现在的菜库里暂时没有用上${emptyReason.join('、')}的菜，我们不会随便给你一套凑数的菜单。`
+              )
+            ) : tonightContext.mustUse.length > 0 ? (
+              '每样单独都能做，但没有一桌能同时用上它们。'
+            ) : (
+              '这些食材没能同时出现在同一套菜单里，我们不会随便给你一套凑数的菜单。可以试试调整必消食材或时间。'
+            )}
           </View>
         </View>
       ) : (

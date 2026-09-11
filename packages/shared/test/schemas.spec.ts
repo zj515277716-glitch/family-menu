@@ -666,6 +666,63 @@ describe('api schemas', () => {
       expect(r.data.unmetMustUse).toBeUndefined();
     }
   });
+
+  it('RecommendResponseSchema 带unmetReasons通过（v0.8 空手原因，两枚举值原样保留）', () => {
+    const r = RecommendResponseSchema.safeParse({
+      candidates: [],
+      unmetMustUse: ['土豆丝', '苦瓜'],
+      unmetReasons: { 土豆丝: 'TIME_BUDGET', 苦瓜: 'NO_DISH' },
+    });
+    expect(r.success).toBe(true);
+    if (r.success) {
+      expect(r.data.unmetReasons).toEqual({ 土豆丝: 'TIME_BUDGET', 苦瓜: 'NO_DISH' });
+    }
+  });
+
+  it('RecommendResponseSchema 缺省unmetReasons通过（向后兼容 v0.7）', () => {
+    const r = RecommendResponseSchema.safeParse({
+      candidates: [],
+      unmetMustUse: ['苦瓜'],
+    });
+    expect(r.success).toBe(true);
+    if (r.success) {
+      expect(r.data.unmetReasons).toBeUndefined();
+    }
+  });
+
+  it('RecommendResponseSchema 非法原因枚举拒（v0.8）', () => {
+    expect(
+      RecommendResponseSchema.safeParse({
+        candidates: [],
+        unmetMustUse: ['苦瓜'],
+        unmetReasons: { 苦瓜: 'WEEKEND' },
+      }).success,
+    ).toBe(false);
+    expect(
+      RecommendResponseSchema.safeParse({
+        candidates: [],
+        unmetMustUse: ['苦瓜'],
+        unmetReasons: { 苦瓜: 'no_dish' },
+      }).success,
+    ).toBe(false);
+  });
+
+  it('RecommendResponseSchema 非对象形式的unmetReasons拒（v0.8）', () => {
+    expect(
+      RecommendResponseSchema.safeParse({
+        candidates: [],
+        unmetMustUse: ['苦瓜'],
+        unmetReasons: ['NO_DISH'],
+      }).success,
+    ).toBe(false);
+    expect(
+      RecommendResponseSchema.safeParse({
+        candidates: [],
+        unmetMustUse: ['苦瓜'],
+        unmetReasons: 'NO_DISH',
+      }).success,
+    ).toBe(false);
+  });
 });
 
 // ───── constants ─────

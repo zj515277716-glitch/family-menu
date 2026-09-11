@@ -132,10 +132,19 @@ export interface FilterTrace {
   rule: string;
 }
 
+/**
+ * 必消空手原因分类（T-P10 / PD-017 修订）：
+ * - TIME_BUDGET：菜库存在器具齐全、含该食材的菜单，只是当次时长排不下（出路：换更长时间长）
+ * - NO_DISH：菜库（经安全/器具过滤后）暂时没有能用到该食材的菜单
+ */
+export type MustUseUnmetReason = 'TIME_BUDGET' | 'NO_DISH';
+
 /** recommend 返回类型，对齐 4.2 */
 export interface RecommendResult {
   candidates: ScoredMenu[]; // 恰好 3 套（不足时如实返回并说明；必消无法消耗时为空）
   filtered: FilterTrace[];
   /** 没有任何可达菜单能消耗的必消食材（ingredientId）——非空即注定空手（PD-001） */
   unsatisfiableMustUse: string[];
+  /** 空手原因分类（T-P10）：与 unsatisfiableMustUse 同键集（key=ingredientId），空手非空时必非空 */
+  unsatisfiableMustUseReasons: Record<string, MustUseUnmetReason>;
 }

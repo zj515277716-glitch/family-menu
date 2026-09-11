@@ -19,10 +19,12 @@ export const recommendRoutes: FastifyPluginAsync = async (app) => {
     // 调 planService 引擎编排（正常：建 Plan + 返回 planId；空手：不建 Plan，返回 unmetMustUse）
     const result = await planService.generateRecommendation(parsed.data);
 
-    // 响应过 RecommendResponseSchema 校验（unmetMustUse 必须经 parse 透传，否则被 strip）
+    // 响应过 RecommendResponseSchema 校验（unmetMustUse/unmetReasons 必须经 parse 显式透传，
+    // 否则被 strip；unmetReasons 为空手原因分类 v0.8，正常推荐时缺省不传）
     const response = RecommendResponseSchema.parse({
       candidates: result.candidates,
       ...(result.unmetMustUse ? { unmetMustUse: result.unmetMustUse } : {}),
+      ...(result.unmetReasons ? { unmetReasons: result.unmetReasons } : {}),
     });
     // 返回 candidates + planId（planId 供后续 lock/swap 使用；空手时无 planId）
     return result.planId !== undefined ? { ...response, planId: result.planId } : response;
