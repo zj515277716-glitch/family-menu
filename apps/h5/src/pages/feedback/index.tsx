@@ -70,7 +70,7 @@ export default function FeedbackPage() {
       return
     }
     try {
-      // 404 = 无反馈 -> 空表单（getFeedback 内部已把 404 转为 null）
+      // v0.9/T-P12：plan 存在但无反馈时响应体即 JSON null -> 空表单（plan 不存在仍 404，getFeedback 的 notFoundAsNull 兜底转 null）
       const fb = await api.getFeedback(id)
       if (fb) {
         setDidCook(fb.didCook)

@@ -68,7 +68,7 @@ export default function HistoryPage() {
     try {
       const list = await api.listPlans()
       setPlans(list)
-      // C-11：对已记录的 plan 并发取最新反馈（404=未记，getFeedback 已把 404 转 null）
+      // C-11：对已记录的 plan 并发取最新反馈（v0.9/T-P12：无反馈响应体即 null；plan 不存在 404 由 getFeedback notFoundAsNull 兜底转 null）
       const recorded = list.filter((p) => p.status === 'COOKED' || p.status === 'SKIPPED')
       const pairs = await Promise.all(
         recorded.map(async (p) => {

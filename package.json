@@ -7,7 +7,7 @@
     "dev:api": "pnpm --filter @family-menu/api dev",
     "dev:h5": "pnpm --filter @family-menu/h5 dev:h5",
     "dev:admin": "pnpm --filter @family-menu/admin dev",
-    "test": "vitest run",
+    "test": "vitest run --no-file-parallelism",
     "test:taboo": "vitest run packages/engine/test/",
     "db:migrate": "pnpm --filter @family-menu/api prisma migrate dev",
     "db:seed": "pnpm --filter @family-menu/api prisma db seed",
