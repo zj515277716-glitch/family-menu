@@ -57,7 +57,7 @@ export const ingredients = [
   { id: 'seed-ing-seaweed', name: '紫菜', aliases: ['海苔'], category: '蔬菜', defaultUnit: 'g' },
   { id: 'seed-ing-cucumber', name: '黄瓜', aliases: ['青瓜'], category: '蔬菜', defaultUnit: 'g' },
   // 肉类
-  { id: 'seed-ing-pork', name: '猪肉', aliases: ['五花肉', '瘦肉', '里脊'], category: '肉类', defaultUnit: 'g' },
+  { id: 'seed-ing-pork', name: '猪肉', aliases: ['瘦肉', '里脊'], category: '肉类', defaultUnit: 'g' },
   { id: 'seed-ing-ribs', name: '排骨', aliases: ['肋排', '猪排骨', '小排', '仔排'], category: '肉类', defaultUnit: 'g' },
   { id: 'seed-ing-beef', name: '牛腩', aliases: ['牛肉'], category: '肉类', defaultUnit: 'g' },
   // 水产
@@ -68,7 +68,7 @@ export const ingredients = [
   // 调料
   { id: 'seed-ing-soysauce', name: '生抽', aliases: ['酱油'], category: '调料', defaultUnit: 'ml' },
   { id: 'seed-ing-salt', name: '盐', aliases: ['食盐', '精盐'], category: '调料', defaultUnit: 'g' },
-  { id: 'seed-ing-sugar', name: '白糖', aliases: ['冰糖', '砂糖', '白砂糖'], category: '调料', defaultUnit: 'g' },
+  { id: 'seed-ing-sugar', name: '白糖', aliases: ['砂糖', '白砂糖'], category: '调料', defaultUnit: 'g' },
   { id: 'seed-ing-cookingwine', name: '料酒', aliases: ['黄酒'], category: '调料', defaultUnit: 'ml' },
   // 主食
   { id: 'seed-ing-rice', name: '大米', aliases: ['白米', '米', '香米'], category: '主食', defaultUnit: 'g' },
