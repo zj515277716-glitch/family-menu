@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "tsx watch src/server.ts",
     "build": "prisma generate && tsc -p tsconfig.json",
-    "test": "vitest run",
+    "test": "vitest run --root ../.. --no-file-parallelism",
     "lint": "eslint src",
     "prisma": "prisma"
   },
