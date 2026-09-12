@@ -26,7 +26,7 @@ model Family {
   exclusions ExclusionRule[]
   plans      Plan[]
   events     Event[]
-  createdAt  DateTime        @default(now())
+  createdAt  DateTime        @default(now()) @db.Timestamptz
 }
 
 model FamilyRule {
@@ -37,7 +37,7 @@ model FamilyRule {
   timeBudgets   Int[]    // 常用时长档，如 [30, 60]
   equipment     String[] // wok/rice_cooker/steamer/air_fryer
   cuisines      String[] // 如 湘菜/家常
-  updatedAt     DateTime @updatedAt
+  updatedAt     DateTime @updatedAt @db.Timestamptz
 }
 
 // 硬软分离（文件③7.4 核心修正）：HARD=过敏/绝对禁忌(过滤)，SOFT=不喜欢(降权)
@@ -175,7 +175,7 @@ model CookLog {
   id            String   @id @default(cuid())
   menuId        String?
   dishId        String?
-  cookedAt      DateTime @default(now())
+  cookedAt      DateTime @default(now()) @db.Timestamptz
   actualMinutes Int?
   result        String   // success | partial | fail
   failPoints    String?
@@ -190,14 +190,14 @@ model Plan {
   id           String     @id @default(cuid())
   familyId     String
   family       Family     @relation(fields: [familyId], references: [id])
-  planDate     DateTime
+  planDate     DateTime   @db.Timestamptz
   context      Json       // {people, timeBudgetMin, mustUse: string[]}
   candidates   Json       // 3套候选快照：[{menuId, score, reasons, breakdown}]
   lockedMenuId String?
   shoppingList Json?      // 合并后清单快照 + 勾选状态
   status       PlanStatus @default(PROPOSED)
   events       Event[]
-  createdAt    DateTime   @default(now())
+  createdAt    DateTime   @default(now()) @db.Timestamptz
 }
 
 enum PlanStatus {
@@ -214,7 +214,7 @@ model Event {
   planId    String?
   type      EventType
   payload   Json?     // swap时记 {reason: "太麻烦"}
-  createdAt DateTime  @default(now())
+  createdAt DateTime  @default(now()) @db.Timestamptz
   family    Family    @relation(fields: [familyId], references: [id])
   plan      Plan?     @relation(fields: [planId], references: [id])
 }
