@@ -779,9 +779,9 @@ describe('性能测试（AC12）', () => {
     };
     // 预热 JIT（首次调用包含 V8 编译开销，不计时）
     recommend(input);
-    // 多次运行取最小值（减少机器负载波动干扰，反映代码真实性能）
+    // 多次（7 次）运行取最小值（减少机器负载波动干扰，反映代码真实性能）
     let minElapsed = Infinity;
-    for (let i = 0; i < 3; i++) {
+    for (let i = 0; i < 7; i++) {
       const start = performance.now();
       recommend(input);
       const elapsed = performance.now() - start;
