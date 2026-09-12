@@ -1,7 +1,8 @@
 const fs = require('fs');
 const path = require('path');
 
-const dist = 'apps/h5/dist';
+// 锚定脚本自身位置（仓库根），不依赖 cwd：pnpm --filter 与根目录直跑两种方式均可
+const dist = path.join(__dirname, 'apps', 'h5', 'dist');
 const js = fs.readdirSync(path.join(dist, 'js')).filter(f => f.endsWith('.js'));
 const css = fs.readdirSync(path.join(dist, 'css')).filter(f => f.endsWith('.css'));
 
