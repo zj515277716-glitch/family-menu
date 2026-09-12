@@ -1,10 +1,6 @@
 // packages/shared/src/schemas/dish.ts
 // 内容资产契约，对齐实施方案 3.2 数据模型（Dish / DishIngredient / Ingredient / Substitution）
-// 契约版本 v0.7（2026-09-11，T-P09，用户已批准）：DishSchema.imageUrl 口径放宽为
-//   「http(s) 绝对 URL 或 /images/ 开头站内相对路径」二选一（z.union）——R-10 方案 B：
-//   DB 与 Plan.candidates 快照只存相对路径（fetch2dish 产物 /images/dishes/<id>/<i>.<ext>），
-//   前端按 TARO_APP_API_BASE_URL 拼基址；sourceUrl 保持 z.string().url() 不动（外部原帖必为 URL）；
-//   空串两个分支均不匹配，仍拒绝。历史版本 v0.2~v0.6 记录见 schemas/api.ts 头部。
+// 契约版本账本见 schemas/api.ts 头部（v0.2 起；v0.3 无专行，记于 api.ts unmetMustUse 字段注。T-P11 账本收敛）。
 import { z } from 'zod';
 
 // ───── 枚举 ─────

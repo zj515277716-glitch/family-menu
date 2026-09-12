@@ -5,7 +5,10 @@
 // 2) 纯函数（防御层）：toMenuView 乱序 MenuDishRow 输入仍输出有序数组
 // 3) 投影（AC1）：Dish 三媒体字段 imageUrl/sourceUrl/sourceSite 透传进 View；
 //    null -> undefined，JSON 序列化后键消失（前端按缺省走无图降级，不编造）
-// 本机 PG 不可达时整组 skip（不挂无 DB 环境；夹具 tp07-spec- 前缀，afterAll 清理还原）
+// 本机 PG 不可达时：3 条 DB 用例显式 skip（原因与计数经 console.warn 在输出可见，不假绿），
+// 2 条纯函数用例照常执行，整个文件不判 failed；
+// afterAll 仅在 DB 可达时清理（无 PG 不执行 deleteMany，避免连接错误成未处理异常）；
+// 夹具 tp07-spec- 前缀，afterAll 清理还原（T-P11 AC2）
 
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import { prisma } from '../src/db.js';
@@ -75,8 +78,16 @@ describe('T-P07 projection & orderBy (AC1/AC2/AC3)', () => {
     try {
       await prisma.$queryRaw`SELECT 1`;
       dbReady = true;
-    } catch {
-      dbReady = false; // 无 PG 环境：DB 用例经各自上下文 skip，不挂测试
+    } catch (e) {
+      dbReady = false; // 无 PG 环境：DB 用例显式 skip（计数在 vitest 摘要可见，原因见下行输出与文件头说明）
+      const reason = e instanceof Error ? e.message : String(e);
+      // 可见性说明（T-P11 实测）：vitest 4 非 TTY 默认/verbose 报告器不回显被拦截的 console.*，
+      // skip 原因文本也不打印；摘要行 "N passed | M skipped" 的计数始终可见。
+      // console.warn 保留：TTY 模式与需人工排查时仍会输出原因与处置命令。
+      console.warn(
+        `[projection-order] PG 不可达（${reason}）：3 条 DB 用例 skip、2 条纯函数用例照常。` +
+          `修复：.pg/bin/pg_ctl.exe start -D .pg/data -o "-p 54329"`,
+      );
       return;
     }
     await cleanup(); // 清残留（失败重跑幂等）
@@ -84,11 +95,10 @@ describe('T-P07 projection & orderBy (AC1/AC2/AC3)', () => {
   });
 
   afterAll(async () => {
-    try {
-      await cleanup();
-    } finally {
-      await prisma.$disconnect();
-    }
+    // T-P11 AC2：无 PG 时 cleanup 内 deleteMany 会抛未处理连接错误，致整个文件被标 failed——
+    // 仅在 DB 可达时执行清理；$disconnect 对未连接实例为幂等空操作，始终执行。
+    if (dbReady) await cleanup();
+    await prisma.$disconnect();
   });
 
   // ── AC3：loadMenuViews 查询层 orderBy——乱序写入读出按 sort 升序 ──
@@ -100,8 +110,9 @@ describe('T-P07 projection & orderBy (AC1/AC2/AC3)', () => {
     expect(fixture!.dishes.map((d) => d.id)).toEqual([dishIds.a, dishIds.b, dishIds.c]);
   });
 
-  // ── AC3：hydrateLockedMenu 懒水合路径（快照缺失）同样按 sort 升序 ──
-  it('hydrateLockedMenu lazy-hydration path returns dishes in sort asc order', async ({ skip }) => {
+  // ── AC3：hydrateLockedMenu 懒水合路径（快照缺失）同样按 sort 升序，
+  //    且投影口径与 loadMenuViews 一致（T-P11 AC3 固化：有图菜三媒体字段透传、无图菜三字段缺省）──
+  it('hydrateLockedMenu lazy-hydration path returns dishes in sort asc order with media projection', async ({ skip }) => {
     if (!dbReady) return skip('PG 不可达，DB 集成断言跳过');
     // 快照缺失（candidates 的 menu 字段不带 dishes）-> 走 DB 懒水合
     const plan = {
@@ -117,6 +128,16 @@ describe('T-P07 projection & orderBy (AC1/AC2/AC3)', () => {
     } as Parameters<typeof hydrateLockedMenu>[0];
     const { menuView } = await hydrateLockedMenu(plan);
     expect(menuView.dishes.map((d) => d.id)).toEqual([dishIds.a, dishIds.b, dishIds.c]);
+    // T-P11 AC3：懒水合路径投影断言——有图菜三媒体字段透传
+    const hydWithImage = menuView.dishes.find((d) => d.id === dishIds.a)!;
+    expect(hydWithImage.imageUrl).toContain('tp07-spec.jpg');
+    expect(hydWithImage.sourceSite).toBe('xiachufang');
+    expect(hydWithImage.sourceUrl).toContain('xiachufang.com');
+    // 无图菜三字段缺省（null -> undefined，与 toDishView 映射口径一致）
+    const hydNoImage = menuView.dishes.find((d) => d.id === dishIds.b)!;
+    expect(hydNoImage.imageUrl).toBeUndefined();
+    expect(hydNoImage.sourceUrl).toBeUndefined();
+    expect(hydNoImage.sourceSite).toBeUndefined();
   });
 
   // ── AC3 防御层：toMenuView 纯函数对乱序输入仍输出有序数组 ──

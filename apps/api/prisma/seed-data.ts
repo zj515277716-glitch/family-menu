@@ -47,7 +47,7 @@ export const exclusionRules = [
 
 // ───── 食材（覆盖6类：蔬菜/肉类/水产/蛋奶/调料/主食）─────
 
-// 别名原则：覆盖用户日常说法（必消输入按 name+aliases 精确匹配，见 planService.resolveMustUseIds）
+// 别名原则：覆盖用户日常说法（必消输入按 name+aliases 分层匹配：层 1 精确等值 + 层 2 双向子串唯一命中，命中 ≥2 歧义不猜、未映射原文透传，见 planService.resolveMustUseIds / utils/must-use-matcher.ts）
 export const ingredients = [
   // 蔬菜
   { id: 'seed-ing-tomato', name: '番茄', aliases: ['西红柿', '洋柿子'], category: '蔬菜', defaultUnit: 'g' },

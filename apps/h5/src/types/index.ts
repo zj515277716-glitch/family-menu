@@ -49,11 +49,12 @@ export interface DishSnapshot {
   equipment: string[]
   /**
    * 菜品图（T-P06/PD-016：契约 Dish.imageUrl，单图）。
-   * 注意：当前 API 菜单快照未投影该字段（恒 undefined）→ 做法页走无图降级；
-   * 字段先行对齐契约，API 投影补齐后前端自动亮图，无需再改。
+   * T-P07 起 API 菜单快照已投影该字段；T-P08 起 DB 只存 /images/ 开头相对路径，
+   * 做法页经 toAbsoluteImageUrl 按 TARO_APP_API_BASE_URL 拼基址展示（历史绝对 URL 原样直用），
+   * 加载失败走 onError 降级占位。
    */
   imageUrl?: string
-  /** 来源站点（契约字段，同上：API 未投影时不渲染来源徽标） */
+  /** 来源站点（契约字段；API 已投影，h5 当前未渲染来源徽标，保留待用） */
   sourceSite?: string
   /** 用料（做法页展示用；真 API 未返回时为 undefined） */
   ingredients?: {

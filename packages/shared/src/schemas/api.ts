@@ -9,10 +9,15 @@
 //   FeedbackRequest = { didCook 必填, taste 条件必填（做了必填/没做禁传）, willRepeat 必填, actualMinutes 选填 }；
 //   新增 TasteSchema / FeedbackResponseSchema（GET /api/plans/:id/feedback）；
 //   删除 FeedbackResultSchema / CookResultSchema（旧 result/cookResult/failPoints 五项表单模型移除，breaking）。
-// v0.7（2026-09-11，T-P09）：dish.ts 内置契约精化，账本记录见 schemas/dish.ts 头部（api.ts 本身无变更）。
+// v0.7（2026-09-11，T-P09，用户已批准）：DishSchema.imageUrl 口径放宽为
+//   「http(s) 绝对 URL 或 /images/ 开头站内相对路径」二选一（z.union）——R-10 方案 B：
+//   DB 与 Plan.candidates 快照只存相对路径（fetch2dish 产物 /images/dishes/<id>/<i>.<ext>），
+//   前端按 TARO_APP_API_BASE_URL 拼基址；sourceUrl 保持 z.string().url() 不动（外部原帖必为 URL）；
+//   空串两个分支均不匹配，仍拒绝。（原记于 dish.ts 头部，T-P11 账本收敛移入此单一入口。）
 // v0.8（2026-09-11，T-P10/PD-017，用户已批准）：RecommendResponseSchema 新增 optional unmetReasons ——
 //   空手原因分类侧车字段（key=必消食材用户原文，value='TIME_BUDGET'|'NO_DISH'），
-//   仅空手且 unmetMustUse 非空时由服务端携带；正常推荐与 C-7a 时缺省。
+//   空手时由服务端携带：存在不可消耗必消时为非空分类对象（与 unmetMustUse 同键集）；
+//   C-7a 组合必消空手时为空对象 {}；正常推荐时缺省。
 import { z } from 'zod';
 import { MealRoleSchema } from './dish.js';
 import { FamilyRuleSchema, ExclusionRuleSchema } from './family.js';
@@ -196,8 +201,9 @@ export const RecommendResponseSchema = z.object({
   /**
    * v0.8（T-P10/PD-017）：空手原因分类。
    * key = 用户原文（与 unmetMustUse 元素一一对应）；value = TIME_BUDGET（有菜但时长档排不下）
-   * 或 NO_DISH（没有菜能消耗）。仅在空手且 unmetMustUse 非空时由服务端携带；正常推荐与
-   * 组合凑不进（C-7a）时缺省。向后兼容：optional 增量（先例同 v0.3 unmetMustUse）。
+   * 或 NO_DISH（没有菜能消耗）。空手时由服务端携带：存在不可消耗必消时为非空分类对象
+   * （与 unmetMustUse 同键集）；C-7a 组合必消空手时为空对象 `{}`；正常推荐时缺省。
+   * 向后兼容：optional 增量（先例同 v0.3 unmetMustUse）。
    */
   unmetReasons: z.record(z.string(), z.enum(['TIME_BUDGET', 'NO_DISH'])).optional(),
 });

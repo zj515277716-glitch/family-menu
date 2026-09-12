@@ -1,5 +1,10 @@
 // packages/engine/src/recommend.ts
-// 推荐主函数：串联四层管道（safety -> feasibility -> score -> diversify），输出 {candidates, filtered, unsatisfiableMustUse}
+// 推荐主函数：串联四层管道（safety -> feasibility -> score -> diversify），
+// 输出 {candidates, filtered, unsatisfiableMustUse, unsatisfiableMustUseReasons}
+// unsatisfiableMustUseReasons（T-P10/PD-017）：空手原因分类，key=ingredientId（与 unsatisfiableMustUse 同键集），
+//   value='TIME_BUDGET'（菜库存在器具齐全、含该食材的菜单，只是当次时长排不下）
+//        | 'NO_DISH'（菜库经安全/器具过滤后暂时没有能用到该食材的菜单）；
+//   unsatisfiableMustUse 非空（注定空手）时必非空；正常推荐时为空对象（键集为空）。
 import type { FilterTrace, RecommendInput, RecommendResult, ScoredMenu } from './types.js';
 import { safetyFilter } from './safety.js';
 import { feasibilityFilter } from './feasibility.js';
