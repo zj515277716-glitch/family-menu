@@ -148,7 +148,8 @@ export const api = {
     })
   },
 
-  // 10b. GET /api/plans/:id/feedback -> FeedbackResponse（404=无反馈，返回 null 供回显/空表单）
+  // 10b. GET /api/plans/:id/feedback -> FeedbackResponse | null
+  // （v0.9/T-P12：plan 存在但无反馈时响应体即 JSON null；plan 不存在仍 404，notFoundAsNull 兜底转 null 防崩溃）
   getFeedback(planId: string): Promise<FeedbackResponse | null> {
     return request<FeedbackResponse | null>(`/api/plans/${planId}/feedback`, { method: 'GET' }, true)
   },

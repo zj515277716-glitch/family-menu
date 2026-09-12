@@ -746,7 +746,7 @@ describe('API contract tests', () => {
     });
   });
 
-  describe('GET /api/plans/:id/feedback (v0.6 DEC-015 裁决 4)', () => {
+  describe('GET /api/plans/:id/feedback (v0.6 DEC-015 裁决 4；v0.9 空态 200+null，T-P12)', () => {
     it('returns 200 with FeedbackResponse（有反馈）', async () => {
       vi.mocked(planService.getFeedback).mockResolvedValue({
         didCook: true, taste: 'good', willRepeat: true, actualMinutes: 30,
@@ -777,11 +777,24 @@ describe('API contract tests', () => {
       expect(body.taste).toBeUndefined();
     });
 
-    it('returns 404 when 无反馈', async () => {
-      vi.mocked(planService.getFeedback).mockRejectedValue(new NotFoundError('Plan test-plan-id has no feedback'));
+    it('returns 200 with null body when 无反馈（v0.9：plan 存在但无反馈 -> 200 + JSON null）', async () => {
+      vi.mocked(planService.getFeedback).mockResolvedValue(null);
       const response = await app.inject({
         method: 'GET',
         url: '/api/plans/test-plan-id/feedback',
+        cookies: { access_token: 'test-token' },
+      });
+      expect(response.statusCode).toBe(200);
+      // 响应体即 null 字面量（非空对象/空串/错误包裹）
+      expect(response.body).toBe('null');
+      expect(JSON.parse(response.body)).toBeNull();
+    });
+
+    it('returns 404 when plan 不存在（v0.9：404 语义收敛为资源不存在）', async () => {
+      vi.mocked(planService.getFeedback).mockRejectedValue(new NotFoundError('Plan tp12-not-exist not found'));
+      const response = await app.inject({
+        method: 'GET',
+        url: '/api/plans/tp12-not-exist/feedback',
         cookies: { access_token: 'test-token' },
       });
       expect(response.statusCode).toBe(404);

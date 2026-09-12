@@ -18,6 +18,9 @@
 //   空手原因分类侧车字段（key=必消食材用户原文，value='TIME_BUDGET'|'NO_DISH'），
 //   空手时由服务端携带：存在不可消耗必消时为非空分类对象（与 unmetMustUse 同键集）；
 //   C-7a 组合必消空手时为空对象 {}；正常推荐时缺省。
+// v0.9（2026-09-12，T-P12，挂账⑤）：GET /api/plans/:id/feedback 空态语义修订——
+//   「plan 存在但无反馈」从 404 改为 200 + JSON null（响应体即 null 字面量，非空对象/空串）；
+//   「plan 不存在」保持 404（404 语义收敛为「资源不存在」）；有反馈报文形状零变化。
 import { z } from 'zod';
 import { MealRoleSchema } from './dish.js';
 import { FamilyRuleSchema, ExclusionRuleSchema } from './family.js';
@@ -164,11 +167,12 @@ export const FeedbackRequestSchema = z
   });
 
 /**
- * GET /api/plans/:id/feedback 响应（v0.6，DEC-015 裁决 4）。
+ * GET /api/plans/:id/feedback 响应（v0.6，DEC-015 裁决 4；v0.9 空态语义修订，T-P12）。
  * 返回该 plan 事件流最新一条反馈（didCook 由事件类型派生：COOKED/NOT_COOKED）；
  * taste/willRepeat/actualMinutes 取事件 payload；submittedAt = 事件创建时间。
  * 响应侧 taste/willRepeat/actualMinutes optional：v0.5 旧事件 payload 无这些字段，如实缺省不编造。
- * 无反馈时返回 404（前端 catch 后初始化空表单）。
+ * v0.9（T-P12，挂账⑤）：本 schema 描述「有反馈」报文形状（零变化）；plan 存在但无反馈时
+ * 路由层直接返回 200 + JSON null（响应体即 null 字面量）；plan 不存在时仍 404。
  */
 export const FeedbackResponseSchema = z.object({
   didCook: z.boolean(),

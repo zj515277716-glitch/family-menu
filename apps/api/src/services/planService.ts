@@ -855,13 +855,13 @@ export const planService = {
   },
 
   /**
-   * 读取该 plan 最新一条反馈（GET /api/plans/:id/feedback，DEC-015 裁决 4）。
+   * 读取该 plan 最新一条反馈（GET /api/plans/:id/feedback，DEC-015 裁决 4；v0.9 空态修订 T-P12）。
    * didCook 由事件类型派生（COOKED/NOT_COOKED）；taste/willRepeat/actualMinutes 取事件 payload；
    * submittedAt = 事件创建时间。事件流 append-only：覆盖重提后自然取到最新一条。
    * taste/willRepeat/actualMinutes 可选 = v0.5 旧事件 payload 无这些字段，如实缺省不编造。
-   * 无反馈 -> 404（前端 catch 后初始化空表单）。
+   * 无反馈 -> return null（v0.9：路由层 200 + JSON null）；plan 不存在仍 NotFoundError -> 404。
    */
-  async getFeedback(planId: string): Promise<FeedbackResponse> {
+  async getFeedback(planId: string): Promise<FeedbackResponse | null> {
     const plan = await prisma.plan.findUnique({ where: { id: planId } });
     if (!plan) {
       throw new NotFoundError(`Plan ${planId} not found`);
@@ -872,7 +872,7 @@ export const planService = {
       orderBy: { createdAt: 'desc' },
     });
     if (!event) {
-      throw new NotFoundError(`Plan ${planId} has no feedback`);
+      return null;
     }
 
     const payload = (event.payload ?? {}) as {

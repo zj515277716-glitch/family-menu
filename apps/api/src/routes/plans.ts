@@ -139,13 +139,18 @@ export const planRoutes: FastifyPluginAsync = async (app) => {
     return PlanResponseSchema.parse(plan);
   });
 
-  // GET /api/plans/:id/feedback —— 该 plan 最新一条反馈（无则 404，前端回显/初始化空表单）
+  // GET /api/plans/:id/feedback —— 该 plan 最新一条反馈
+  // v0.9（T-P12）：plan 存在但无反馈 -> 200 + JSON null（service 返回 null 原样透传，响应体即 null 字面量）；
+  // plan 不存在 -> 404（service NotFoundError，语义收敛为「资源不存在」）；有反馈 -> FeedbackResponse 校验后 200。
   app.get('/plans/:id/feedback', async (request, reply) => {
     const params = PlanIdParamsSchema.safeParse(request.params);
     if (!params.success) {
       return reply.code(400).send({ error: 'Invalid plan id' });
     }
     const feedback = await planService.getFeedback(params.data.id);
+    if (feedback === null) {
+      return reply.code(200).send(null);
+    }
     return FeedbackResponseSchema.parse(feedback);
   });
 
