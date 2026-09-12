@@ -264,6 +264,33 @@ describe('dish schemas', () => {
     expect(DishSchema.safeParse({ ...validDish, imageUrl: '' }).success).toBe(false);
   });
 
+  // T-P15（v0.10，挂账⑧）：站内分支收紧为 /^\/images\/dishes\/[A-Za-z0-9]+\/\d+\.(webp|jpg|png|gif)$/
+  it('DishSchema imageUrl 站内分支收紧为内容管线落盘结构（T-P15 v0.10）', () => {
+    const rel = (p: string) => DishSchema.safeParse({ ...validDish, imageUrl: p });
+
+    // webp/jpg/png/gif 四合法扩展名各通过（/images/dishes/<noteId>/<i>.<ext>，noteId=[A-Za-z0-9]+、i=非负整数）
+    expect(rel('/images/dishes/6a55c68e000000001c025017/0.webp').success).toBe(true);
+    expect(rel('/images/dishes/6a55c68e000000001c025017/0.jpg').success).toBe(true);
+    expect(rel('/images/dishes/6a55c68e000000001c025017/12.png').success).toBe(true);
+    expect(rel('/images/dishes/6a55c68e000000001c025017/3.gif').success).toBe(true);
+
+    // /images/ 泛前缀（非 dishes 落盘结构）拒绝
+    expect(rel('/images/abc.jpg').success).toBe(false);
+
+    // .jpeg 不含（normalizeImageExt 归一为 jpg，拍板差异 1）
+    expect(rel('/images/dishes/6a55c68e000000001c025017/0.jpeg').success).toBe(false);
+    // .svg / 无扩展名拒绝
+    expect(rel('/images/dishes/6a55c68e000000001c025017/0.svg').success).toBe(false);
+    expect(rel('/images/dishes/6a55c68e000000001c025017/0').success).toBe(false);
+
+    // 目录结构不符（无文件名）拒绝
+    expect(rel('/images/dishes/').success).toBe(false);
+    expect(rel('/images/dishes/abc/').success).toBe(false);
+
+    // 大写扩展名拒绝（ext 硬编码小写）
+    expect(rel('/images/dishes/6a55c68e000000001c025017/0.WEBP').success).toBe(false);
+  });
+
   it('DishSchema sourceUrl 非法 URL 拒绝', () => {
     expect(
       DishSchema.safeParse({ ...validDish, sourceUrl: 'xiachufang.com/recipe/1' }).success,

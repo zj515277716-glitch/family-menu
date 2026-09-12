@@ -50,8 +50,9 @@ export const DishSchema = z.object({
   status: ContentStatusSchema.default('DRAFT'),
   origin: ContentOriginSchema.default('LLM_DRAFT'),
   // v0.7（T-P09）：http(s) 绝对 URL 或 /images/ 开头站内相对路径，二选一（R-10 方案 B：DB 存相对路径，前端拼 TARO_APP_API_BASE_URL 基址）；空串两分支均不匹配，仍拒绝
+  // v0.10（2026-09-12，T-P15，挂账⑧，用户已批准）：站内分支收紧为 /^\/images\/dishes\/[A-Za-z0-9]+\/\d+\.(webp|jpg|png|gif)$/（内容管线真实落盘结构）；拍板：不含 jpeg（normalizeImageExt 归一为 jpg）、保留 gif
   imageUrl: z
-    .union([z.string().url(), z.string().regex(/^\/images\//)])
+    .union([z.string().url(), z.string().regex(/^\/images\/dishes\/[A-Za-z0-9]+\/\d+\.(webp|jpg|png|gif)$/)])
     .optional(), // 菜品图片（可选，内容轨道抓取/人工录入，T-C01；sourceUrl 不动）
   sourceUrl: z.string().url().optional(), // 外部来源原帖地址（可选，便于回查与微调对照）
   sourceSite: z.string().optional(), // 来源站点（约定值 xiachufang/xiaohongshu，先宽松后收紧）

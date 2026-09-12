@@ -21,6 +21,10 @@
 // v0.9（2026-09-12，T-P12，挂账⑤）：GET /api/plans/:id/feedback 空态语义修订——
 //   「plan 存在但无反馈」从 404 改为 200 + JSON null（响应体即 null 字面量，非空对象/空串）；
 //   「plan 不存在」保持 404（404 语义收敛为「资源不存在」）；有反馈报文形状零变化。
+// v0.10（2026-09-12，T-P15，挂账⑧，用户已批准）：DishSchema.imageUrl 站内相对路径分支收紧为
+//   /^\/images\/dishes\/[A-Za-z0-9]+\/\d+\.(webp|jpg|png|gif)$/（必须指向内容管线真实落盘结构）；
+//   拍板差异：不含 jpeg（normalizeImageExt 把 jpeg 归一为 jpg，DB 无 .jpeg 实例）、保留 gif（GIF8 魔数合法输出，防管线兜底路径中断）；
+//   http(s) 绝对 URL 分支与 optional 不变；DB origin='FETCHED' 29 行 100% 符合（AC5 复核在案）。
 import { z } from 'zod';
 import { MealRoleSchema } from './dish.js';
 import { FamilyRuleSchema, ExclusionRuleSchema } from './family.js';
