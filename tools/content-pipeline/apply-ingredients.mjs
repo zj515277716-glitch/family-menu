@@ -1,9 +1,9 @@
 #!/usr/bin/env node
 /**
- * apply-ingredients.mjs — T-C05：29 道 FETCHED 菜用料初稿入库（PG）
+ * apply-ingredients.mjs — T-C05：30 道 FETCHED 菜用料初稿入库（PG）
  *
  * 职责：
- *   1. 读知识库 out/xhs/ingredients-draft.json（29 道菜，dishId+pgName+commonName+uncertain+ingredients）
+ *   1. 读知识库 out/xhs/ingredients-draft.json（30 道菜，dishId+pgName+commonName+uncertain+ingredients）
  *   2. 与 out/xhs/batch-manifest.json 交叉校验 dishId 集合一致（防知识库与采集清单漂移）
  *   3. 逐菜校验 PG：Dish 存在 且 origin='FETCHED' 且 status='DRAFT'（只动 FETCHED/DRAFT 菜，
  *      既有 19 道菜 LLM_DRAFT/MANUAL 的任何行不触碰，遇非 FETCHED 直接停手）

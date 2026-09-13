@@ -8,7 +8,8 @@
  *   - 每关键词：搜索（state 空则二次提取）→ 候选按赞数排序去重 → 逐候选开详情 →
  *     提取 note（noteDetailMap 优先，全局 walk 兜底）→ 跳过视频/图片<3 → 下载前 3 张 → 落 <noteId>.fetch.json
  *   - 渲染器卡死自愈：测活失败 → 前台激活 → 跨站导航换渲染进程 → 回目标页（不关页面/不杀进程/不动 cookie）
- *   - 登录失效（/login）立即 exit 2 不重试；整体连续 4 次失败 exit 3（风控/结构变化保护）
+ *   - 登录失效（URL 跳 /login 或页面内登录弹窗）立即 exit 2 不重试；整体连续 4 次失败 exit 3（风控/结构变化保护）
+ *     （页面内登录弹窗探测=LOGIN-DOM 2026-09-13，依据 T-C06 实锤：弹窗「电脑设备登录超限，请重新登录」时 URL 不跳 /login）
  *   - manifest 增量落盘 out/xhs/batch-manifest.json（断点续采，status=ok 跳过）
  *
  * 子命令：
@@ -323,6 +324,21 @@ const EXPR_CANDIDATES = String.raw`(function(){
   return JSON.stringify(out);
 })()`;
 
+// 页面端登录弹窗探测（LOGIN-DOM 2026-09-13）：唯一信号=实锤文本两枚。
+// 信号来源：T-C06 截图 .workflow-verify/tp-c04/no-cand-17-1789248726547.png + T-C06-dev 报告 §2 原句
+// 「电脑设备登录超限，请重新登录」（substring 匹配覆盖句内变体）。
+// 局限：仅匹配 body.innerText 文本，未用任何 DOM 结构 selector（未实锤不猜 class/selector）；
+//       若平台文案彻底改版则漏报（届时按 no-cand 截图人工介入）。
+const EXPR_LOGIN_POPUP = String.raw`(function(){
+  var out = { popup: false, signals: [] };
+  try {
+    var t = String((document.body && document.body.innerText) || '');
+    if (t.indexOf('登录超限') >= 0) { out.popup = true; out.signals.push('text:登录超限'); }
+    if (t.indexOf('请重新登录') >= 0) { out.popup = true; out.signals.push('text:请重新登录'); }
+  } catch (e) { out.error = String(e); }
+  return JSON.stringify(out);
+})()`;
+
 function buildDetailExpr(noteId) {
   return String.raw`(function(noteId){
   var out = {};
@@ -513,7 +529,18 @@ async function cmdCollect(from, to) {
       log(`[${i}] ${it.keyword} 搜索候选: ${v.count || 0} sources=${JSON.stringify(v.sources || [])}`);
 
       if (!v.ok || !v.cands || v.cands.length === 0) {
+        // LOGIN-DOM：候选 0 先做页面端登录弹窗探测（T-C06 实锤：登录失效弹窗不跳 URL → 候选 0 曾被误判 no_candidates 且 exit 0）
+        let popup = { popup: false, signals: [] };
+        try { popup = JSON.parse(await cdp.evalJson(EXPR_LOGIN_POPUP)); }
+        catch (e) { log(`[${i}] 登录弹窗探测异常（按未命中继续）:`, e.message); popup = { popup: false, signals: [] }; }
         await cdp.safeScreenshot(path.join(SHOT_DIR, `no-cand-${i}-` + Date.now() + '.png'));
+        if (popup && popup.popup === true) {
+          it.status = 'failed'; it.error = 'login_popup_detected'; it.at = new Date().toISOString();
+          saveManifest(m);
+          log(`[${i}] ${it.keyword} 页面内登录弹窗命中 signals=${JSON.stringify(popup.signals || [])} → login_invalid exit 2`);
+          stopped = { reason: 'login_invalid', at: i };
+          break;
+        }
         it.status = 'failed'; it.error = 'no_candidates'; it.at = new Date().toISOString();
         saveManifest(m);
         continue;
