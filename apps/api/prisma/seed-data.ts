@@ -43,6 +43,15 @@ export const exclusionRules = [
     severity: 'SOFT' as const,
     note: '爸爸不吃内脏',
   },
+  {
+    id: 'seed-excl-peanut-ing',
+    familyId: 'seed-family',
+    scope: 'INGREDIENT' as const,
+    targetId: 'cmtvnuvxvc2oy5fdrzhpxxe69',
+    targetTag: undefined,
+    severity: 'HARD' as const,
+    note: '孩子花生过敏（食材级：花生米/熟花生米/油炸花生米）',
+  },
 ];
 
 // ───── 食材（覆盖6类：蔬菜/肉类/水产/蛋奶/调料/主食）─────
