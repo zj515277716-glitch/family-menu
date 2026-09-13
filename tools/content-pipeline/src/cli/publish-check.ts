@@ -7,6 +7,7 @@
 // R-2 AC3：报告附非标 category 计数（只报告不处置）。
 
 import { Command } from 'commander';
+import { pathToFileURL } from 'node:url';
 import { createPrismaClient } from '../db.js';
 import { loadAllergenRules } from '../allergen.js';
 import {
@@ -69,7 +70,15 @@ program.action(async (opts: { status?: string; json?: boolean }) => {
   }
 });
 
-program.parseAsync(process.argv).catch((err: unknown) => {
-  console.error('publish-check 执行失败：', err instanceof Error ? err.message : String(err));
-  process.exit(1);
-});
+// 可测性守卫（R-2-S1）：仅主模块直跑时执行 parseAsync（argv[1] 与本模块一致）；
+// vitest import 本模块不触发顶层副作用，单测复用 program 实例自行驱动 parseAsync。
+const isMain =
+  process.argv[1] !== undefined && import.meta.url === pathToFileURL(process.argv[1]).href;
+if (isMain) {
+  program.parseAsync(process.argv).catch((err: unknown) => {
+    console.error('publish-check 执行失败：', err instanceof Error ? err.message : String(err));
+    process.exit(1);
+  });
+}
+
+export { program };
