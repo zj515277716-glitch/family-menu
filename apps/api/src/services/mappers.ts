@@ -8,6 +8,7 @@ import type {
   ExclusionScope,
   MealRole,
   ContentStatus,
+  ContentOrigin,
   MenuScene,
   PrepSequenceItem,
   Severity,
@@ -51,10 +52,16 @@ interface DishRow {
   equipment: string[];
   steps: unknown;
   status: string;
+  // R-9：origin 内容来源列（schema.prisma Dish.origin，默认 LLM_DRAFT）。
+  // 缺此投影时 zod default('LLM_DRAFT') 会把 FETCHED 行谎报为 LLM_DRAFT（审阅场景正确性缺陷）。
+  origin: string;
   // T-P07 媒体投影字段（T-C01 既有列；null 投影为 undefined 走前端降级）
   imageUrl: string | null;
   sourceUrl: string | null;
   sourceSite: string | null;
+  // R-9 返工 T1：内容授权台账字段（shared DishSchema L59 与 schema.prisma Dish.licenseNote 列均既有，
+  // fm-import 入库有实值；缺此投影时详情端点 zod strip 丢弃，审阅 FETCHED 草稿授权台账不可见）
+  licenseNote: string | null;
   ingredients: DishIngredientRow[];
 }
 
@@ -150,6 +157,18 @@ export type DishMediaView = DishView & {
   imageUrl?: string;
   sourceUrl?: string;
   sourceSite?: string;
+  /**
+   * R-9 返工 T1：内容授权台账字段（shared DishSchema L59 既有）。
+   * engine DishView 无此字段（卡内禁改 engine），交叉类型扩展与媒体字段同形态；
+   * DB 列 String?，null -> undefined 缺省序列化不出现（口径对齐 imageUrl）。
+   */
+  licenseNote?: string;
+  /**
+   * R-9：origin 内容来源投影（shared DishSchema L51 既有字段）。
+   * engine DishView 无此字段（卡内禁改 engine），交叉类型扩展与媒体字段同形态；
+   * DB 列非空（default LLM_DRAFT），故为必填——保证 FETCHED 实值直达 zod、不被 default 吞掉。
+   */
+  origin: ContentOrigin;
 };
 
 export function toDishView(row: DishRow): DishMediaView {
@@ -167,10 +186,14 @@ export function toDishView(row: DishRow): DishMediaView {
     steps: row.steps as DishStep[],
     status: row.status as ContentStatus,
     ingredients: row.ingredients.map(toDishIngredientView),
+    // R-9：origin 投影（不投影则响应 parse 走 default('LLM_DRAFT')，FETCHED 被谎报）
+    origin: row.origin as ContentOrigin,
     // T-P07 媒体投影：null -> undefined（不编造，缺省即降级）
     imageUrl: row.imageUrl ?? undefined,
     sourceUrl: row.sourceUrl ?? undefined,
     sourceSite: row.sourceSite ?? undefined,
+    // R-9 返工 T1：licenseNote 投影（null -> undefined 缺省序列化不出现，口径对齐 imageUrl）
+    licenseNote: row.licenseNote ?? undefined,
   };
 }
 

@@ -18,6 +18,7 @@ import { prisma } from './db.js';
 import { familyRoutes } from './routes/family.js';
 import { recommendRoutes } from './routes/recommend.js';
 import { planRoutes } from './routes/plans.js';
+import { dishRoutes } from './routes/dishes.js';
 import { NotFoundError, PlanStateError, SwapRecheckError } from './services/planService.js';
 
 // ───── auth 中间件插槽 ─────
@@ -115,10 +116,14 @@ export async function buildApp(): Promise<FastifyInstance> {
     }
   });
 
-  // ── API 路由（10 条，对齐 5.1 路由清单） ──
+  // ── API 路由（17 条：family 4 / recommend 1 / plans 10 / dishes 2） ──
+  // R-9（2026-09-13）实数口径修正：原注释「10 条，对齐 5.1 路由清单」为设计清单口径，
+  // 与代码实数不符（family/recommend/plans 既有 15 条）；本卡新增 dishes 只读模块 2 条后共 17 条。
+  // 另有统计外端点：/health、/health/db（鉴权豁免）与 /images/** 静态服务。
   await app.register(familyRoutes, { prefix: '/api' });
   await app.register(recommendRoutes, { prefix: '/api' });
   await app.register(planRoutes, { prefix: '/api' });
+  await app.register(dishRoutes, { prefix: '/api' });
 
   return app;
 }
