@@ -11,6 +11,8 @@
 //   - AC2-c 同源不变：无 Origin 请求（tp01 回归同形态）带令牌 200 / 无令牌 401。
 //   - AC2-d 生产不变性：带生产域名 Origin（https://menu.jijingkongjian.xin，不在白名单）
 //     的非预检请求不被 CORS 拦截——无令牌仍 401、带令牌 GET 仍 200（仅无 CORS 头）。
+//   - B-4（T-P03 review 建议级 #4 核销）非白名单 Origin 预检负路径：204 放行 + acao=null
+//     （预期依据 app.ts L60 注释 + T-P03 verify 实测，@fastify/cors 白名单语义防回归锚点）。
 // 用法：node tests/tp03-cors-regression.cjs
 // 退出码：0=全部 PASS；1=存在 FAIL
 const fs = require('node:fs');
@@ -167,6 +169,30 @@ async function main() {
     'AC2-d 生产 Origin 带令牌 GET rules：200（同源部署行为不变）',
     prod200.status === 200 && prod200.acao === null,
     `status=${prod200.status} acao=${prod200.acao}`,
+  );
+
+  // ── B-4（T-P03 review 建议级 #4 核销）：非白名单 Origin 预检负路径 ──
+  // 预期依据（不许自创）：
+  //   1) apps/api/src/app.ts L60 注释——@fastify/cors origin 数组为全等白名单：
+  //      不匹配时仅不写 ACAO 头、请求照常放行（预检仍由插件 onRequest 短路 204）；
+  //   2) fm-verify T-P03 验收实测（204 + acao=null，T-P03 报告 §8.3）。
+  // Origin 复用 AC2-d 的非白名单代表 https://menu.jijingkongjian.xin（口径一致；
+  // 生产同源部署不产生预检，此处为白名单语义的防回归锚点——未来若有人误改 origin
+  // 白名单逻辑/strictPreflight 等配置，这两条断言即失败暴露）。
+  const b4 = await call('OPTIONS', '/api/recommend', {
+    origin: 'https://menu.jijingkongjian.xin',
+    acrm: 'POST',
+    acrh: 'content-type',
+  });
+  step(
+    'B-4 非白名单 Origin 预检：204 放行（预检仍被短路，不落鉴权 401）',
+    b4.status === 204,
+    `status=${b4.status}（预期 204）`,
+  );
+  step(
+    'B-4 非白名单 Origin 预检：acao=null（白名单外不写 ACAO，浏览器将拦截）',
+    b4.acao === null,
+    `acao=${b4.acao}`,
   );
 
   console.log(`\n== 结果: ${pass} PASS / ${fail} FAIL ==`);
