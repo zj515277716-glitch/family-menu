@@ -38,8 +38,16 @@ export default function SetupPage() {
   const [equipment, setEquipment] = useState<string[]>(['wok', 'rice_cooker'])
   const [cuisines, setCuisines] = useState<string[]>(['家常'])
   const [exclusions, setExclusions] = useState<ExclusionRule[]>([])
+  // PE-1 返工（review T-1 修复）：本次编辑会话中用户删除的行 id 集合。
+  // 产品口径：用户行=用户数据，删除须持久化（保存合并时从远端追加中排除，随 PUT 生效）；
+  //          seed 行=出厂配置，从 UI 删除后保存仍会由 API 层 seed 保护复活（S-5 语义保持，见 handleSave 注释）。
+  const [removedIds, setRemovedIds] = useState<Set<string>>(new Set())
   const [loading, setLoading] = useState(false)
   const [popupVisible, setPopupVisible] = useState(false)
+  // PE-1：禁忌规则加载中/失败标记——true 时禁用保存，防止空 state 全量 PUT 覆盖库内规则。
+  // PE-1 返工（review S2）：初始值 false→true（加载完成前同样不可保存，消除加载窗口）；
+  //   settle 后由 loadRule 的 allSettled 分路置位：exclusions GET 成功 → false，失败 → true。
+  const [exclusionsLoadFailed, setExclusionsLoadFailed] = useState(true)
   // 禁忌编辑临时状态
   const [exTarget, setExTarget] = useState('')
   const [exScope, setExScope] = useState<ExclusionScope>('INGREDIENT')
@@ -51,12 +59,16 @@ export default function SetupPage() {
   }, [])
 
   async function loadRule() {
-    try {
-      // 并行加载家庭规则与禁忌规则（v0.2：禁忌持久化到 /api/family/exclusions）
-      const [rule, exclusionsData] = await Promise.all([
-        api.getFamilyRules(),
-        api.getExclusions(),
-      ])
+    // PE-1：家庭规则与禁忌规则分开处理错误——
+    //   familyRule 加载失败维持现状（catch + console.error）；
+    //   exclusions GET 失败时置 exclusionsLoadFailed 禁用保存（空 state 保存 = 全量 PUT 清掉库内用户行），
+    //   成功则恢复可保存。API 层（planService.putExclusions）另有 seed- 行保护兜底，双层防御。
+    const [ruleRes, exRes] = await Promise.allSettled([
+      api.getFamilyRules(),
+      api.getExclusions(),
+    ])
+    if (ruleRes.status === 'fulfilled') {
+      const rule = ruleRes.value
       if (rule) {
         setFamilyRule(rule)
         setDefaultPeople(rule.defaultPeople)
@@ -64,11 +76,18 @@ export default function SetupPage() {
         setEquipment(rule.equipment)
         setCuisines(rule.cuisines)
       }
+    } else {
+      console.error('[Setup] loadFamilyRules error', ruleRes.reason)
+    }
+    if (exRes.status === 'fulfilled') {
+      const exclusionsData = exRes.value
+      setExclusionsLoadFailed(false)
       if (exclusionsData && exclusionsData.length > 0) {
         setExclusions(exclusionsData)
       }
-    } catch (e) {
-      console.error('[Setup] loadRule error', e)
+    } else {
+      console.error('[Setup] loadExclusions error', exRes.reason)
+      setExclusionsLoadFailed(true)
     }
   }
 
@@ -93,8 +112,25 @@ export default function SetupPage() {
         updatedAt: new Date(),
       }
       const updated = await api.putFamilyRules(rule)
-      // 持久化禁忌规则（v0.2：全量替换 /api/family/exclusions）
-      await api.putExclusions(exclusions)
+      // 持久化禁忌规则（v0.2：PUT /api/family/exclusions 为全量替换【仅对用户行】，seed- 行有 API 层保护）。
+      // PE-1 兜底：保存前 re-GET 远端行，与本地 state 按 id 合并去重（本地版本优先、远端独有行追加）再 PUT——
+      // 兜住「本地缺 seed 行」与「其它端新增行被本地旧 state 覆盖」两类误伤。
+      // PE-1 返工（review T-1 修复）：合并额外排除 removedIds，两侧删除语义完整披露：
+      //   用户行删除 → 不从远端追加 → PUT payload 不含该行 → deleteMany 清除 → 删除持久化（用户数据可删）；
+      //   seed 行删除 → 同样不进 payload，但库内 seed 行受 API 层保护仍在 → 保存后/重进页面即复活
+      //     （S-5 语义保持：seed=出厂配置不可经 UI 删除；正式解法为长期方案 3：ExclusionRule 加 source 列
+      //     SEED/USER，涉 shared 契约+迁移，另立卡）。
+      // re-GET 失败则中止保存（走 catch 提示重试）：宁可让用户重按一次保存，
+      // 也不静默用本地旧 state 全量回传覆盖远端（避免静默覆盖其它端新增的用户行）。
+      const remote = await api.getExclusions()
+      const localIds = new Set(exclusions.map((e) => e.id))
+      const merged = [
+        ...exclusions,
+        ...remote.filter((r) => !localIds.has(r.id) && !removedIds.has(r.id)),
+      ]
+      await api.putExclusions(merged)
+      // 保存成功后才清空 removedIds（删除已随 PUT 持久化）；保存失败/中止时保留，用户重试仍生效
+      setRemovedIds(new Set())
       setFamilyRule(updated)
       resetTonightContext(updated)
       Taro.showToast({ title: '规则已保存', icon: 'success' })
@@ -145,6 +181,9 @@ export default function SetupPage() {
 
   function removeExclusion(id: string) {
     setExclusions(exclusions.filter((e) => e.id !== id))
+    // PE-1 返工（review T-1 修复）：记录待删 id，保存合并时从远端追加中排除——
+    // 否则远端仍存在的已删行会被合并追加回去，用户删除操作被保存动作静默回滚（T-1 行为回归）。
+    setRemovedIds((prev) => new Set(prev).add(id))
   }
 
   // 忌口行展示：目标名（非食材带前缀）+ 标签（备注 · 硬禁忌/软偏好）
@@ -268,7 +307,18 @@ export default function SetupPage() {
       </View>
 
       <View className="fm-bottom-bar">
-        <Button className="fm-btn-primary" loading={loading} onClick={handleSave}>
+        {/* PE-1：禁忌规则加载失败时禁用保存并提示，防止空 state 全量 PUT 覆盖库内规则 */}
+        {exclusionsLoadFailed && (
+          <Text className="fm-sub" style={{ color: '#c0392b', textAlign: 'center' }}>
+            忌口规则加载失败，暂不能保存；请返回重进本页重试
+          </Text>
+        )}
+        <Button
+          className="fm-btn-primary"
+          loading={loading}
+          disabled={loading || exclusionsLoadFailed}
+          onClick={handleSave}
+        >
           保存设置
         </Button>
       </View>

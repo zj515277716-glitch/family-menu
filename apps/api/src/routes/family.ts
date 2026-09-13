@@ -44,7 +44,10 @@ export const familyRoutes: FastifyPluginAsync = async (app) => {
     return GetExclusionsResponseSchema.parse(exclusions);
   });
 
-  // PUT /api/family/exclusions - 写禁忌规则（全量替换，语义同 PUT /api/family/rules）
+  // PUT /api/family/exclusions - 写禁忌规则（全量替换【仅对用户行】，语义同 PUT /api/family/rules）
+  // seed- 前缀行受 API 层保护（planService.putExclusions）：deleteMany 永不删 seed 行、
+  // createMany 过滤 payload 中的 seed 行（以库内现值为准）；S-4：误删可经 pnpm db:seed 重放恢复
+  // （不修复同 id 内容篡改）；S-5：H5 合并语义下 UI 删除的 seed 规则保存后会被复活（长期方案 3 另立卡）。
   app.put('/family/exclusions', async (request, reply) => {
     // 请求过 PutExclusionsRequestSchema 校验（z.array(ExclusionRuleSchema)）
     const parsed = PutExclusionsRequestSchema.safeParse(request.body);

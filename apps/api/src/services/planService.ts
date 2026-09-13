@@ -349,21 +349,38 @@ export const planService = {
     }));
   },
 
+  // ── putExclusions 语义口径（PE-1，2026-09-13）──
+  // PUT /api/family/exclusions 为「全量替换」，但仅对【用户行】生效；seed- 前缀行受 API 层保护：
+  //   1) deleteMany 排除 id 以 'seed-' 开头的行 —— seed 灌入的 3 条禁忌规则（seed-excl-peanut /
+  //      seed-excl-organ / seed-excl-peanut-ing，含 HARD 花生食材级拦截）永不因前端保存被清除；
+  //   2) createMany 过滤 payload 中 id 以 'seed-' 开头的行 —— 防同 id 主键冲突 P2002 导致整批失败，
+  //      seed 行内容以库内现值为准（不被 payload 覆盖）。
+  //   'seed-' 前缀是与 prisma/seed.ts 的约定（魔法值），变更 seed id 前缀须同步此处。
+  // 已知边界（如实标注，勿隐瞒）：
+  //   S-4 误删恢复：pnpm db:seed 重放（upsert update:{}）可恢复被误删的 seed 行，但不修复同 id 行
+  //      内容被篡改（update 为空不会回写内容）；本接口已从删除与写入两侧封死 seed 行通道。
+  //   S-5 删除复活：H5 保存前按 id 合并远端行（见 h5 setup 页），UI 删除的 seed 规则保存后会被复活；
+  //      正式解法为长期方案 3（ExclusionRule 增加 source 列 SEED/USER，涉 shared 契约 + 迁移，另立卡）。
+  // 过滤后 payload 为空数组是合法 NOOP（createMany({data:[]}) 返回 count 0，不抛错）。
   async putExclusions(rules: PutExclusionsRequest): Promise<ExclusionRule[]> {
-    // 全量替换：事务内 deleteMany + createMany（与 PUT /api/family/rules 全量写入语义同构）
+    // 全量替换（对用户行）：事务内 deleteMany + createMany（与 PUT /api/family/rules 全量写入语义同构）
     // familyId 强制覆盖为 FAMILY_ID，防止跨家庭写入
     await prisma.$transaction([
-      prisma.exclusionRule.deleteMany({ where: { familyId: FAMILY_ID } }),
+      prisma.exclusionRule.deleteMany({
+        where: { familyId: FAMILY_ID, id: { not: { startsWith: 'seed-' } } },
+      }),
       prisma.exclusionRule.createMany({
-        data: rules.map((r) => ({
-          id: r.id,
-          familyId: FAMILY_ID,
-          scope: r.scope,
-          targetId: r.targetId,
-          targetTag: r.targetTag,
-          severity: r.severity,
-          note: r.note,
-        })),
+        data: rules
+          .filter((r) => !r.id.startsWith('seed-'))
+          .map((r) => ({
+            id: r.id,
+            familyId: FAMILY_ID,
+            scope: r.scope,
+            targetId: r.targetId,
+            targetTag: r.targetTag,
+            severity: r.severity,
+            note: r.note,
+          })),
       }),
     ]);
     return this.getExclusions();
