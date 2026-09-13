@@ -164,7 +164,7 @@ async function resolveMustUseIds(
   if (rawNames.length === 0) {
     return { ids: [], idToRaw: new Map<string, string>() };
   }
-  const ingredients = await prisma.ingredient.findMany();
+  const ingredients = await prisma.ingredient.findMany({ orderBy: { id: 'asc' } });
   const { ids, idToRaw } = matchMustUseNames(
     rawNames,
     ingredients.map((i) => ({ id: i.id, name: i.name, aliases: i.aliases })),
