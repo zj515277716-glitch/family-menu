@@ -35,7 +35,7 @@ const NAV_GAP_MS = 5300;
 const UA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36';
 
 const MANIFEST_PATH = path.join(OUT_DIR, 'batch-manifest.json');
-const MAX_CANDIDATES_PER_KEYWORD = 6; // 每关键词最多试 6 个候选（视频已候选期预过滤，6 留图片<3/提取失败的余量）
+const MAX_CANDIDATES_PER_KEYWORD = 12; // 每关键词最多试 12 个候选（T-C06：候选池上限 24，6→12 确定性扩大尝试范围）
 const MIN_IMAGES = 3;                 // AC2：图片>=3 才收
 const MAX_IMAGES_DL = 3;              // 下载前 3 张（与试采口径一致）
 const BATCH_CONSEC_FAIL_STOP = 4;     // 整体连续失败保护阈值

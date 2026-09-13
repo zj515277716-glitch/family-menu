@@ -66,8 +66,8 @@ function validateDraft(draft) {
   if (!draft || typeof draft !== 'object' || !Array.isArray(draft.dishes)) {
     throw new Error('知识库结构非法：缺少 dishes 数组');
   }
-  if (draft.dishes.length !== 29) {
-    errs.push(`dishes 数量=${draft.dishes.length}，应为 29`);
+  if (draft.dishes.length !== 30) {
+    errs.push(`dishes 数量=${draft.dishes.length}，应为 30`);
   }
   const seenIds = new Set();
   for (const dish of draft.dishes) {
@@ -116,8 +116,8 @@ function crossCheckManifest(draft) {
       `知识库与 batch-manifest.json 的 dishId 集合不一致：仅 manifest 有 [${onlyInManifest}]，仅知识库有 [${onlyInDraft}]`,
     );
   }
-  if (manifestIds.length !== 29) {
-    throw new Error(`manifest 中 imported=true 的 dishId 数=${manifestIds.length}，应为 29`);
+  if (manifestIds.length !== 30) {
+    throw new Error(`manifest 中 imported=true 的 dishId 数=${manifestIds.length}，应为 30`);
   }
 }
 
