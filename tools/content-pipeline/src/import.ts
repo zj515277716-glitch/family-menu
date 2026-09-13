@@ -4,8 +4,34 @@
 // DEC-006：产物只落 DRAFT，升级仅通过试做记录 CookLog
 
 import { z } from 'zod';
-import { DishSchema, type DishStep } from '@family-menu/shared';
+import { DishSchema, CATEGORIES, type DishStep } from '@family-menu/shared';
 import { DraftIngredientSchema, type DraftDish } from './draft.js';
+
+// ───── R-2 AC3：category 漂移警告（消费 shared CATEGORIES 常量，非修改 shared）─────
+
+/**
+ * 找出 category 不在 shared CATEGORIES 六类（蔬菜/肉类/水产/蛋奶/调料/主食）的食材行。
+ * 纯函数，可单测；fm-import 对此类行打警告（不阻断、不改退出码，R-1 书面认定 c 条：
+ * 库层容忍存量漂移，本警告面只管新增入口可见性）。
+ */
+export function findNonStandardCategories(
+  ingredients: { name: string; category: string }[],
+): { name: string; category: string }[] {
+  return ingredients.filter(
+    (ing) => !(CATEGORIES as readonly string[]).includes(ing.category),
+  );
+}
+
+/** category 警告文案（人类可读，含食材名与当前值、六类清单） */
+export function formatNonStandardCategoryWarning(
+  rows: { name: string; category: string }[],
+): string {
+  return (
+    `[警告] ${rows.length} 个食材 category 不在标准六类 [${CATEGORIES.join('/')}]：` +
+    rows.map((r) => `${r.name}=${r.category}`).join('、') +
+    '（R-1 防御面：仅警告，不阻断导入）'
+  );
+}
 
 // ───── 写入接口（注入，便于测试 mock；CLI 入口用真实 PrismaClient 实现）─────
 

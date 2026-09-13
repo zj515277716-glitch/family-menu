@@ -9,6 +9,7 @@ import { fileURLToPath } from 'node:url';
 import { PrismaPg } from '@prisma/adapter-pg';
 import { Pool } from 'pg';
 import type { DraftWriter } from './import.js';
+import type { AllergenPrismaLike } from './allergen.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 dotenv.config({ path: path.resolve(__dirname, '../../../.env') });
@@ -31,11 +32,18 @@ export async function createPrismaClient(): Promise<Record<string, unknown> & { 
 /**
  * 创建 DraftWriter（基于 PrismaClient）。
  * 实现 import.ts 的 DraftWriter 接口，用 PrismaClient upsert 食材 + 创建菜品。
+ * 额外暴露 `prisma`（底层连接，AllergenPrismaLike 形态）：供 CLI 在同一连接上做
+ * 写库前过敏原只读校验（R-2 AC1），避免二次建连。
  */
-export async function createPrismaDraftWriter(): Promise<DraftWriter & { $disconnect(): Promise<void> }> {
+export async function createPrismaDraftWriter(): Promise<
+  DraftWriter & { $disconnect(): Promise<void>; prisma: AllergenPrismaLike }
+> {
   const prisma = await createPrismaClient();
   return {
     $disconnect: () => prisma.$disconnect(),
+    // R-2 AC1：底层只读连接（fm-import 写库前校验复用；fm-publish-check 走独立 createPrismaClient）
+    // generated 类型编译期不可见（any），经 unknown 中转收窄为只读检测所需的最小接口
+    prisma: prisma as unknown as AllergenPrismaLike,
     async upsertIngredient(input) {
       const ingredient = await (prisma.ingredient as {
         upsert(args: unknown): Promise<{ id: string }>;
