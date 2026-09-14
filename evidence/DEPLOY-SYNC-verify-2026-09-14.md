@@ -120,3 +120,39 @@ recommend_no_token=>401
 - $env:TEMP\fm-rds.env 未删；本地 PG 54329 未停；9222 CDP 浏览器未杀。
 - 运行时零 LLM API 调用；token 内存传递不落明文（token_len=32 口径）。
 - commit 提交物仅文档（任务卡+本报告+CURRENT.md），零业务代码。
+
+## 7. 治理执行与生产离线事故处置（2026-09-14 追记，用户裁决后）
+
+### 7.1 用户裁决与治理四项执行结果
+
+- **teardown DELETE 追认**：用户批准（§2 披露闭环）。
+- **治理四项裁决**：「先执行加 swap 和 compose restart 改 unless-stopped，孤儿层 rm -rf 和定期 prune 稍后再说」。
+- **执行核查=两项均已在位，零操作**：①swap 实际 2026-08-08 已建成（/swapfile 2147483648B，`free -h` Swap=2.0Gi，fstab L14/L15 两条重复挂载条目）；②compose restart=unless-stopped 自 a5d4fef 起即已在位（[docker-compose.yml](../../docker-compose.yml) L65 api/L82 caddy，git show a5d4fef 实证）。
+- **事实修正（§3/§4 与 CURRENT.md 落段两表述更正）**：「1.8GB 无 swap」有误（swap 2G 已在位）；「restart=no 连坐」有误（a5d4fef 起即 unless-stopped），真实根因见 §7.2 语义盲区。前置会话探测误导，特此定谳更正，历史段落原文保留不改写。
+- **孤儿层自然消解**：~66 个 overlay2 孤儿层已被挂死恢复的 `docker system prune -af` 意外清除（overlay2 目录仅余 2 个），治理项①不再需要；治理项④（定期 prune）缓办——磁盘 used 11G/40G（30%）水位大幅缓解。
+
+### 7.2 生产离线事故（第三次 dockerd OOM 连锁，journalctl/dmesg 实证）
+
+时间线：
+
+- ~08:59 前夜会话收尾时 api 容器 3ef8abf39484 healthy。
+- 09:33:42 dmesg：OOM killer 杀 dockerd（anon-rss 1264504kB / oom_score_adj -500 / task_memcg=/system.slice/docker.service）——**第 3 次**（docker.service restart counter=3）。
+- 09:36:47 `docker.service: Failed with result 'signal'`；09:36:50 dockerd 重启 Loading containers。
+- 09:37:01 容器强制清理：api `failed to exit within 10s of signal 15 - using the force` exitStatus=137，`ShouldRestart failed, container will not be restarted … hasBeenManuallyStopped=true … error="restart canceled"`（execDuration=37m27s）——**unless-stopped 语义盲区**：daemon 被 SIGKILL 后重启加载，容器落盘状态被标记 hasBeenManuallyStopped=true，策略判定 restart canceled 拒绝拉起（restart=always 可覆盖此盲区）。
+- 09:37:58 前夜挂死恢复的 `docker system prune -af` 跑完收尾：此刻容器已 stopped → 全部镜像/容器/构建缓存清空（images/containers/build-cache 全 0，仅余 2 volumes 740B；磁盘 34G→11G/30%）。
+- **结果**：/api/* 公网 502；宿主 nginx 直接服务静态 index=200 不受影响；RDS 数据零损失；回滚资产三件套在 /opt/backup/ 完好。
+- **compose mtime 悬案侦破**：/opt/family-menu/docker-compose.yml mtime=2026-09-14 07:51:58（=03a83eb 提交时间精确到秒）系 git archive tar 内 mtime 即 commit 时间的同步产物，非入侵（last 无 9 月 5 日后交互登录）。
+
+### 7.3 恢复操作（按既有授权「生产重建拉起」自主推进，主控亲自执行）
+
+- **根因**：/etc/docker/daemon.json 配置的阿里云加速器（4zohpug3.mirror.aliyuncs.com，2024-08-09 建）已失效——build `Head "https://registry-1.docker.io/v2/library/node/manifests/22-slim" dial tcp 23.234.30.58:443 i/o timeout`（/tmp/build-rebuild-20260914.log）。
+- **修复**：经 docker.m.daocloud.io 手动拉回 node:22-slim+caddy:2（digest 83f487e0a634/13ba145cba2f）→ daemon.json mirror 原位替换为 `https://docker.m.daocloud.io`（sed，文件其余不动）→ `systemctl restart docker`（当时无运行容器，安全窗口）→ 重跑 `docker compose --profile prod up -d --build`（nohup 后台，日志 /tmp/build-rebuild2-20260914.log）→ build 成功（#15 DONE 73.3s+导出 78.7s，镜像 e2b20ea7b1d3）。
+- **结果**：api=a375693dd333 Up (healthy) 3001→3000 + caddy=6996d1c89422 Up 8080/8443。
+- **只读冒烟全绿**（recovery-smoke-readonly.js，物证 1 件 .workflow-verify/deploy-sync/；与 ac7-public.js 同口径但**剔除 recommend_with_token 写操作**防基线污染）：token_len=32 / index=200 text/html / dishes_no_token=401 / dishes_with_token=200 count=49 fetched=30（与七计数基线 Dish=49/FETCHED=30 全等）/ recommend_no_token=401；内网口径 /health（127.0.0.1:3001）=200。公网 /api/health=401 系 caddy /api/* 转发落入认证范围的既有行为（AC7 口径为 dishes/recommend 非 health）。
+- **七计数基线零污染**：本轮全程零写操作（主动剔除 recommend 写），Plan=83 未变，无需 teardown。
+
+### 7.4 后续请示（不阻塞，留用户裁决）
+
+1. **restart 策略升级 always**：unless-stopped 在 daemon 被 SIGKILL 场景存在拉起盲区（§7.2 实证），restart=always 可封堵；compose 两处改动须同步进仓库源码走一卡流程。
+2. **OOM 根因治理**：dockerd RSS 1.26GB 三次被杀，1.8G RAM+2G swap 仍偏紧；建议 build 限资源/错峰 build/升配内存三选。
+3. **fstab 重复条目清理**：/swapfile 两条重复挂载行（L14/L15）无功能影响，清理属生产操作须批准。
