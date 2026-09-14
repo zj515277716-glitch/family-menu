@@ -69,7 +69,48 @@ bash deploy.sh
 # 脚本自动执行：git pull -> docker compose --profile prod up -d --build -> 健康检查 -> 数据库迁移
 ```
 
-## 三、回滚方案（AC11）
+## 三、构建资源限制（2026-09-14 OOM 治理）
+
+> 背景：服务器 1.8G RAM，docker build 期间 dockerd 三次被内核 OOM 杀（RSS 1.26G）导致全站离线。用户裁决：不升配，构建限资源。
+>
+> 技术定谳：dockerd 被 OOM 杀时 RSS 1.26G 来自 **dockerd 自身 Go 堆膨胀**（内嵌 buildkit 处理 node_modules 海量小文件层），RUN 容器 cgroup 限制防不了它；且 compose v2.27.0 build 段不支持 memory/cpus/memory_swap 字段（`docker compose config` 校验拒绝，需 v2.35+），buildx v0.14 亦已移除 --memory 系列 flag。故采用以下三层组合。
+
+### 第一层：构建容器内 node 堆限制（NODE_OPTIONS）
+
+- 落点：[Dockerfile](../Dockerfile) `ARG NODE_OPTIONS=--max-old-space-size=768` + [docker-compose.yml](../docker-compose.yml) api.build.args
+- 作用：pnpm install / tsc 的 node 进程堆 ≤768M，超限则 node 自崩（build 失败可重试），不伤系统与运行时
+- 调参：构建报 node 崩（JS out of memory）→ 说明堆太小，调大该值；反之若 build 时系统仍吃紧 → 调小
+
+### 第二层：dockerd Go 堆软限（GOMEMLIMIT，服务器 systemd 配置）
+
+- 落点：`/etc/systemd/system/docker.service.d/memlimit.conf` → `Environment=GOMEMLIMIT=900MiB`
+- 作用：dockerd GC 积极回收，RSS 钳制约 1G 内（超限部分落 swap 2G 池），从根上消除"dockerd RSS 1.26G 被杀"的模式
+- 性质：Go 软限（GC 努力维持，不硬杀）；改后需 `systemctl daemon-reload && systemctl restart docker`（容器 restart=always 自动拉起）
+
+### 第三层：deploy.sh 构建前内存预检
+
+- 可用内存 <400M 硬失败并给出清理命令；600M 以下警告后继续
+
+### 构建失败自愈（exit 137 / node 崩）
+
+```bash
+# 1. 区分是系统 OOM 还是 node 堆崩
+dmesg | tail -20                    # Killed process = 系统级 OOM
+# 2. 清理后重试（deploy.sh 自带构建前内存预检）
+docker system prune -f
+bash deploy.sh
+```
+
+### 验证
+
+```bash
+# NODE_OPTIONS 已进构建环境（构建日志或容器内）
+docker compose --profile prod config | grep -A2 args
+# dockerd GOMEMLIMIT 生效
+systemctl show docker --property=Environment
+```
+
+## 四、回滚方案（AC11）
 
 > 对齐实施方案第452行：回滚方案 = docker compose 切上一镜像 tag（演练一次）。
 
@@ -121,7 +162,7 @@ docker compose --profile prod ps
 - **回滚后通知**：回滚后通知家庭成员，可能需要清除浏览器缓存。
 - **数据备份**：RDS 已开启自动备份（每日备份保留7天，对齐实施方案第642行）。回滚前可手动创建快照。
 
-## 四、Caddy 切换（IP -> 域名 HTTPS）
+## 五、Caddy 切换（IP -> 域名 HTTPS）
 
 详见 [Caddyfile](../Caddyfile) 注释。备案通过后：
 
