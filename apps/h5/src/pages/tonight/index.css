@@ -3,8 +3,9 @@
 
 .tonight-page {
   padding-top: 24px;
-  /* 底部让位：fixed 操作条（主按钮+次按钮）+ TabBar 144 + 安全区，留缓冲 */
-  padding-bottom: 520px;
+  /* 底部让位：fixed 操作条（主按钮+次按钮）+ TabBar 144 + 安全区，留缓冲
+     （实测 520px 源余量仅 ~21px@375 屏，360 安卓屏更紧，提至 640px 源） */
+  padding-bottom: 640px;
 }
 
 /* 页内有 TabBar（高 144px），底部条让位（与 plan 同规则） */

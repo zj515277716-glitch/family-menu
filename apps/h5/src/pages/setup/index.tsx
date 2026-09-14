@@ -188,7 +188,8 @@ export default function SetupPage() {
 
   // 忌口行展示：目标名（非食材带前缀）+ 标签（备注 · 硬禁忌/软偏好）
   function exTargetLabel(ex: ExclusionRule): string {
-    const target = ex.targetId || ex.targetTag || ''
+    // 优先 targetName（api join 回填的食材名），避免直渲 targetId 的 cuid 串（乱码 bug）
+    const target = ex.targetName || ex.targetId || ex.targetTag || ''
     if (ex.scope === 'DISH') return `菜品：${target}`
     if (ex.scope === 'TAG') return `标签：${target}`
     return target

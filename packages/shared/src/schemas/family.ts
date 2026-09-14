@@ -51,6 +51,9 @@ export const ExclusionRuleSchema = z.object({
   scope: ExclusionScopeSchema,
   targetId: z.string().optional(), // ingredientId 或 dishId
   targetTag: z.string().optional(), // scope=TAG 时用，如 "内脏"
+  // GET /family/exclusions 时服务端 join 回填的显示名（仅 scope=INGREDIENT）；
+  // PUT 侧由 api 白名单字段映射忽略，前端保存往返不受影响。
+  targetName: z.string().optional(),
   severity: SeveritySchema,
   note: z.string().optional(), // "爸爸不吃腊肉"
 });

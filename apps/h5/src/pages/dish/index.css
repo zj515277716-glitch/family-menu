@@ -4,8 +4,8 @@
    与 app.css 公共类同口径；vA 静稿 375px 视觉值 ×2 落此。 */
 
 .dish-page {
-  /* 底部让位：悬浮胶囊 dock（fixed）+ 页尾换道条缓冲 */
-  padding-bottom: 400px;
+  /* 底部让位：悬浮胶囊 dock（fixed，bottom 64px 源+safe-area）+ 手势条缓冲 */
+  padding-bottom: 480px;
 }
 
 /* ===== ① 首屏大图区：340px 全出血（vA hero 340 视觉 → 680） ===== */
@@ -354,7 +354,8 @@
   position: fixed;
   left: 24px;
   right: 24px;
-  bottom: calc(32px + env(safe-area-inset-bottom));
+  /* vA 静稿 32px 为 375 视觉值，×2=64px 源（漏乘致 dock 贴底被手势条/浏览器底栏压住） */
+  bottom: calc(64px + env(safe-area-inset-bottom));
   z-index: 6;
 }
 

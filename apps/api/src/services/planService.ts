@@ -340,11 +340,22 @@ export const planService = {
 
   async getExclusions(): Promise<ExclusionRule[]> {
     const rules = await prisma.exclusionRule.findMany({ where: { familyId: FAMILY_ID } });
+    // targetName 回填：scope=INGREDIENT 时 join Ingredient 取 name，避免 H5 直渲 cuid（实测乱码 bug）
+    const ingredientIds = rules
+      .filter((r) => r.scope === 'INGREDIENT' && r.targetId)
+      .map((r) => r.targetId!);
+    const ingredients =
+      ingredientIds.length > 0
+        ? await prisma.ingredient.findMany({ where: { id: { in: ingredientIds } } })
+        : [];
+    const nameMap = new Map(ingredients.map((i) => [i.id, i.name]));
     // Prisma 可空列读出 null；契约 optional 字段仅接受 undefined（TAG 类禁忌 targetId 恒为 null）
     return rules.map((r) => ({
       ...r,
       targetId: r.targetId ?? undefined,
       targetTag: r.targetTag ?? undefined,
+      targetName:
+        r.scope === 'INGREDIENT' && r.targetId ? nameMap.get(r.targetId) : undefined,
       note: r.note ?? undefined,
     }));
   },

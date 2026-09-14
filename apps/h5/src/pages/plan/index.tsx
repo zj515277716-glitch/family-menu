@@ -280,13 +280,14 @@ export default function PlanPage() {
   }
 
   // 屏④文案：同样条件下（配菜 · 30 分钟内 · 避开花生和内脏）
+  // 优先 targetName（api join 回填），避免直渲 targetId 的 cuid 串（乱码 bug）
   const hardNames = exclusions
     .filter((e) => e.severity === 'HARD')
-    .map((e) => e.targetId || e.targetTag || '')
+    .map((e) => e.targetName || e.targetId || e.targetTag || '')
     .filter(Boolean)
   const softNames = exclusions
     .filter((e) => e.severity === 'SOFT')
-    .map((e) => e.targetId || e.targetTag || '')
+    .map((e) => e.targetName || e.targetId || e.targetTag || '')
     .filter(Boolean)
   const avoidText = [...hardNames, ...softNames].join('和')
 

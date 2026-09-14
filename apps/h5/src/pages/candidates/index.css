@@ -3,8 +3,8 @@
 
 .candidates-page {
   padding-top: 24px;
-  /* 底部让位：仅 TabBar（144px）+ 安全区，页内无固定操作条 */
-  padding-bottom: 200px;
+  /* 底部让位：TabBar（144px 源=3.6rem）+ iPhone safe-area 34px（实测遮挡数学：200px 源不够） */
+  padding-bottom: 320px;
 }
 
 /* 菜行中部信息区（fm-dish 同构） */

@@ -367,6 +367,9 @@ page {
 }
 
 .fm-step-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
   width: 72px;
   height: 72px;
   border-radius: 50%;
