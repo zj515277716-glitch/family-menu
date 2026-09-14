@@ -156,3 +156,13 @@ recommend_no_token=>401
 1. **restart 策略升级 always**：unless-stopped 在 daemon 被 SIGKILL 场景存在拉起盲区（§7.2 实证），restart=always 可封堵；compose 两处改动须同步进仓库源码走一卡流程。
 2. **OOM 根因治理**：dockerd RSS 1.26GB 三次被杀，1.8G RAM+2G swap 仍偏紧；建议 build 限资源/错峰 build/升配内存三选。
 3. **fstab 重复条目清理**：/swapfile 两条重复挂载行（L14/L15）无功能影响，清理属生产操作须批准。
+
+### 7.5 用户追令执行（2026-09-14 第三轮，主控亲自执行）
+
+1. **做法详情页部署核查（PD-016/T-P06 vA 改版）**：123195f ∈ HEAD 祖先（`git merge-base --is-ancestor` 实证）；生产静态根=/opt/family-menu/h5-dist（nginx -T），dist mtime=2026-09-13 15:03；改版独有特征 `.hero-empty` 于 js/620.b6ebae47.js 与 css/620.b6ebae474702073629e0.css **双命中** → vA 沉浸大图改版已部署生产 ✓（h5-dist 为构建产物不入 git，独立部署链）。
+2. **菜谱全量转推荐池**（用户指令：「后面加的菜谱全部进推荐池」）：事务 `UPDATE "Dish" SET status='PUBLISHED' WHERE origin='FETCHED' AND status='DRAFT'`（publish-fetched-batch.js，经 docker cp 进容器执行避开 stdin eval 怪癖）→ BEFORE DRAFT=30/TESTED=1/PUBLISHED=18 → **UPDATED=30 COMMIT_OK**（30 id 清单+回滚 SQL 全文打印在案，含蚝油菜 cmtz3kdhp000070pga77gl5wt）→ AFTER PUBLISHED=48/TESTED=1/DRAFT=0。**推荐池 18→48**；Dish 总量 49 不变；teardown 红线未触碰（无 DROP/DELETE）。
+3. **§7.4 落地**：
+   - **restart 升 always**（请示项 1）：compose L65 api/L82 caddy unless-stopped→always（commit 8174a02）+ scp 同步服务器 + `docker update --restart=always family-menu-api family-menu-caddy` 运行时立即生效 + `docker compose --profile prod config` 双验证 restart: always。daemon 被 OOM SIGKILL 后将无条件拉起，§7.2 盲区封堵。
+   - **fstab 重复条目清理**（请示项 3）：备份 /etc/fstab.bak-20260914 → sed 删 L15 重复行 → systemctl daemon-reload + mount -a 无报错 → swapon --show /swapfile 2G 正常挂载。
+   - **OOM 根因**（请示项 2）：always 已兜底可用性（OOM 后自动拉起）；升配（月费决策）与 build 错峰/限资源纪律留用户决策，本轮不动。
+4. 冒烟复核：index=200 / dishes=401（只读口径，服务正常）。
