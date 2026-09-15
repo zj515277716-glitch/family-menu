@@ -4,8 +4,9 @@
    与 app.css 公共类同口径；vA 静稿 375px 视觉值 ×2 落此。 */
 
 .dish-page {
-  /* 底部让位：悬浮胶囊 dock（fixed，bottom 64px 源+safe-area）+ 手势条缓冲 */
-  padding-bottom: 480px;
+  /* 底部让位：悬浮胶囊 dock（fixed，bottom 64px 源+safe-area）+ 手势条缓冲
+     extra 兜底：本页无 TabBar 不实测，沿用链路内联变量（多留缓冲无害） */
+  padding-bottom: calc(480px + var(--fm-tabbar-extra, 0px));
 }
 
 /* ===== ① 首屏大图区：340px 全出血（vA hero 340 视觉 → 680） ===== */

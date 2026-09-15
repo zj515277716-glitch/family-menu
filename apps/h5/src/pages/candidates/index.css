@@ -3,8 +3,9 @@
 
 .candidates-page {
   padding-top: 24px;
-  /* 底部让位：TabBar（144px 源=3.6rem）+ iPhone safe-area 34px（实测遮挡数学：200px 源不够） */
-  padding-bottom: 320px;
+  /* 底部让位：TabBar（基准 3.6rem）+ safe-area + extra 兜底（真机实测超高时自动补足，
+     正常机型 extra=0 与定稿一致；--fm-tabbar-h 由 CustomTabBar 运行时实测写入） */
+  padding-bottom: calc(320px + var(--fm-tabbar-extra, 0px));
 }
 
 /* 菜行中部信息区（fm-dish 同构） */

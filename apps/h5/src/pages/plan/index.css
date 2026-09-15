@@ -3,14 +3,14 @@
 
 .plan-page {
   padding-top: 24px;
-  /* 底部让位：fixed 操作条（主按钮+次按钮）+ TabBar 144 + 安全区，留缓冲
+  /* 底部让位：fixed 操作条 + TabBar（基准 3.6rem）+ 安全区 + extra 兜底，留缓冲
      （实测 520px 源余量仅 ~21px@375 屏，360 安卓屏更紧，提至 640px 源） */
-  padding-bottom: 640px;
+  padding-bottom: calc(640px + var(--fm-tabbar-extra, 0px));
 }
 
-/* 页内有 TabBar（高 144px），底部条让位（与 tonight 同规则） */
+/* 页内有 TabBar（基准 3.6rem），底部条让位；extra 兜底真机实测超高 */
 .plan-page .fm-bottom-bar {
-  bottom: calc(144px + env(safe-area-inset-bottom));
+  bottom: calc(144px + var(--fm-tabbar-extra, 0px) + env(safe-area-inset-bottom));
 }
 
 /* 菜卡中部信息区（fm-dish flex 的伸缩位） */

@@ -95,6 +95,13 @@ page {
   --fm-font-xl: 38px;
   --fm-font-xxl: 46px;
   --fm-line-height: 1.65;
+
+  /* TabBar 高度自适应兜底（三次排查定案）：rem 静态数学在部分真机失效，
+     CustomTabBar 运行时实测高度写 --fm-tabbar-h（内联 px 优先于 ：root），
+     超出基准 3.6rem 的部分进 --fm-tabbar-extra；各页 padding / 操作条 bottom
+     用 calc(原值 + extra) 自动补足。正常机型 extra=0，渲染与定稿完全一致 */
+  --fm-tabbar-h: 3.6rem;
+  --fm-tabbar-extra: max(0rem, calc(var(--fm-tabbar-h) - 3.6rem));
 }
 
 /* 全局工具类 */
@@ -802,4 +809,57 @@ page {
   color: var(--fm-text-hint);
   margin-top: 8px;
   line-height: var(--fm-line-height);
+}
+
+/* ===== 真机诊断浮层（?debug=1 时 CustomTabBar 渲染；单位直接写 rem 避免二次换算） ===== */
+.fm-debug-float {
+  position: fixed;
+  top: 0.8rem;
+  right: 0.4rem;
+  z-index: 9999;
+  background: rgba(0, 0, 0, 0.55);
+  color: #fff;
+  font-size: 0.6rem;
+  padding: 0.3rem 0.6rem;
+  border-radius: 0.5rem;
+}
+
+.fm-debug-panel {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 10000;
+  box-sizing: border-box;
+  background: rgba(0, 0, 0, 0.92);
+  color: #7cfc9a;
+  font-family: monospace;
+  font-size: 0.55rem;
+  padding: 0.8rem 0.6rem;
+  overflow-y: auto;
+}
+
+.fm-debug-title {
+  color: #fff;
+  font-size: 0.7rem;
+  font-weight: 600;
+  margin-bottom: 0.4rem;
+}
+
+.fm-debug-code {
+  display: block;
+  white-space: pre-wrap;
+  word-break: break-all;
+  line-height: 1.6;
+}
+
+.fm-debug-copy {
+  margin-top: 0.6rem;
+  background: #C8392E;
+  color: #fff;
+  text-align: center;
+  padding: 0.5rem 0;
+  border-radius: 0.4rem;
+  font-size: 0.7rem;
 }
