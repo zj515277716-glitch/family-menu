@@ -16,6 +16,16 @@
 	# H5 静态文件托管
 	handle {
 		root * /srv/h5
+		# 缓存策略（2026-09-15 手机端遮挡"修了没生效"根因）：
+		# index.html 无 Cache-Control 时，移动浏览器按 Last-Modified 启发式缓存（微信 webview 尤甚），
+		# 部署后手机仍用旧 index.html → 引用旧 hash css → 新样式不生效。
+		# 口径：默认 no-cache（每次回源校验，ETag 304 代价小）；带内容 hash 的 css/js 长缓存 immutable。
+		# 注意：不用"无 matcher 的 header + 带 matcher 的 header"并存——实测二者应用顺序与源码顺序相反，
+		# immutable 会被默认值覆盖；改用互斥 matcher 写法，无顺序依赖。
+		@hashed path /css/* /js/*
+		header @hashed Cache-Control "public, max-age=31536000, immutable"
+		@not-hashed not path /css/* /js/*
+		header @not-hashed Cache-Control "no-cache"
 		file_server
 		try_files {path} /index.html
 	}
