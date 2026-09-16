@@ -25,6 +25,9 @@
 //   /^\/images\/dishes\/[A-Za-z0-9]+\/\d+\.(webp|jpg|png|gif)$/（必须指向内容管线真实落盘结构）；
 //   拍板差异：不含 jpeg（normalizeImageExt 把 jpeg 归一为 jpg，DB 无 .jpeg 实例）、保留 gif（GIF8 魔数合法输出，防管线兜底路径中断）；
 //   http(s) 绝对 URL 分支与 optional 不变；DB origin='FETCHED' 29 行 100% 符合（AC5 复核在案）。
+// v0.11（2026-09-16，菜谱池整改，用户已批准）：DishStepSchema 新增 optional image（步骤做法配图）——
+//   仅站内相对路径 /images/dishes/<id>/N.(webp|jpg|png|gif)，口径对齐 imageUrl 站内分支（R-10）；
+//   向后兼容（老数据无此字段）；dish 页做法卡「有图嵌图无图纯文字」（下厨房参考样式）。
 import { z } from 'zod';
 import { MealRoleSchema } from './dish.js';
 import { FamilyRuleSchema, ExclusionRuleSchema } from './family.js';

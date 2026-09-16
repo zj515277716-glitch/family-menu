@@ -66,8 +66,8 @@ export interface DishSnapshot {
     /** 可选食材（API 已返回；灰显 + 可选标） */
     optional?: boolean
   }[]
-  /** 烹饪步骤（做法页展示用；真 API 未返回时为 undefined） */
-  steps?: { order: number; text: string; parallel?: boolean }[]
+  /** 烹饪步骤（做法页展示用；真 API 未返回时为 undefined）；image 为步骤做法配图（契约 v0.11，站内相对路径） */
+  steps?: { order: number; text: string; parallel?: boolean; image?: string }[]
 }
 
 /** 菜单快照（候选卡展示用，从 engine MenuView 投影） */

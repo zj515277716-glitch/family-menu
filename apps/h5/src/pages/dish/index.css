@@ -300,6 +300,15 @@
   line-height: var(--fm-line-height);
 }
 
+/* 步骤做法配图（DishStep.image，v0.11）：文字下方等比全宽圆角，下厨房做法配图样式 */
+.dish-step-img {
+  display: block;
+  width: 100%;
+  margin-top: 16px;
+  border-radius: var(--fm-radius);
+  background: var(--fm-bg-sunken);
+}
+
 .dish-parallel-tag {
   display: inline-block;
   margin-top: 12px;

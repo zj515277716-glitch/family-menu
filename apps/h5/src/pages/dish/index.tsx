@@ -4,7 +4,7 @@
 // ②换道导航「‹ 上一道｜下一道 ›」（按今晚菜单 lockedMenu.dishes 数组序=备菜顺序，
 //   plan 页已核实结论；直进无菜单上下文走空态页，导航自然不渲染）
 // ③主料/调料分组用料（沿用现有人数口径；ingredients 空显示「用料待补齐」不虚构）
-// ④笔记式步骤流（有图嵌图无图纯文字——DishStep 契约无图字段，本版全部纯文字）
+// ④笔记式步骤流（有图嵌图无图纯文字——DishStep.image 为可选步骤配图，契约 v0.11 起；重写数据按原图内容逐张绑定）
 // ⑤底部悬浮胶囊「做完饭，记一笔」三态（可点/loading 禁点/已提交，R-3 防抖）；
 //   提交逻辑沿用现状（跳 feedback 页三问），返回本页时查 getFeedback 回显已提交态
 import { useEffect, useState } from 'react'
@@ -267,7 +267,7 @@ export default function DishPage() {
         )}
       </View>
 
-      {/* ④ 做法卡（本页唯一关键卡顶条）：笔记式 1-2-3；步骤契约无图字段=纯文字流 */}
+      {/* ④ 做法卡（本页唯一关键卡顶条）：笔记式 1-2-3；步骤有 image 嵌图（widthFix 等比全宽），无图纯文字 */}
       <View className="fm-card fm-accent">
         <View className="fm-row-label">做法</View>
         {steps.length > 0 ? (
@@ -276,6 +276,14 @@ export default function DishPage() {
               <Text className="dish-step-no">{step.order}</Text>
               <View className="dish-step-body">
                 <Text className="dish-step-text">{step.text}</Text>
+                {step.image && (
+                  <Image
+                    className="dish-step-img"
+                    src={toAbsoluteImageUrl(step.image)}
+                    mode="widthFix"
+                    lazyLoad
+                  />
+                )}
                 {step.parallel && (
                   <Text className="dish-parallel-tag">⏸ 可并行</Text>
                 )}

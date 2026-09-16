@@ -21,11 +21,17 @@ export const ContentOriginSchema = z.enum(['LLM_DRAFT', 'MANUAL', 'FETCHED']);
 
 // ───── 子结构（JSON 字段精确定义，非 z.unknown） ─────
 
-/** 菜品步骤：[{order, text, parallel?}] */
+/** 菜品步骤：[{order, text, parallel?, image?}]；image 为该步骤做法配图（可选） */
 export const DishStepSchema = z.object({
   order: z.number().int(),
   text: z.string(),
   parallel: z.boolean().optional(),
+  // v0.11（2026-09-16，菜谱池整改，用户已批准）：步骤做法配图，仅站内相对路径，
+  // 口径对齐 imageUrl 站内分支（R-10：DB 存相对路径，前端拼 TARO_APP_API_BASE_URL）；老数据无此字段不受影响
+  image: z
+    .string()
+    .regex(/^\/images\/dishes\/[A-Za-z0-9]+\/\d+\.(webp|jpg|png|gif)$/)
+    .optional(),
 });
 
 // ───── 模型 ─────
