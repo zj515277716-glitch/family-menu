@@ -1,7 +1,8 @@
 /* apps/h5/src/pages/feedback/index.css
  * 三问反馈页（e-final 屏⑨/⑩）：标题/选项/成功态全部复用 app.css 公共类，这里只留页内差异 */
 
-.feedback-page {
+/* 提特异性 .fm-page.X-page（0,2,0）：防 app.css .fm-page 基础 padding-bottom 同特异性覆盖（层叠顺序根治） */
+.fm-page.feedback-page {
   padding-top: 24px;
   padding-bottom: 60px;
 }

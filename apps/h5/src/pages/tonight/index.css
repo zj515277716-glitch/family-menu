@@ -1,7 +1,9 @@
 /* apps/h5/src/pages/tonight/index.css */
 /* 页面级样式：公共组件类全部来自 app.css（e-final 定稿 ×2） */
 
-.tonight-page {
+/* 提特异性 .fm-page.X-page（0,2,0）：app.css 的 .fm-page 基础 padding-bottom 与本规则同特异性，
+   打包注入顺序不稳定会导致基础类 6.4px 覆盖本页 calc 让位（真机遮挡根因），双类必赢解耦顺序 */
+.fm-page.tonight-page {
   padding-top: 24px;
   /* 底部让位：fixed 操作条 + TabBar（基准 3.6rem）+ 安全区 + extra 兜底，留缓冲
      （实测 520px 源余量仅 ~21px@375 屏，360 安卓屏更紧，提至 640px 源） */

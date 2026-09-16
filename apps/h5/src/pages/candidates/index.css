@@ -1,7 +1,8 @@
 /* apps/h5/src/pages/candidates/index.css */
 /* UI 定稿对齐：去评分/AI 图后的纯浏览候选池——公共类在 app.css，这里只留页面局部 */
 
-.candidates-page {
+/* 提特异性 .fm-page.X-page（0,2,0）：防 app.css .fm-page 基础 padding-bottom 同特异性覆盖（层叠顺序根治） */
+.fm-page.candidates-page {
   padding-top: 24px;
   /* 底部让位：TabBar（基准 3.6rem）+ safe-area + extra 兜底（真机实测超高时自动补足，
      正常机型 extra=0 与定稿一致；--fm-tabbar-h 由 CustomTabBar 运行时实测写入） */

@@ -1,7 +1,8 @@
 /* apps/h5/src/pages/plan/index.css */
 /* UI 定稿对齐：e-final 屏②⑦⑧③④——公共类在 app.css，这里只留页面局部 */
 
-.plan-page {
+/* 提特异性 .fm-page.X-page（0,2,0）：防 app.css .fm-page 基础 padding-bottom 同特异性覆盖（层叠顺序根治） */
+.fm-page.plan-page {
   padding-top: 24px;
   /* 底部让位：fixed 操作条 + TabBar（基准 3.6rem）+ 安全区 + extra 兜底，留缓冲
      （实测 520px 源余量仅 ~21px@375 屏，360 安卓屏更紧，提至 640px 源） */

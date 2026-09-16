@@ -18,11 +18,22 @@ const TABS = [
   { path: '/pages/setup/index', text: '设置', emoji: '⚙️' },
 ]
 
+// 取 TabBar 有效实例：DOM 可能存在多个 .nut-tabbar-fixed（含 height=0 的空壳），
+// querySelector 单数会命中错实例（诊断 h=0 与 wrap 57.6px 矛盾的来源），遍历取首个高度非零者
+function pickTabbarEl(): Element | null {
+  const els = [
+    ...Array.from(document.querySelectorAll('.nut-tabbar-fixed')),
+    ...Array.from(document.querySelectorAll('.nut-tabbar')),
+  ]
+  for (const el of els) {
+    if (el.getBoundingClientRect().height > 0) return el
+  }
+  return els[0] || null
+}
+
 // 实测 TabBar 高度 → CSS 变量（px 真值，不受 rem 基准/字体缩放影响）
 function syncTabbarHeight() {
-  const el =
-    document.querySelector('.nut-tabbar-fixed') ||
-    document.querySelector('.nut-tabbar')
+  const el = pickTabbarEl()
   if (!el) return
   const h = el.getBoundingClientRect().height
   if (!h) return
@@ -37,9 +48,7 @@ function hasDebugFlag(): boolean {
 function collectDebugInfo(): string {
   const de = document.documentElement
   const cs = getComputedStyle(de)
-  const tabbar =
-    document.querySelector('.nut-tabbar-fixed') ||
-    document.querySelector('.nut-tabbar')
+  const tabbar = pickTabbarEl()
   const wrap = document.querySelector('.nut-tabbar-wrap')
   const page = document.querySelector('.fm-page')
   const rect = tabbar?.getBoundingClientRect()
@@ -69,7 +78,9 @@ function collectDebugInfo(): string {
       ? 'h=' + Math.round(rect.height) + ' top=' + Math.round(rect.top) + ' bottom=' + Math.round(rect.bottom)
       : 'NOT FOUND'),
     'tabbar(wrap-h): ' + (wrap ? getComputedStyle(wrap).height : 'NOT FOUND'),
-    'page(padding-b): ' + (page ? getComputedStyle(page).paddingBottom : 'NOT FOUND'),
+    'page(padding-b): ' + (page
+      ? page.className + ' pb=' + getComputedStyle(page).paddingBottom
+      : 'NOT FOUND'),
     'css loaded:',
     cssList || '(none)',
   ].join('\n')

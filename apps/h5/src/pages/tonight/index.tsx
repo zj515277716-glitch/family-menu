@@ -187,13 +187,14 @@ export default function TonightPage() {
     }
     const parts: string[] = []
     if (familyRule?.cuisines.length) parts.push(familyRule.cuisines.join('/'))
+    // 优先 targetName（api join 回填的食材名），避免直渲 targetId 的 cuid 串（乱码 bug，对齐 setup/plan 口径）
     const hard = exclusions
       .filter((e) => e.severity === 'HARD')
-      .map((e) => e.targetId || e.targetTag || '')
+      .map((e) => e.targetName || e.targetId || e.targetTag || '')
       .filter(Boolean)
     const soft = exclusions
       .filter((e) => e.severity === 'SOFT')
-      .map((e) => e.targetId || e.targetTag || '')
+      .map((e) => e.targetName || e.targetId || e.targetTag || '')
       .filter(Boolean)
     const avoid = [
       ...hard.map((n) => `${n}（过敏）`),

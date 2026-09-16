@@ -3,7 +3,8 @@
    单位说明：本文件 px 为 750 设计稿值（Taro 编译减半 → 375 视觉），
    与 app.css 公共类同口径；vA 静稿 375px 视觉值 ×2 落此。 */
 
-.dish-page {
+/* 提特异性 .fm-page.X-page（0,2,0）：防 app.css .fm-page 基础 padding-bottom 同特异性覆盖（层叠顺序根治） */
+.fm-page.dish-page {
   /* 底部让位：悬浮胶囊 dock（fixed，bottom 64px 源+safe-area）+ 手势条缓冲
      extra 兜底：本页无 TabBar 不实测，沿用链路内联变量（多留缓冲无害） */
   padding-bottom: calc(480px + var(--fm-tabbar-extra, 0px));
