@@ -2,7 +2,7 @@
 // 引擎编排：调 engine.recommend + list-merger.mergeShoppingList + Prisma 持久化
 // 路由薄、逻辑在 services（AGENTS.md 铁律），planService 是 API 层核心业务逻辑
 
-import { filterSwapCandidates, recommend } from '@family-menu/engine';
+import { composeMenusByRole, filterSwapCandidates, recommend } from '@family-menu/engine';
 import type { DishView, MenuView } from '@family-menu/engine';
 import { mergeShoppingList, type ShoppingList } from '@family-menu/list-merger';
 import type {
@@ -137,6 +137,19 @@ export async function loadMenuViews(): Promise<ReturnType<typeof toMenuView>[]> 
     },
   });
   return menus.map(toMenuView);
+}
+
+/**
+ * T-P16/PD-018：加载全角色 PUBLISHED 菜池（槽位组合层输入，含食材关联）。
+ * 按 id 升序确定性排序，保证同条件组合可复现（AC6 换一批语义基线）。
+ */
+async function loadPublishedDishViews(): Promise<DishView[]> {
+  const dishes = await prisma.dish.findMany({
+    where: { status: 'PUBLISHED' },
+    orderBy: { id: 'asc' },
+    include: { ingredients: { include: { ingredient: true } } },
+  });
+  return dishes.map(toDishView);
 }
 
 async function loadEventViews(familyId: string) {
@@ -408,13 +421,23 @@ export const planService = {
     /** 空手原因分类（T-P10/PD-017）：key=必消食材用户原文，与 unmetMustUse 同键集一一对应 */
     unmetReasons?: Record<string, 'TIME_BUDGET' | 'NO_DISH'>;
   }> {
-    const [rules, exclusions, library, history, mustUseResolved] = await Promise.all([
+    const [rules, exclusions, history, mustUseResolved, dishPool] = await Promise.all([
       loadFamilyRuleView(FAMILY_ID),
       loadExclusionViews(FAMILY_ID),
-      loadMenuViews(),
       loadEventViews(FAMILY_ID),
       resolveMustUseIds(context.mustUse),
+      loadPublishedDishViews(),
     ]);
+
+    // T-P16/PD-018：推荐 library = 槽位组合虚拟菜单（骨架：主菜⌈people/2⌉/SIDE 1/SOUP 1），
+    // 不再依赖 Menu 原子匹配（AC1）；禁菜在组合层 dish 级预过滤（AC2），覆盖式生成保宽集；
+    // mustUse 定向同桌 + 空手口径由 feasibility 层原样判定（AC3）
+    const composition = composeMenusByRole(dishPool, {
+      people: context.people,
+      exclusions,
+      mustUseIngredientIds: mustUseResolved.ids,
+    });
+    const library = composition.virtualMenus;
 
     const result = recommend({
       rules,
@@ -431,7 +454,8 @@ export const planService = {
     const candidates: Candidate[] = result.candidates.map((sm) => ({
       menuId: sm.menuId,
       score: sm.score,
-      reasons: sm.reasons,
+      // AC5 缺槽降级侧车：slotShortages 并入候选 reasons 透出（零契约变更，AC7）
+      reasons: [...sm.reasons, ...(composition.slotShortages[sm.menuId] ?? [])],
       breakdown: sm.breakdown,
       menu: library.find((m) => m.id === sm.menuId),
     }));
@@ -517,20 +541,39 @@ export const planService = {
     const candidates = plan.candidates as Candidate[];
 
     if (swapType === '全换') {
-      // 直接从 DB 查所有 PUBLISHED Menu，排除当前候选
+      // T-P16/PD-018：换一批=换菜（AC6）——当前候选集用过的全部菜不回池，
+      // 强制组合出不同的一批；虚拟菜单 id 每次动态生成，menuId 级排除已无意义
       const context = plan.context as PlanContext;
-      const excludeMenuIds = candidates.map((c) => c.menuId);
+      const excludeDishIds = [
+        ...new Set(
+          candidates.flatMap((c) => {
+            const menu = c.menu as MenuView | undefined;
+            return menu && Array.isArray(menu.dishes)
+              ? menu.dishes.map((d) => d.id)
+              : [];
+          }),
+        ),
+      ];
 
       // 用推荐引擎获取所有评分候选（不只 top 3）
       // T-P05（D2）：mustUse 同走 resolveMustUseIds 映射（修复遗留 bug——
       // 此前 context.mustUse 原文直传当 id，引擎匹配不到导致全换分支必消失效）
-      const [rules, exclusions, library, history, mustUseResolved] = await Promise.all([
+      const [rules, exclusions, history, mustUseResolved, dishPool] = await Promise.all([
         loadFamilyRuleView(FAMILY_ID),
         loadExclusionViews(FAMILY_ID),
-        loadMenuViews(),
         loadEventViews(FAMILY_ID),
         resolveMustUseIds(context.mustUse),
+        loadPublishedDishViews(),
       ]);
+
+      // T-P16/PD-018：library = 槽位组合虚拟菜单（剔除当前菜后重新组合）
+      const composition = composeMenusByRole(dishPool, {
+        people: context.people,
+        exclusions,
+        mustUseIngredientIds: mustUseResolved.ids,
+        excludeDishIds,
+      });
+      const library = composition.virtualMenus;
 
       const result = recommend({
         rules,
@@ -544,50 +587,35 @@ export const planService = {
         history,
       });
 
-      // 从所有候选中排除当前的，取新的 3 套
-      const freshCandidates: Candidate[] = result.candidates
-        .filter((sm) => !excludeMenuIds.includes(sm.menuId))
-        .slice(0, 3)
-        .map((sm) => ({
-          menuId: sm.menuId,
-          score: sm.score,
-          reasons: sm.reasons,
-          breakdown: sm.breakdown,
-          menu: library.find((m) => m.id === sm.menuId),
-        }));
+      // 取新的 3 套（换批语义由 excludeDishIds 保证：菜品级不与当前重复）
+      const freshCandidates: Candidate[] = result.candidates.slice(0, 3).map((sm) => ({
+        menuId: sm.menuId,
+        score: sm.score,
+        // AC5 缺槽降级侧车并入 reasons（与主推荐同口径）
+        reasons: [...sm.reasons, ...(composition.slotShortages[sm.menuId] ?? [])],
+        breakdown: sm.breakdown,
+        menu: library.find((m) => m.id === sm.menuId),
+      }));
 
       let finalCandidates: Candidate[];
       if (freshCandidates.length >= 3) {
         finalCandidates = freshCandidates;
       } else {
-        // 候选不足 3 套：从 DB 查所有 PUBLISHED Menu 补充（放宽时间限制）
-        const allMenus = library.filter(
-          (m) => m.status === 'PUBLISHED' && !excludeMenuIds.includes(m.id),
-        );
+        // 候选不足 3 套：从组合库兜底补充（含被时长档过滤的超时虚拟菜单，0.5 分兜底，
+        // 保留原「放宽时间限制」语义）。库耗尽则如实返回不足 3 套——AC6 换批语义：
+        // 当前候选用过的菜已全部剔除，不拿旧候选回填凑数。
         const seen = new Set(freshCandidates.map((c) => c.menuId));
-        for (const m of allMenus) {
-          if (!seen.has(m.id)) {
-            freshCandidates.push({
-              menuId: m.id,
-              score: 0.5,
-              reasons: ['替换候选'],
-              breakdown: { historyAcceptance: 0.5, timeDifficulty: 0.8, ingredientReuse: 0.5, preferenceCoverage: 0.5, recentDiversity: 0.5, categoryDiversity: 0.5 },
-              menu: m,
-            });
-            seen.add(m.id);
-          }
+        for (const m of library) {
+          if (seen.has(m.id)) continue;
+          freshCandidates.push({
+            menuId: m.id,
+            score: 0.5,
+            reasons: ['替换候选'],
+            breakdown: { historyAcceptance: 0.5, timeDifficulty: 0.8, ingredientReuse: 0.5, preferenceCoverage: 0.5, recentDiversity: 0.5, categoryDiversity: 0.5 },
+            menu: m,
+          });
+          seen.add(m.id);
           if (freshCandidates.length >= 3) break;
-        }
-        // 如果还不够 3 套，用旧候选打乱补充
-        if (freshCandidates.length < 3) {
-          const shuffled = [...candidates].sort(() => Math.random() - 0.5);
-          for (const c of shuffled) {
-            if (!seen.has(c.menuId)) {
-              freshCandidates.push(c);
-              seen.add(c.menuId);
-            }
-            if (freshCandidates.length >= 3) break;
-          }
         }
         finalCandidates = freshCandidates;
       }
@@ -868,9 +896,13 @@ export const planService = {
         ok: 'partial',
         fail: 'fail',
       };
+      // T-P16/PD-018：虚拟菜单 id（virt-*）不在 Menu 表，CookLog.menuId 有外键到 Menu，
+      // 虚拟 id 直写会违反 FK -> 置 null（不伪造 menuId）；result/willRepeat/actualMinutes
+      // 照常落库，内容升级通道（DEC-006）不受影响
+      const lockedMenuId = plan.lockedMenuId ?? null;
       await prisma.cookLog.create({
         data: {
-          menuId: plan.lockedMenuId ?? null,
+          menuId: lockedMenuId !== null && lockedMenuId.startsWith('virt-') ? null : lockedMenuId,
           result: resultMapping[taste as Taste],
           failPoints: null, // 三问无失败原因输入，字段留给内容管线
           willRepeat,
@@ -943,7 +975,20 @@ export const planService = {
     return plans.map((p) => {
       const plan = toPlan(p as PlanRow);
       const names = p.lockedMenuId ? namesByMenu.get(p.lockedMenuId) : undefined;
-      if (names && names.length > 0) plan.dishNames = names;
+      if (names && names.length > 0) {
+        plan.dishNames = names;
+      } else if (p.lockedMenuId) {
+        // T-P16/PD-018：虚拟菜单（virt-*）不在 MenuDish 表，MenuDish 查询必落空 ->
+        // 从该 plan 候选快照（DEC-013 方案 B：candidates.menu 持久化）回填菜名，
+        // 历史页展示口径与锁定时一致；快照缺失则如实缺省（不编造菜名）
+        const planCandidates = p.candidates as Candidate[] | null;
+        const menu = Array.isArray(planCandidates)
+          ? (planCandidates.find((c) => c.menuId === p.lockedMenuId)?.menu as MenuView | undefined)
+          : undefined;
+        if (menu && Array.isArray(menu.dishes)) {
+          plan.dishNames = menu.dishes.map((d) => d.name);
+        }
+      }
       return plan;
     });
   },

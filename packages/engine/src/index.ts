@@ -3,11 +3,17 @@
 export const PACKAGE_NAME = '@family-menu/engine';
 
 export { recommend } from './recommend.js';
-export { safetyFilter, type SafetyFilterResult } from './safety.js';
+export { safetyFilter, filterSafeDishes, type SafetyFilterResult, type DishSafetyResult } from './safety.js';
 export { feasibilityFilter, type FeasibilityFilterResult } from './feasibility.js';
 export { filterSwapCandidates, type SwapCandidateInput, type SwapCandidateResult } from './swap-candidates.js';
 export { score, SCORE_WEIGHTS } from './score.js';
 export { diversify } from './diversify.js';
+export {
+  composeMenusByRole,
+  mainSlotCount,
+  type ComposeInput,
+  type CompositionResult,
+} from './composition.js';
 
 export type {
   ScoreDim,

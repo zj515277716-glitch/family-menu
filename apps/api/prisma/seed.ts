@@ -146,10 +146,16 @@ async function main(): Promise<void> {
   }
 
   // 菜品
+  // T-P16 AC8：update 分支同步 status + mealRole——方案1 两个纠偏维度（4 道排骨菜 PUBLISHED 升格、
+  // 2 道排骨汤 mealRole 纠偏 MAIN→SOUP）在重放时生效；其余内容字段（steps/时长/图片等）不回滚，
+  // 避免覆盖线上人工微调；teardown 重建库走 create 分支全量写入
   for (const dish of dishes) {
     await prisma.dish.upsert({
       where: { id: dish.id },
-      update: {},
+      update: {
+        status: dish.status,
+        mealRole: dish.mealRole,
+      },
       create: {
         id: dish.id,
         name: dish.name,
@@ -215,7 +221,9 @@ async function main(): Promise<void> {
     });
   }
 
-  console.log('Seed completed: 1 family + 1 rule + 2 exclusions + 17 ingredients + 10 dishes + 29 dish-ingredients + 4 menus + 13 menu-dishes.');
+  console.log(
+    'Seed completed: 1 family + 1 rule + 3 exclusions + 28 ingredients + 13 dishes + 53 dish-ingredients + 7 menus + 23 menu-dishes.'
+  );
 }
 
 main()

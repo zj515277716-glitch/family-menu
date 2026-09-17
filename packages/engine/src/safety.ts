@@ -1,7 +1,7 @@
 // packages/engine/src/safety.ts
 // 第一层安全过滤：HARD 禁忌过滤，成分未确认滤除，产出 FilterTrace
 // 铁律：安全层永远先于评分，不可被任何权重覆盖（4.2）
-import type { ExclusionView, FilterTrace, MenuView } from './types.js';
+import type { DishView, ExclusionView, FilterTrace, MenuView } from './types.js';
 
 /** 构建 HARD+INGREDIENT 禁忌的匹配名称集合（含 targetName + targetAliases + targetId） */
 function buildHardIngredientNameSets(
@@ -190,4 +190,90 @@ export function safetyFilter(
   }
 
   return { passed, filtered };
+}
+
+export interface DishSafetyResult {
+  passed: DishView[];
+  excluded: Array<{ dish: DishView; reason: string }>;
+}
+
+/**
+ * dish 级安全过滤（T-P16/PD-018 组合层预过滤用）。
+ * 判定口径与 safetyFilter 菜单级完全一致（复用同一套内部判定）：
+ * - 成分未确认：存在 HARD 食材禁忌时，该菜 ingredients 为空 -> 保守排除
+ * - HARD+INGREDIENT：该菜食材（含 optional）命中禁忌成分 -> 排除（支持别名归一）
+ * - HARD+DISH：该菜即目标菜品 -> 排除
+ * - HARD+TAG：该菜 flavorTags 或食材 category 命中标签 -> 排除
+ * dish 级排除保证禁菜绝不进入任何槽位（AC2），且单菜被禁不拖累同池其他菜。
+ */
+export function filterSafeDishes(
+  dishes: DishView[],
+  exclusions: ExclusionView[],
+): DishSafetyResult {
+  const hardExclusions = exclusions.filter((e) => e.severity === 'HARD');
+  const hasHardIngredient = hardExclusions.some((e) => e.scope === 'INGREDIENT');
+  const ingredientNameSets = buildHardIngredientNameSets(exclusions);
+
+  const passed: DishView[] = [];
+  const excluded: Array<{ dish: DishView; reason: string }> = [];
+
+  for (const dish of dishes) {
+    // 1. 成分未确认（口径同菜单级 checkUnconfirmedIngredients，菜粒度投影）
+    if (hasHardIngredient && dish.ingredients.length === 0) {
+      excluded.push({
+        dish,
+        reason: `菜品「${dish.name}」成分未确认，保守过滤（存在 HARD 食材禁忌）`,
+      });
+      continue;
+    }
+
+    // 2. HARD 三 scope 逐条检查（INGREDIENT/DISH/TAG）
+    let blocked: string | null = null;
+    for (const ex of hardExclusions) {
+      if (ex.scope === 'INGREDIENT') {
+        const nameSet = ingredientNameSets.get(ex.id);
+        if (!nameSet) continue;
+        for (const ing of dish.ingredients) {
+          if (
+            ingredientHitsExclusion(
+              ing.ingredientId,
+              ing.ingredientName,
+              ing.aliases,
+              nameSet,
+            )
+          ) {
+            blocked = `含${ing.ingredientName}，命中 HARD 食材禁忌#${ex.id}`;
+            break;
+          }
+        }
+      } else if (ex.scope === 'DISH') {
+        if (ex.targetId && dish.id === ex.targetId) {
+          blocked = `菜品「${dish.name}」命中 HARD 菜品禁忌#${ex.id}`;
+        }
+      } else if (ex.scope === 'TAG') {
+        const tag = ex.targetTag;
+        if (tag) {
+          if (dish.flavorTags.includes(tag)) {
+            blocked = `菜品「${dish.name}」标签含「${tag}」，命中 HARD 标签禁忌#${ex.id}`;
+          } else {
+            for (const ing of dish.ingredients) {
+              if (ing.category === tag) {
+                blocked = `食材「${ing.ingredientName}」品类为「${tag}」，命中 HARD 标签禁忌#${ex.id}`;
+                break;
+              }
+            }
+          }
+        }
+      }
+      if (blocked) break;
+    }
+
+    if (blocked) {
+      excluded.push({ dish, reason: blocked });
+    } else {
+      passed.push(dish);
+    }
+  }
+
+  return { passed, excluded };
 }

@@ -76,8 +76,8 @@ describe('seed data: dishes', () => {
     }
   });
 
-  it('has exactly 10 dishes', () => {
-    expect(dishes).toHaveLength(10);
+  it('has exactly 13 dishes (T-P16 AC8: 10 seed + 3 FETCHED ribs dishes)', () => {
+    expect(dishes).toHaveLength(13);
   });
 
   it('covers all 4 meal roles', () => {
@@ -91,6 +91,34 @@ describe('seed data: dishes', () => {
   it('has at least 1 PUBLISHED dish', () => {
     const published = dishes.filter((d) => d.status === 'PUBLISHED');
     expect(published.length).toBeGreaterThanOrEqual(1);
+  });
+
+  it('T-P16 AC8: all 4 ribs dishes are PUBLISHED', () => {
+    const ribsDishIds = ['seed-dish-potato-ribs', 'cmtvk2erk0000nopg3y2tqytq', 'cmtvkq3dl00009cpgaeksvumo', 'cmtvkqlfh000080pggqq7f7p0'];
+    for (const id of ribsDishIds) {
+      const dish = dishes.find((d) => d.id === id);
+      expect(dish).toBeDefined();
+      expect(dish?.status).toBe('PUBLISHED');
+    }
+  });
+
+  it('T-P16 AC8: both ribs soups have mealRole SOUP (MAIN->SOUP corrected)', () => {
+    for (const id of ['cmtvkq3dl00009cpgaeksvumo', 'cmtvkqlfh000080pggqq7f7p0']) {
+      const dish = dishes.find((d) => d.id === id);
+      expect(dish).toBeDefined();
+      expect(dish?.mealRole).toBe('SOUP');
+    }
+  });
+
+  it('T-P16 AC8: 3 FETCHED ribs dishes keep source/license fields', () => {
+    for (const id of ['cmtvk2erk0000nopg3y2tqytq', 'cmtvkq3dl00009cpgaeksvumo', 'cmtvkqlfh000080pggqq7f7p0']) {
+      const dish = dishes.find((d) => d.id === id);
+      expect(dish).toBeDefined();
+      expect(dish?.origin).toBe('FETCHED');
+      expect(dish?.imageUrl).toBeTruthy();
+      expect(dish?.sourceUrl).toBeTruthy();
+      expect(dish?.licenseNote).toBeTruthy();
+    }
   });
 });
 
@@ -109,8 +137,18 @@ describe('seed data: menus', () => {
     }
   });
 
-  it('has exactly 4 menus', () => {
-    expect(menus).toHaveLength(4);
+  it('has exactly 7 menus (T-P16 AC8: 4 seed + 3 ribs menus)', () => {
+    expect(menus).toHaveLength(7);
+  });
+
+  it('T-P16 AC8: 3 ribs menus are PUBLISHED with prepSequence', () => {
+    for (const id of ['ribs-menu-01', 'ribs-menu-02', 'ribs-menu-03']) {
+      const menu = menus.find((m) => m.id === id);
+      expect(menu).toBeDefined();
+      expect(menu?.status).toBe('PUBLISHED');
+      expect(Array.isArray(menu?.prepSequence)).toBe(true);
+      expect((menu?.prepSequence as unknown[]).length).toBeGreaterThan(0);
+    }
   });
 
   it('covers all 4 scenes', () => {
