@@ -51,6 +51,22 @@
 
 契约需要新字段 / Plan 模型结构性改动 / 测试基线与 AC 冲突 / 类别池或槽位判定争议 → 停手，写报告报主控，不得自行改方案。
 
-## 终态
+## 终态（主控补登 · 2026-09-17）
 
-（待 dev 完成报告后主控补登）
+**结论：PASS（四角色流程走完，全链路闭环）**
+
+| 角色 | 结论 | 证据/锚点 |
+|---|---|---|
+| DEV（fm-dev） | AC1~AC9 全 [✓]，代码 e2e8b92 + 报告 5e7a71f | [evidence/T-P16-dev-2026-09-17.md](../../../evidence/T-P16-dev-2026-09-17.md) |
+| REVIEW（fm-reviewer） | PASS-有条件 → 经主控裁决 5 条补登后升格 **PASS**（条件③ verify 复跑 5/5 一致已闭环） | [evidence/T-P16-review-2026-09-17.md](../../../evidence/T-P16-review-2026-09-17.md)（附录：主控裁决） |
+| VERIFY（fm-verify） | **PASS**——数字复跑 5/5 一致；接口级产品验收 8/8 命中 | [evidence/T-P16-verify-2026-09-17.md](../../../evidence/T-P16-verify-2026-09-17.md) |
+
+关键数字（verify 复跑）：pnpm test 21 files / 471 passed；test:taboo 6 files / 108 passed；api tsc 0 错；h5 tsc 6 错（≤基线 6，主控裁决豁免口径命中）；seed 幂等闭环 teardown 四表 Dish=49 / Menu=16 / MenuDish=52 / Ingredient=81。
+
+人数映射实测：2 人=3 道 [MAIN,SIDE,SOUP]；4 人=主推 3 道 [MAIN,MAIN,SOUP]（配菜槽降级，完整 4 道已生成仅排序未进 top-3 → V-1 观察项）；6 人=5 道 [MAIN,MAIN,MAIN,SIDE,SOUP]。
+
+主控裁决 5 条（详见 review 报告附录）：①h5 子项豁免口径=typecheck 错误数≤基线 6 错（pre-existing）；②PD-018/确认书修订随 e2e8b92 入库归属确认；③verify 数字复跑坐实；④teardown 七表断言收敛为内容四表（Plan/Event 仅登记）；⑤P3 缺陷「换批兜底候选 reasons 未并入 slotShortages」挂账不阻塞。
+
+**P3 观察项（挂账，待用户裁决是否立卡）**：V-1 people=4 完整套排序加权；V-2 tb=60+必消牛腩单菜候选体验；换批兜底 slotShortages 并入；h5 typecheck 6 错 pre-existing 修复卡。
+
+环境清理：API 已停、PG `-m fast stop` exit 0、禁忌测试规则已还原 seed 基线 3 条、临时脚本在 %TEMP% 未入库。浏览器实操未做（无自动化驱动），接口级已覆盖全链路。
