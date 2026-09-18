@@ -2,7 +2,7 @@
 // 统一导出 recommend 主函数 + 所有公开类型（4.2 铁律）
 export const PACKAGE_NAME = '@family-menu/engine';
 
-export { recommend } from './recommend.js';
+export { recommend, SHORTAGE_PENALTY } from './recommend.js';
 export { safetyFilter, filterSafeDishes, type SafetyFilterResult, type DishSafetyResult } from './safety.js';
 export { feasibilityFilter, type FeasibilityFilterResult } from './feasibility.js';
 export { filterSwapCandidates, type SwapCandidateInput, type SwapCandidateResult } from './swap-candidates.js';

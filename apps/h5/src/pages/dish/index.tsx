@@ -279,7 +279,7 @@ export default function DishPage() {
                 {step.image && (
                   <Image
                     className="dish-step-img"
-                    src={toAbsoluteImageUrl(step.image)}
+                    src={toAbsoluteImageUrl(step.image) ?? ''}
                     mode="widthFix"
                     lazyLoad
                   />

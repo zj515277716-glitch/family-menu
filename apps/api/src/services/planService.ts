@@ -449,6 +449,10 @@ export const planService = {
       },
       library,
       history,
+      // T-P17/AC1：缺槽计数侧车进排序罚分——完整可行套存在时反超缺槽短套
+      menuShortageCounts: Object.fromEntries(
+        Object.entries(composition.slotShortages).map(([id, arr]) => [id, arr.length]),
+      ),
     });
 
     const candidates: Candidate[] = result.candidates.map((sm) => ({
@@ -585,6 +589,10 @@ export const planService = {
         },
         library,
         history,
+        // T-P17/AC1：换批路径同样传入缺槽计数（与主推荐同口径）
+        menuShortageCounts: Object.fromEntries(
+          Object.entries(composition.slotShortages).map(([id, arr]) => [id, arr.length]),
+        ),
       });
 
       // 取新的 3 套（换批语义由 excludeDishIds 保证：菜品级不与当前重复）
@@ -610,7 +618,8 @@ export const planService = {
           freshCandidates.push({
             menuId: m.id,
             score: 0.5,
-            reasons: ['替换候选'],
+            // T-P17/AC4：兜底候选并入缺槽侧车说明（与主推荐/换批同口径，零契约变更）
+            reasons: ['替换候选', ...(composition.slotShortages[m.id] ?? [])],
             breakdown: { historyAcceptance: 0.5, timeDifficulty: 0.8, ingredientReuse: 0.5, preferenceCoverage: 0.5, recentDiversity: 0.5, categoryDiversity: 0.5 },
             menu: m,
           });

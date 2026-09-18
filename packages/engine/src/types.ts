@@ -115,6 +115,13 @@ export interface RecommendInput {
   context: TonightContext;
   library: MenuView[]; // 仅 status=PUBLISHED
   history: EventView[]; // 近 30 天
+  /**
+   * 缺槽计数侧车（T-P17/AC1，engine 内部扩展，不改 shared 契约）：
+   * menuId -> 该虚拟菜单的缺槽说明条数（来自组合层 slotShortages）。
+   * 仅参与排序罚分（score - SHORTAGE_PENALTY × 计数，SHORTAGE_PENALTY=0.1），
+   * 不改变 score/breakdown 展示值；不传（老调用方）时罚分恒为 0，行为与基线逐位一致。
+   */
+  menuShortageCounts?: Record<string, number>;
 }
 
 /** 评分结果，对齐 4.2 ScoredMenu */
