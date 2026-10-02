@@ -2,7 +2,7 @@
 // 插件装配：zod type provider + cors(E1) + auth(口令) + 错误处理（对齐实施方案第368行）
 // server.ts 调用 buildApp() 创建实例，测试调用 buildApp() + inject
 
-import Fastify, { type FastifyInstance, type FastifyRequest, type FastifyReply } from 'fastify';
+import Fastify, { type FastifyInstance } from 'fastify';
 import cookie from '@fastify/cookie';
 import cors from '@fastify/cors';
 import fastifyStatic from '@fastify/static';
@@ -15,27 +15,12 @@ import {
   serializerCompiler,
 } from 'fastify-type-provider-zod';
 import { prisma } from './db.js';
+import { authHook, registerAuthRoutes } from './auth.js';
 import { familyRoutes } from './routes/family.js';
 import { recommendRoutes } from './routes/recommend.js';
 import { planRoutes } from './routes/plans.js';
 import { dishRoutes } from './routes/dishes.js';
 import { NotFoundError, PlanStateError, SwapRecheckError } from './services/planService.js';
-
-// ───── auth 中间件插槽 ─────
-// 阶段1：ACCESS_TOKEN 口令鉴权（cookie）
-// 阶段2：替换为微信登录（修改此函数即可，路由不变）
-async function authHook(request: FastifyRequest, reply: FastifyReply): Promise<void> {
-  // /health 端点豁免鉴权
-  if (request.url.startsWith('/health')) {
-    return;
-  }
-  // 口令鉴权：读取 cookie 中的 access_token，与 ACCESS_TOKEN 环境变量比对
-  const token = request.cookies.access_token;
-  const expected = process.env.ACCESS_TOKEN;
-  if (!expected || token !== expected) {
-    reply.code(401).send({ error: 'Unauthorized' });
-  }
-}
 
 // ───── buildApp ─────
 
@@ -68,7 +53,11 @@ export async function buildApp(): Promise<FastifyInstance> {
     allowedHeaders: ['Content-Type', 'Authorization'],
   });
 
-  // auth 中间件插槽（AC9：口令鉴权，预留阶段2微信登录替换）
+  // 登录三件套（T-A2）：POST /api/auth/login 服务端口令校验 + 下发 HttpOnly cookie；
+  // GET /api/auth/me 登录态探测（恒 200）。注册于 authHook 之前，钩子对 /api/auth/ 豁免。
+  await registerAuthRoutes(app);
+
+  // auth 中间件插槽（AC9：口令鉴权，预留阶段2微信登录替换；实现见 auth.ts）
   app.addHook('preHandler', authHook);
 
   // T-C03 AC1：静态图片服务（/images/** → apps/api/static/images/**）
@@ -111,8 +100,9 @@ export async function buildApp(): Promise<FastifyInstance> {
       await prisma.$queryRaw`SELECT 1 as ok`;
       return { status: 'ok', db: 'connected' };
     } catch (err) {
+      // 细节只进服务端日志：响应体回显错误会泄露连接串等内部信息（复盘报告 V2 P0-2 附带问题）
       app.log.error(err);
-      return { status: 'error', db: 'disconnected', error: String(err) };
+      return { status: 'error', db: 'disconnected' };
     }
   });
 

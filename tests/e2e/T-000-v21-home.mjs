@@ -6,6 +6,7 @@ import { chromium } from '@playwright/test'
 import { mkdirSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { dirname, join } from 'node:path'
+import { requireLocalToken } from './lib/env-token.mjs'
 
 const BASE = 'http://127.0.0.1:10086'
 const here = dirname(fileURLToPath(import.meta.url))
@@ -23,6 +24,18 @@ const context = await browser.newContext({
 const page = await context.newPage()
 
 await page.goto(BASE, { waitUntil: 'load', timeout: 20000 })
+
+// T-A2 访问控制：站点有登录门。首次打开见到「输入家庭口令」就先输口令进首页
+// （已登录设备由登录页自动跳过，不会出现输入框）。
+const loginInput = page.locator('input[placeholder="输入家庭口令"]')
+try {
+  await loginInput.waitFor({ state: 'visible', timeout: 15000 })
+  await loginInput.fill(requireLocalToken())
+  await page.locator('text=进入').first().click()
+  console.log('已过登录门（输入家庭口令）')
+} catch {
+  /* 无登录门（改动前的构建）：直接继续首页断言 */
+}
 
 // 首页（今晚页）h1「今晚吃什么」；无家庭规则时按设计跳长期设置页「长期设置」
 const headings = ['text=今晚吃什么', 'text=长期设置']

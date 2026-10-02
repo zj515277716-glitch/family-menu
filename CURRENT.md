@@ -1,4 +1,4 @@
-# CURRENT.md — 一屏现状（2026-10-02）
+# CURRENT.md — 一屏现状（2026-10-03）
 
 > 开工必读：.trae/rules/project_rules.md → 本文件 → 当前任务卡。历史已移入 docs/archive/ 与 git log。
 > 整改依据：docs/复盘报告_V2_2026-09-29.md（复盘结论：三处 P0 防线缺口未补前，暂停新功能）。
@@ -14,14 +14,14 @@
 
 ## 任务队列（复盘报告 V2 §5 阶段 A，均为 L2）
 1. A1 过敏防线：花生规则改稳定 ID + 新增 `pnpm check:safety`（对真实库、发布前强制跑）。
-2. A2 访问控制：口令移出前端 JS，服务端下发 HttpOnly cookie，登录限速；立即更换现口令。
+2. A2 访问控制：**进行中**（fix/a2-access-control，fm-dev 完成，待审查/验收）：口令已移出前端 JS，服务端校验 + HttpOnly cookie + 登录限速落地，产物 grep 口令 0 命中；更换生产口令 + 部署属 L3，待产品负责人审批。
 3. A3 修 T-P16：虚拟菜单按内容哈希、口碑/多样性按菜品聚合、CookLog 关联计划与菜品。
 
 ## 阻塞
 - A3 未修复前 T-P16/T-P17 不上线；花生规则产品口径（列食材 vs 名称宽匹配）待拍板。
 - 本地（便携 PG :54329）与生产 RDS 数据分叉，本地验证结论不代表生产。
 - 生产不可追溯、无版本号、验收与正式环境不分（阶段 B）；本机无 Docker。
-- 前端无自动化页面测试入库（Playwright 脚本待建，tests/e2e/）。
+- Playwright 冒烟已入库 tests/e2e（T-000 首页 / T-A2 登录门）；全仓 `pnpm lint` 与 `pnpm test` 各有一处既有红（.workflow-verify 沙箱脚本 / fetch2dish shebang），待立卡清理。
 
 ## 共用资源（动服务器前必读）
 - 生产服务器与买菜平台共用（阿里云 ECS 8.136.32.223），可用内存约 1.1GB。
