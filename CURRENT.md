@@ -6,7 +6,7 @@
 ## 代码版本
 - main：`542768f`（V2.1 流程切换 + T-A2 访问控制合并后 HEAD）。
 - `fix/a2-access-control`（`2a2b9c0`）：T-A2 四角色 PASS，**已部署生产**，已合并 main。
-- `fix/a1-allergy-defense`（`f82d5f0`）：T-A1 花生防线 dev 完成（门禁四连绿，仅两处既有红外），dev 报告 evidence/T-A1-dev-2026-10-03.md；待审查/页面验收/主控报批 L3。
+- `fix/a1-allergy-defense`（`3ce94e8`）：T-A1 花生防线 dev 完成（门禁四连绿，仅两处既有红外），dev 报告 evidence/T-A1-dev-2026-10-03.md；待审查/页面验收/主控报批 L3。
 - `deploy/a2-api-on-86b1263`（`27d1224`）：生产 API 实际源码 = `86b1263` + A2 鉴权三文件，**刻意不含 T-P16/T-P17**（决定③）。
 
 ## 生产版本（https://menu.jijingkongjian.xin）

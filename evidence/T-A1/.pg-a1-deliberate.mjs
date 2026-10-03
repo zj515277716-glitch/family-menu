@@ -1,5 +1,5 @@
 // T-A1 验收专用（仅本地一次性库 family_menu_a1）：模拟「故意破坏」以验证 check:safety 拦截力。
-// 用法：node tools/.pg-a1-deliberate.mjs <publish|dangling|restore>
+// 用法：node evidence/T-A1/.pg-a1-deliberate.mjs <publish|dangling|restore>
 //   publish  = 绕过发布入口直改 status= PUBLISHED（复刻 09-14 裸 SQL 场景，AC5 失败分支）
 //   dangling = 把花生 INGREDIENT 规则 targetId 改成不存在的 id（复刻 P0-1 悬空场景）
 //   restore  = 两者复原（验收闭环：restore 后 check:safety 应回到 exit 0）
