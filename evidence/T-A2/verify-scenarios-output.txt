@@ -1,0 +1,12 @@
+PASS S1a 冷启动（无 cookie）显示「输入家庭口令」登录门 | URL=http://127.0.0.1:10086/#/pages/login/index
+PASS S1a2 登录门最后一个操作按钮完全可见 | 「进入」视口内=true 命中自身=true; 「重新检查登录状态」视口内=true 命中自身=true
+PASS S1b 输错口令有明确反馈（非静默）且不进首页 | URL=http://127.0.0.1:10086/#/pages/login/index 反馈="⚠ 口令不正确，再试一次"
+PASS S1c 正确口令后进入首页（今晚吃什么） | URL=http://127.0.0.1:10086/#/pages/tonight/index
+PASS S2 刷新页面不弹登录门、免重复输口令 | URL=http://127.0.0.1:10086/#/pages/tonight/index 又见登录门=false
+PASS S3a document.cookie 读不到口令（名称与值均不可见） | document.cookie=空串
+PASS S3b cookie 四属性：HttpOnly + Secure + SameSite=Lax + 长期(>=30天) | httpOnly=true secure=true sameSite=Lax 剩余365天
+PASS S4a TabBar 今晚/历史/设置 可见且完整落在视口内 | 三项=[true,true,true] tabbar h=75 bottom=844 视口内=true
+PASS S4b 首页最后一个操作按钮完全可见（视口内且中心点命中自身） | 「推荐今晚吃什么」视口内=true 命中自身=true; 「先看看历史吃过什么」视口内=true 命中自身=true
+PASS S4c TabBar 点选「历史」进入历史页 | URL=http://127.0.0.1:10086/#/pages/history/index
+PASS S4c2 TabBar 点选「设置」进入设置页 | URL=http://127.0.0.1:10086/#/pages/setup/index
+PASS S4c3 TabBar 点选「今晚」返回首页 | URL=http://127.0.0.1:10086/#/pages/tonight/index

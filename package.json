@@ -17,6 +17,7 @@
     "build": "pnpm -r build"
   },
   "devDependencies": {
+    "@playwright/test": "^1.63.0",
     "@typescript-eslint/eslint-plugin": "^8.0.0",
     "@typescript-eslint/parser": "^8.0.0",
     "@vitest/coverage-v8": "^4.1.10",

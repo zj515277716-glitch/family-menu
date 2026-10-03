@@ -1,0 +1,12 @@
+/* apps/h5/src/pages/login/index.css
+ * T-A2 登录门：公共类全复用（fm-h1/fm-sub/fm-card/fm-input/fm-error-banner/fm-bottom-bar），
+ * 本页无 TabBar，只留局部差异。
+ */
+
+.fm-page.login-page {
+  padding-top: 48px;
+}
+
+.login-page .fm-card {
+  margin-top: var(--fm-space-lg);
+}

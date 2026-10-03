@@ -1,0 +1,6 @@
+已过登录门（输入家庭口令）
+PASS 首页打开成功
+命中关键文字: text=今晚吃什么 | URL: http://127.0.0.1:10086/#/pages/tonight/index
+TabBar 今晚/历史/设置 可见: [true,true,true]
+截图: D:\codex\family-menu\evidence\T-000-v21\home.png + D:\codex\family-menu\evidence\T-000-v21\home-full.png
+页面文本片段: 今晚吃什么 | 几个人吃？ | − | 4 | ＋ | 今晚有多少时间？ | 15 分钟 | 30 分钟 | 60 分钟 | 冰箱里必须消耗的？ | 推荐今晚吃什么 | 先看看历史吃过什么 | 🍛 | 今晚 | 📔 | 历史 | ⚙️ | 设置

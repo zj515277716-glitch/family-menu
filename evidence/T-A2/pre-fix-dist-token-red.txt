@@ -1,0 +1,10 @@
+… 执行 h5 生产构建（pnpm --filter @family-menu/h5 build:h5），约 1-3 分钟
+PASS: h5 生产构建成功
+PASS: 产物 grep 本机地址 127.0.0.1 0 命中
+RESULT: FAIL
+
+===== stderr =====
+
+FAIL: h5 源码仍含 token 常量引用：apps\h5\src\api\client.ts:3 , apps\h5\src\app.tsx:11 , apps\h5\src\app.tsx:12 , apps\h5\src\app.tsx:13 , apps\h5\src\app.tsx:15 , apps\h5\src\app.tsx:17
+FAIL: 产物命中口令 oz***（长度 32）：apps\h5\dist\js\app.8b2b61af.js ×1
+

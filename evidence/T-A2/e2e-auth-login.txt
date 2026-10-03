@@ -1,0 +1,13 @@
+PASS 1 首次打开显示「输入家庭口令」页 | URL=http://127.0.0.1:10086/#/pages/login/index
+PASS 2 错误口令有反馈且不进首页 | URL=http://127.0.0.1:10086/#/pages/login/index
+PASS 3 正确口令后进入首页 | URL=http://127.0.0.1:10086/#/pages/tonight/index
+PASS 4a cookie access_token 已下发
+PASS 4b cookie HttpOnly
+PASS 4c cookie Secure
+PASS 4d cookie SameSite=Lax | sameSite=Lax
+PASS 4e cookie 长期有效（>=30 天） | 剩余 365 天
+PASS 5 document.cookie 读不到 access_token | document.cookie=""
+PASS 6 刷新后仍在首页（免重复输口令） | URL=http://127.0.0.1:10086/#/pages/tonight/index
+PASS 7 无 cookie 调 GET /api/family/rules 返回 401 | status=401
+PASS 7b 无 cookie 调 PUT /api/family/exclusions 返回 401 | status=401
+截图: D:\codex\family-menu\evidence\T-A2\login-gate.png + D:\codex\family-menu\evidence\T-A2\login-wrong.png + D:\codex\family-menu\evidence\T-A2\home-after-login.png + D:\codex\family-menu\evidence\T-A2\home-after-login-full.png

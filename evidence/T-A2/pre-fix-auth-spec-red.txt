@@ -1,0 +1,154 @@
+
+[1m[30m[46m RUN [49m[39m[22m [36mv4.1.10 [39m[90mD:/codex/family-menu[39m
+
+{"level":30,"time":1790962632078,"pid":12176,"hostname":"苏苏","reqId":"req-1","req":{"method":"GET","url":"/api/family/rules","host":"localhost:80","remoteAddress":"10.2.0.1"},"msg":"incoming request"}
+{"level":30,"time":1790962632082,"pid":12176,"hostname":"苏苏","reqId":"req-1","res":{"statusCode":401},"responseTime":3.0983000000001084,"msg":"request completed"}
+{"level":30,"time":1790962632083,"pid":12176,"hostname":"苏苏","reqId":"req-2","req":{"method":"GET","url":"/api/family/exclusions","host":"localhost:80","remoteAddress":"10.2.0.1"},"msg":"incoming request"}
+{"level":30,"time":1790962632083,"pid":12176,"hostname":"苏苏","reqId":"req-2","res":{"statusCode":401},"responseTime":0.23859999999990578,"msg":"request completed"}
+{"level":30,"time":1790962632083,"pid":12176,"hostname":"苏苏","reqId":"req-3","req":{"method":"PUT","url":"/api/family/exclusions","host":"localhost:80","remoteAddress":"10.2.0.1"},"msg":"incoming request"}
+{"level":30,"time":1790962632085,"pid":12176,"hostname":"苏苏","reqId":"req-3","res":{"statusCode":401},"responseTime":1.5530999999998585,"msg":"request completed"}
+{"level":30,"time":1790962632085,"pid":12176,"hostname":"苏苏","reqId":"req-4","req":{"method":"GET","url":"/api/plans","host":"localhost:80","remoteAddress":"10.2.0.1"},"msg":"incoming request"}
+{"level":30,"time":1790962632085,"pid":12176,"hostname":"苏苏","reqId":"req-4","res":{"statusCode":401},"responseTime":0.12169999999991887,"msg":"request completed"}
+{"level":30,"time":1790962632085,"pid":12176,"hostname":"苏苏","reqId":"req-5","req":{"method":"POST","url":"/api/recommend","host":"localhost:80","remoteAddress":"10.2.0.1"},"msg":"incoming request"}
+{"level":30,"time":1790962632086,"pid":12176,"hostname":"苏苏","reqId":"req-5","res":{"statusCode":401},"responseTime":0.9334000000001197,"msg":"request completed"}
+{"level":30,"time":1790962632086,"pid":12176,"hostname":"苏苏","reqId":"req-6","req":{"method":"GET","url":"/api/dishes","host":"localhost:80","remoteAddress":"10.2.0.1"},"msg":"incoming request"}
+{"level":30,"time":1790962632087,"pid":12176,"hostname":"苏苏","reqId":"req-6","res":{"statusCode":401},"responseTime":0.17010000000004766,"msg":"request completed"}
+{"level":30,"time":1790962632087,"pid":12176,"hostname":"苏苏","reqId":"req-7","req":{"method":"GET","url":"/images/private-dish.png","host":"localhost:80","remoteAddress":"10.2.0.1"},"msg":"incoming request"}
+{"level":30,"time":1790962632087,"pid":12176,"hostname":"苏苏","reqId":"req-7","res":{"statusCode":401},"responseTime":0.17460000000005493,"msg":"request completed"}
+{"level":30,"time":1790962632088,"pid":12176,"hostname":"苏苏","reqId":"req-8","req":{"method":"GET","url":"/health","host":"localhost:80","remoteAddress":"10.2.0.2"},"msg":"incoming request"}
+{"level":30,"time":1790962632088,"pid":12176,"hostname":"苏苏","reqId":"req-8","res":{"statusCode":200},"responseTime":0.4595000000001619,"msg":"request completed"}
+{"level":30,"time":1790962632089,"pid":12176,"hostname":"苏苏","reqId":"req-9","req":{"method":"GET","url":"/health/db","host":"localhost:80","remoteAddress":"10.2.0.2"},"msg":"incoming request"}
+{"level":50,"time":1790962632142,"pid":12176,"hostname":"苏苏","err":{"type":"PrismaClientKnownRequestError","message":"\nInvalid `prisma.$queryRaw()` invocation:\n\n\nRaw query failed. Code: `N/A`. Message: `Can't reach database server at 127.0.0.1:54329`","stack":"PrismaClientKnownRequestError: \nInvalid `prisma.$queryRaw()` invocation:\n\n\nRaw query failed. Code: `N/A`. Message: `Can't reach database server at 127.0.0.1:54329`\n    at Jr.handleRequestError (D:\\codex\\family-menu\\node_modules\\.pnpm\\@prisma+client@7.9.1_prisma_b48502556eb8d1f4235da760153afe7f\\node_modules\\@prisma\\client\\runtime\\client.js:65:8286)\n    at Jr.handleAndLogRequestError (D:\\codex\\family-menu\\node_modules\\.pnpm\\@prisma+client@7.9.1_prisma_b48502556eb8d1f4235da760153afe7f\\node_modules\\@prisma\\client\\runtime\\client.js:65:7581)\n    at Jr.request (D:\\codex\\family-menu\\node_modules\\.pnpm\\@prisma+client@7.9.1_prisma_b48502556eb8d1f4235da760153afe7f\\node_modules\\@prisma\\client\\runtime\\client.js:65:7288)\n    at processTicksAndRejections (node:internal/process/task_queues:104:5)\n    at a (D:\\codex\\family-menu\\node_modules\\.pnpm\\@prisma+client@7.9.1_prisma_b48502556eb8d1f4235da760153afe7f\\node_modules\\@prisma\\client\\runtime\\client.js:99:6862)\n    at Object.<anonymous> (D:/codex/family-menu/apps/api/src/app.ts:111:7)","code":"P2010","meta":{"driverAdapterError":{"name":"DriverAdapterError","cause":{"kind":"DatabaseNotReachable","host":"127.0.0.1","port":54329}}},"clientVersion":"7.9.1","name":"PrismaClientKnownRequestError"},"msg":"\nInvalid `prisma.$queryRaw()` invocation:\n\n\nRaw query failed. Code: `N/A`. Message: `Can't reach database server at 127.0.0.1:54329`"}
+{"level":30,"time":1790962632144,"pid":12176,"hostname":"苏苏","reqId":"req-9","res":{"statusCode":200},"responseTime":55.37920000000008,"msg":"request completed"}
+{"level":30,"time":1790962632145,"pid":12176,"hostname":"苏苏","reqId":"req-a","req":{"method":"POST","url":"/api/auth/login","host":"localhost:80","remoteAddress":"10.3.0.1"},"msg":"incoming request"}
+{"level":30,"time":1790962632146,"pid":12176,"hostname":"苏苏","reqId":"req-a","res":{"statusCode":401},"responseTime":0.3815999999999349,"msg":"request completed"}
+{"level":30,"time":1790962632147,"pid":12176,"hostname":"苏苏","reqId":"req-b","req":{"method":"POST","url":"/api/auth/login","host":"localhost:80","remoteAddress":"10.3.0.2"},"msg":"incoming request"}
+{"level":30,"time":1790962632147,"pid":12176,"hostname":"苏苏","reqId":"req-b","res":{"statusCode":401},"responseTime":0.4538000000000011,"msg":"request completed"}
+{"level":30,"time":1790962632150,"pid":12176,"hostname":"苏苏","reqId":"req-c","req":{"method":"GET","url":"/images/private-dish.png","host":"localhost:80","remoteAddress":"10.3.0.3"},"msg":"incoming request"}
+{"level":30,"time":1790962632152,"pid":12176,"hostname":"苏苏","reqId":"req-c","msg":"Route GET:/images/private-dish.png not found"}
+{"level":30,"time":1790962632153,"pid":12176,"hostname":"苏苏","reqId":"req-c","res":{"statusCode":404},"responseTime":2.2065999999999804,"msg":"request completed"}
+{"level":30,"time":1790962632153,"pid":12176,"hostname":"苏苏","reqId":"req-d","req":{"method":"GET","url":"/api/auth/me","host":"localhost:80","remoteAddress":"10.4.0.1"},"msg":"incoming request"}
+{"level":30,"time":1790962632153,"pid":12176,"hostname":"苏苏","reqId":"req-d","res":{"statusCode":401},"responseTime":0.10540000000014516,"msg":"request completed"}
+{"level":30,"time":1790962632154,"pid":12176,"hostname":"苏苏","reqId":"req-e","req":{"method":"GET","url":"/api/auth/me","host":"localhost:80","remoteAddress":"10.4.0.2"},"msg":"incoming request"}
+{"level":30,"time":1790962632154,"pid":12176,"hostname":"苏苏","reqId":"req-e","msg":"Route GET:/api/auth/me not found"}
+{"level":30,"time":1790962632154,"pid":12176,"hostname":"苏苏","reqId":"req-e","res":{"statusCode":404},"responseTime":0.10779999999999745,"msg":"request completed"}
+{"level":30,"time":1790962632155,"pid":12176,"hostname":"苏苏","reqId":"req-f","req":{"method":"POST","url":"/api/auth/login","host":"localhost:80","remoteAddress":"10.9.0.1"},"msg":"incoming request"}
+{"level":30,"time":1790962632155,"pid":12176,"hostname":"苏苏","reqId":"req-f","res":{"statusCode":401},"responseTime":0.45289999999999964,"msg":"request completed"}
+{"level":30,"time":1790962632155,"pid":12176,"hostname":"苏苏","reqId":"req-g","req":{"method":"POST","url":"/api/auth/login","host":"localhost:80","remoteAddress":"10.9.0.1"},"msg":"incoming request"}
+{"level":30,"time":1790962632155,"pid":12176,"hostname":"苏苏","reqId":"req-g","res":{"statusCode":401},"responseTime":0.2639999999998963,"msg":"request completed"}
+{"level":30,"time":1790962632155,"pid":12176,"hostname":"苏苏","reqId":"req-h","req":{"method":"POST","url":"/api/auth/login","host":"localhost:80","remoteAddress":"10.9.0.1"},"msg":"incoming request"}
+{"level":30,"time":1790962632156,"pid":12176,"hostname":"苏苏","reqId":"req-h","res":{"statusCode":401},"responseTime":0.27680000000009386,"msg":"request completed"}
+{"level":30,"time":1790962632156,"pid":12176,"hostname":"苏苏","reqId":"req-i","req":{"method":"POST","url":"/api/auth/login","host":"localhost:80","remoteAddress":"10.9.0.1"},"msg":"incoming request"}
+{"level":30,"time":1790962632156,"pid":12176,"hostname":"苏苏","reqId":"req-i","res":{"statusCode":401},"responseTime":0.205600000000004,"msg":"request completed"}
+{"level":30,"time":1790962632156,"pid":12176,"hostname":"苏苏","reqId":"req-j","req":{"method":"POST","url":"/api/auth/login","host":"localhost:80","remoteAddress":"10.9.0.1"},"msg":"incoming request"}
+{"level":30,"time":1790962632156,"pid":12176,"hostname":"苏苏","reqId":"req-j","res":{"statusCode":401},"responseTime":0.20700000000010732,"msg":"request completed"}
+{"level":30,"time":1790962632157,"pid":12176,"hostname":"苏苏","reqId":"req-k","req":{"method":"POST","url":"/api/auth/login","host":"localhost:80","remoteAddress":"10.9.0.1"},"msg":"incoming request"}
+{"level":30,"time":1790962632157,"pid":12176,"hostname":"苏苏","reqId":"req-k","res":{"statusCode":401},"responseTime":0.23789999999985412,"msg":"request completed"}
+{"level":30,"time":1790962632157,"pid":12176,"hostname":"苏苏","reqId":"req-l","req":{"method":"POST","url":"/api/auth/login","host":"localhost:80","remoteAddress":"10.9.0.1"},"msg":"incoming request"}
+{"level":30,"time":1790962632158,"pid":12176,"hostname":"苏苏","reqId":"req-l","res":{"statusCode":401},"responseTime":0.28930000000013933,"msg":"request completed"}
+{"level":30,"time":1790962632158,"pid":12176,"hostname":"苏苏","reqId":"req-m","req":{"method":"POST","url":"/api/auth/login","host":"localhost:80","remoteAddress":"10.9.0.1"},"msg":"incoming request"}
+{"level":30,"time":1790962632158,"pid":12176,"hostname":"苏苏","reqId":"req-m","res":{"statusCode":401},"responseTime":0.22499999999990905,"msg":"request completed"}
+{"level":30,"time":1790962632158,"pid":12176,"hostname":"苏苏","reqId":"req-n","req":{"method":"POST","url":"/api/auth/login","host":"localhost:80","remoteAddress":"10.9.0.1"},"msg":"incoming request"}
+{"level":30,"time":1790962632158,"pid":12176,"hostname":"苏苏","reqId":"req-n","res":{"statusCode":401},"responseTime":0.2276000000001659,"msg":"request completed"}
+{"level":30,"time":1790962632158,"pid":12176,"hostname":"苏苏","reqId":"req-o","req":{"method":"POST","url":"/api/auth/login","host":"localhost:80","remoteAddress":"10.9.0.1"},"msg":"incoming request"}
+{"level":30,"time":1790962632159,"pid":12176,"hostname":"苏苏","reqId":"req-o","res":{"statusCode":401},"responseTime":0.23069999999984248,"msg":"request completed"}
+{"level":30,"time":1790962632159,"pid":12176,"hostname":"苏苏","reqId":"req-p","req":{"method":"POST","url":"/api/auth/login","host":"localhost:80","remoteAddress":"10.9.0.1"},"msg":"incoming request"}
+{"level":30,"time":1790962632159,"pid":12176,"hostname":"苏苏","reqId":"req-p","res":{"statusCode":401},"responseTime":0.20190000000002328,"msg":"request completed"}
+ [31m❯[39m apps/api/test/auth.spec.ts [2m([22m[2m8 tests[22m[2m | [22m[31m4 failed[39m[2m)[22m[32m 174[2mms[22m[39m
+     [32m✓[39m 无 cookie 调业务 /api（GET/PUT/POST）一律 401[32m 18[2mms[22m[39m
+     [32m✓[39m /health 端点豁免鉴权（DB 不可达也 200 且不回显连接细节）[32m 57[2mms[22m[39m
+     [32m✓[39m 口令错误返回 401 且不下发 cookie[32m 2[2mms[22m[39m
+[31m     [31m×[31m 口令正确返回 200，下发 HttpOnly+Secure+SameSite=Lax 长期 cookie[39m[32m 4[2mms[22m[39m
+     [32m✓[39m 带登录 cookie 访问业务接口可通过鉴权层（/images 静态 404 而非 401）[32m 3[2mms[22m[39m
+[31m     [31m×[31m 无 cookie / 错误 cookie -> 200 authenticated=false（恒不 401）[39m[32m 1[2mms[22m[39m
+[31m     [31m×[31m 正确 cookie -> 200 authenticated=true[39m[32m 1[2mms[22m[39m
+[31m     [31m×[31m 同一来源连续口令错误达到阈值后 429，限速期间正确口令也被拒；其他来源不受影响[39m[32m 5[2mms[22m[39m
+
+[2m Test Files [22m [1m[31m1 failed[39m[22m[90m (1)[39m
+[2m      Tests [22m [1m[31m4 failed[39m[22m[2m | [22m[1m[32m4 passed[39m[22m[90m (8)[39m
+[2m   Start at [22m 01:37:10
+[2m   Duration [22m 1.23s[2m (transform 195ms, setup 0ms, import 921ms, tests 174ms, environment 0ms)[22m
+
+
+===== stderr =====
+
+
+[31m⎯⎯⎯⎯⎯⎯⎯[39m[1m[41m Failed Tests 4 [49m[22m[31m⎯⎯⎯⎯⎯⎯⎯[39m
+
+[41m[1m FAIL [22m[49m apps/api/test/auth.spec.ts[2m > [22mT-A2 登录接口 POST /api/auth/login[2m > [22m口令正确返回 200，下发 HttpOnly+Secure+SameSite=Lax 长期 cookie
+[31m[1mAssertionError[22m: expected 401 to be 200 // Object.is equality[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- 200[39m
+[31m+ 401[39m
+
+[36m [2m❯[22m apps/api/test/auth.spec.ts:[2m109:28[22m[39m
+    [90m107|[39m   it('口令正确返回 200，下发 HttpOnly+Secure+SameSite=Lax 长期 cookie', async () …
+    [90m108|[39m     [35mconst[39m res [33m=[39m [35mawait[39m [34mloginAttempt[39m([33mTEST_TOKEN[39m[33m,[39m [32m'10.3.0.2'[39m)[33m;[39m
+    [90m109|[39m     [34mexpect[39m(res[33m.[39mstatusCode)[33m.[39m[34mtoBe[39m([34m200[39m)[33m;[39m
+    [90m   |[39m                            [31m^[39m
+    [90m110|[39m     [35mconst[39m cookies [33m=[39m [34msetCookieHeaders[39m(res)[33m;[39m
+    [90m111|[39m     [34mexpect[39m(cookies[33m.[39mlength)[33m.[39m[34mtoBeGreaterThan[39m([34m0[39m)[33m;[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/4]⎯[22m[39m
+
+[41m[1m FAIL [22m[49m apps/api/test/auth.spec.ts[2m > [22mT-A2 探测接口 GET /api/auth/me[2m > [22m无 cookie / 错误 cookie -> 200 authenticated=false（恒不 401）
+[31m[1mAssertionError[22m: expected 401 to be 200 // Object.is equality[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- 200[39m
+[31m+ 401[39m
+
+[36m [2m❯[22m apps/api/test/auth.spec.ts:[2m143:33[22m[39m
+    [90m141|[39m       remoteAddress[33m:[39m [32m'10.4.0.1'[39m[33m,[39m
+    [90m142|[39m     })[33m;[39m
+    [90m143|[39m     [34mexpect[39m(noCookie[33m.[39mstatusCode)[33m.[39m[34mtoBe[39m([34m200[39m)[33m;[39m
+    [90m   |[39m                                 [31m^[39m
+    [90m144|[39m     [34mexpect[39m(noCookie[33m.[39m[34mjson[39m())[33m.[39m[34mtoEqual[39m({ authenticated[33m:[39m [35mfalse[39m })[33m;[39m
+    [90m145|[39m     [35mconst[39m wrong [33m=[39m [35mawait[39m app[33m.[39m[34minject[39m({
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/4]⎯[22m[39m
+
+[41m[1m FAIL [22m[49m apps/api/test/auth.spec.ts[2m > [22mT-A2 探测接口 GET /api/auth/me[2m > [22m正确 cookie -> 200 authenticated=true
+[31m[1mAssertionError[22m: expected 404 to be 200 // Object.is equality[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- 200[39m
+[31m+ 404[39m
+
+[36m [2m❯[22m apps/api/test/auth.spec.ts:[2m162:28[22m[39m
+    [90m160|[39m       cookies[33m:[39m { access_token[33m:[39m [33mTEST_TOKEN[39m }[33m,[39m
+    [90m161|[39m     })[33m;[39m
+    [90m162|[39m     [34mexpect[39m(res[33m.[39mstatusCode)[33m.[39m[34mtoBe[39m([34m200[39m)[33m;[39m
+    [90m   |[39m                            [31m^[39m
+    [90m163|[39m     [34mexpect[39m(res[33m.[39m[34mjson[39m())[33m.[39m[34mtoEqual[39m({ authenticated[33m:[39m [35mtrue[39m })[33m;[39m
+    [90m164|[39m   })[33m;[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/4]⎯[22m[39m
+
+[41m[1m FAIL [22m[49m apps/api/test/auth.spec.ts[2m > [22mT-A2 登录限速（进程内计数，按来源 IP）[2m > [22m同一来源连续口令错误达到阈值后 429，限速期间正确口令也被拒；其他来源不受影响
+[31m[1mAssertionError[22m: expected 401 to be 429 // Object.is equality[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- 429[39m
+[31m+ 401[39m
+
+[36m [2m❯[22m apps/api/test/auth.spec.ts:[2m180:32[22m[39m
+    [90m178|[39m     )[33m.[39m[34mtoBe[39m([35mtrue[39m)[33m;[39m
+    [90m179|[39m     [35mconst[39m blocked [33m=[39m [35mawait[39m [34mloginAttempt[39m([33mWRONG_TOKEN[39m[33m,[39m ip)[33m;[39m
+    [90m180|[39m     [34mexpect[39m(blocked[33m.[39mstatusCode)[33m.[39m[34mtoBe[39m([34m429[39m)[33m;[39m
+    [90m   |[39m                                [31m^[39m
+    [90m181|[39m     [35mconst[39m blockedEvenIfCorrect [33m=[39m [35mawait[39m [34mloginAttempt[39m([33mTEST_TOKEN[39m[33m,[39m ip)[33m;[39m
+    [90m182|[39m     [34mexpect[39m(blockedEvenIfCorrect[33m.[39mstatusCode)[33m.[39m[34mtoBe[39m([34m429[39m)[33m;[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/4]⎯[22m[39m
+
+

@@ -1,0 +1,20 @@
+T-A2 生产冒烟原始输出（2026-10-03，节点 https://menu.jijingkongjian.xin，Playwright Chromium 390×844）
+命令：$env:FM_NEW_TOKEN=(ssh fmsrv "grep '^ACCESS_TOKEN=' /opt/family-menu/.env").Split('=')[1].Trim(); node tests/e2e/T-A2-prod-smoke.mjs
+（口令只经环境变量传入，未写入本文件/日志/截图）
+
+PASS 登录门出现
+PASS 冷启动无「服务异常」误报横幅
+PASS 错误口令有明确反馈
+PASS 新口令登录进首页
+PASS document.cookie 读不到口令
+PASS 刷新不再要口令
+PASS TabBar 三项可见
+PASS 无 cookie 访问 API = 401
+PASS 无 cookie /api/auth/me 恒 200
+
+附（curl 复核）：
+no-cookie GET /api/family/rules -> 401
+no-cookie GET /api/auth/me     -> 200
+
+环境事实：API 容器 = deploy/a2-api-on-86b1263 (27d1224) 构建（86b1263+A2 三文件，不含 T-P16/T-P17），health=healthy；
+H5 = fix/a2-access-control (2a2b9c0) 构建产物，部署后 index 引用 app.673395c1.js，cache-control=no-store。
