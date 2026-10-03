@@ -51,6 +51,27 @@ describe('seed data: exclusion rules', () => {
   });
 });
 
+// T-A1（复盘 V2 §P0-1）：seed 禁忌规则引用完整性——INGREDIENT 规则 targetId 必须指向
+// seed 自有食材行（稳定 seed- id），不得写死本机库 cuid（换库即悬空，花生防线曾因失效 8–9h）。
+describe('seed data: exclusion rule referential integrity (T-A1)', () => {
+  it('every INGREDIENT rule targetId resolves to a seeded ingredient id', () => {
+    const ingredientIds = new Set(ingredients.map((i) => i.id));
+    for (const rule of exclusionRules) {
+      if (rule.scope === 'INGREDIENT') {
+        expect(ingredientIds.has(rule.targetId!)).toBe(true);
+      }
+    }
+  });
+
+  it('no exclusion rule targetId is a cuid-like environment-specific id', () => {
+    // cuid 形态：25 位小写 base36；seed 自有 id 一律 seed- 前缀（花生米稳定 id = seed-ing-peanut）
+    const cuidLike = /^[a-z0-9]{25}$/;
+    for (const rule of exclusionRules) {
+      expect(cuidLike.test(rule.targetId as string)).toBe(false);
+    }
+  });
+});
+
 describe('seed data: ingredients', () => {
   it('all ingredients pass IngredientSchema', () => {
     for (const ing of ingredients) {

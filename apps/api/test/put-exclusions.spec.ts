@@ -10,7 +10,7 @@ import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import { prisma } from '../src/db.js';
 import { planService } from '../src/services/planService.js';
 // seed-data.ts 只读引用做断言对照（PE-1 任务书第三节明确允许；不修改该文件）
-import { exclusionRules as seedExclusions } from '../prisma/seed-data.js';
+import { exclusionRules as seedExclusions, ingredients as seedIngredients } from '../prisma/seed-data.js';
 import type { ExclusionRule, PutExclusionsRequest } from '@family-menu/shared';
 
 const PREFIX = 'pe1-test-';
@@ -84,7 +84,19 @@ describe('PE-1 putExclusions：全量替换仅对用户行生效，seed- 前缀�
       const live = seedRows.find((r) => r.id === def.id);
       expect(live, `seed 行 ${def.id} 应存在`).toBeDefined();
       expect(live!.scope).toBe(def.scope);
-      expect(live!.targetId ?? undefined).toBe(def.targetId ?? undefined);
+      if (def.scope === 'INGREDIENT') {
+        // T-A1：targetId 解析口径 = seed 稳定 id 优先、库内同名食材行回退（seed.ts）。
+        // 内容管线先行建行的环境里字面值是 cuid，故按「引用解析」断言而非字面相等：
+        // live targetId 必须指向真实食材行，且其 name 等于 seed 定义 id 对应食材的 name
+        //（防悬空 = P0-1 整改核心；名称回退命中 = seed.ts resolution 生效证据）。
+        const seedIng = seedIngredients.find((i) => i.id === def.targetId);
+        expect(seedIng, `seed 定义中应存在食材 ${def.targetId}`).toBeDefined();
+        const liveIng = await prisma.ingredient.findUnique({ where: { id: live!.targetId! } });
+        expect(liveIng, `规则 ${def.id} 的 targetId 不得悬空`).not.toBeNull();
+        expect(liveIng!.name).toBe(seedIng!.name);
+      } else {
+        expect(live!.targetId ?? undefined).toBe(def.targetId ?? undefined);
+      }
       expect(live!.targetTag ?? undefined).toBe(def.targetTag ?? undefined);
       expect(live!.severity).toBe(def.severity);
       expect(live!.note ?? undefined).toBe(def.note ?? undefined);

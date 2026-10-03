@@ -217,15 +217,25 @@ describe('safetyFilter INGREDIENT 通道「食材名≠品类」真实形态（T
     expect(passed.map((m) => m.id)).not.toContain('menu-kongbao');
   });
 
-  it('口径边界固化（T-C07 缺口形态）：HARD+TAG("花生") 对食材名(花生米)/品类(调料)/flavorTags 均不含"花生"的菜零拦截', () => {
-    // 固化现状口径：checkTagScope 只匹配 flavorTags 与食材 category（safety.ts L104-127）。
-    // 该零拦截正是 T-C07 缺口，须由 INGREDIENT 规则行补位（见上用例）；若未来 TAG 通道语义
-    // 变更（如纳入食材名匹配），本用例应同步更新而非视为回归。
+  it('TAG 通道宽匹配（T-A1 主控决定②）：HARD+TAG("花生") 现按食材名/别名子串拦截花生米', () => {
+    // T-A1 口径变更（复盘 V2 P0-1 整改）：checkTagScope 原只匹配 flavorTags 与食材
+    // category（花生防线 09-14 因此失效 8–9 小时）；现按主控决定②纳入食材名/别名字串
+    // 宽匹配（含「花生」即拦，接受误伤「花生油」），与 allergen.ts 管线侧口径对齐。
+    // 本用例由「零拦截缺口固化」更新为「宽匹配拦截固化」——原用例注释明确允许该同步。
     const { passed, filtered } = safetyFilter(
       [MENU_KONGBAO, MENU_LETTUCE],
       [EX_HARD_PEANUT_TAG],
     );
-    expect(filtered).toHaveLength(0);
-    expect(passed.map((m) => m.id)).toEqual(['menu-kongbao', 'menu-lettuce']);
+    expect(filtered.map((f) => f.menuId)).toEqual(['menu-kongbao', 'menu-lettuce']);
+    expect(passed).toHaveLength(0);
+    expect(filtered[0].rule).toContain('花生米');
+    expect(filtered[0].rule).toContain('#ex-hard-peanut-tag');
+  });
+
+  it('TAG 通道对花生油同样宽匹配拦截（主控决定②误伤口径，安全侧零侥幸）', () => {
+    const { passed, filtered } = safetyFilter([MENU_VEG_OIL], [EX_HARD_PEANUT_TAG]);
+    expect(filtered.map((f) => f.menuId)).toContain('menu-veg-oil');
+    expect(passed).toHaveLength(0);
+    expect(filtered[0].rule).toContain('花生油');
   });
 });

@@ -1,0 +1,19 @@
+﻿pnpm.cmd : $ pnpm --dir apps/api exec tsx scripts/check-safety.ts "--" "--db-url" "postgresql://postgres@127.0.0.1:5432
+9/family_menu_a1"
+At line:15 char:6304
++ ... a1"; $out = & pnpm run check:safety -- --db-url "postgresql://postgre ...
++                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: ($ pnpm --dir ap...family_menu_a1":String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+=== check:safety 过敏防线只读检查报告 ===
+检查时间：2026-10-03T04:07:56.527Z（对目标库零写入，仅 SELECT）
+规则源：DB ExclusionRule 全量 3 行（HARD 2 / SOFT 1）
+扫描范围：全库 14 道菜（任意状态，供 TAG 命中面）+ PUBLISHED 13 道（过 HARD 规则）
+
+失败项：0
+告警项：1（不改变退出码）
+  [WARN:TAG_ZERO_HIT] TAG 规则 seed-excl-organ（targetTag=内脏, severity=SOFT）对全库 14 道菜零命中：flavorTags/食材 category/食材名别名均不匹配。死规则不静默——请确认该忌口是否已有等价食材级规则覆盖（花生由 seed-excl-peanut-ing 食材级覆盖）
+
+结论：通过（exit 0）。菜品发布唯一入口 = pnpm release:dish（内部先跑本检查，失败拒绝）；禁止裸 SQL 改 status。
+

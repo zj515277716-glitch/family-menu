@@ -1,0 +1,10 @@
+﻿pnpm.cmd : $ pnpm --dir apps/api exec tsx scripts/publish-dish.ts "--" "宫保鸡丁（T-A1 验收夹具：人工微调后含花生米）"
+At line:15 char:6304
++ ... a1"; $out = & pnpm run release:dish -- "宫保鸡丁（T-A1 验收夹具：人工微调后含花生米）" 2> ...
++                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: ($ pnpm --dir ap...收夹具：人工微调后含花生米）":String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+拒绝发布：菜品「宫保鸡丁（T-A1 验收夹具：人工微调后含花生米）」自身违反 HARD 禁忌：食材「花生米」名称含「花生」，命中 HARD 标签禁忌#seed-excl-peanut
+[ELIFECYCLE] Command failed with exit code 1.
+

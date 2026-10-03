@@ -1,0 +1,4 @@
+﻿过敏原校验：规则源=DB ExclusionRule 全量 3 行（HARD 2 / SOFT 1）
+过敏原校验通过：命中 0 条（无规则命中）
+导入成功：dishId=cmurvl6gg0001mkpgdgnvuy2n（status=DRAFT, origin=LLM_DRAFT，食材 1 个）
+

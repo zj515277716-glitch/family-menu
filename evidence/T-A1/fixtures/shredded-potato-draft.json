@@ -1,0 +1,21 @@
+{
+  "name": "验收-清炒土豆丝（T-A1 发布入口 happy path 夹具）",
+  "mealRole": "SIDE",
+  "cuisine": "家常",
+  "flavorTags": ["清淡"],
+  "spicyLevel": 0,
+  "splitFlavor": false,
+  "activeMinutes": 8,
+  "totalMinutes": 12,
+  "equipment": ["wok"],
+  "steps": [
+    { "order": 1, "text": "土豆切丝漂洗淀粉" },
+    { "order": 2, "text": "热锅快炒，醋盐调味" }
+  ],
+  "status": "DRAFT",
+  "origin": "LLM_DRAFT",
+  "licenseNote": "T-A1 验收夹具：release:dish happy path（无过敏原，应从 DRAFT 正常发布为 PUBLISHED）；仅本地验收库 family_menu_a1 使用。",
+  "ingredients": [
+    { "name": "土豆", "aliases": ["马铃薯"], "category": "蔬菜", "defaultUnit": "g", "qty": 300, "unit": "g", "optional": false }
+  ]
+}

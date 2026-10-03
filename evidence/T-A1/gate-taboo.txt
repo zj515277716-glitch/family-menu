@@ -1,0 +1,26 @@
+﻿pnpm.cmd : $ vitest run packages/engine/test/
+At line:15 char:6547
++ ... Tests ' | Select-Object -Last 2); $b = & pnpm test:taboo 2>&1 | Out-S ...
++                                            ~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: ($ vitest run packages/engine/test/:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+
+[1m[30m[46m RUN [49m[39m[22m [36mv4.1.10 [39m[90mD:/codex/family-menu[39m
+
+ [32m✓[39m packages/engine/test/safety-ingredient-realform.spec.ts [2m([22m[2m7 tests[22m[2m)[22m[32m 5[2mms[22m[39m
+ [32m✓[39m packages/engine/test/safety-tag-widematch.spec.ts [2m([22m[2m8 tests[22m[2m)[22m[32m 6[2mms[22m[39m
+ [32m✓[39m packages/engine/test/feasibility.spec.ts [2m([22m[2m7 tests[22m[2m)[22m[32m 4[2mms[22m[39m
+ [32m✓[39m packages/engine/test/composition.spec.ts [2m([22m[2m13 tests[22m[2m)[22m[32m 9[2mms[22m[39m
+ [32m✓[39m packages/engine/test/taboo.spec.ts [2m([22m[2m18 tests[22m[2m)[22m[32m 11[2mms[22m[39m
+ [32m✓[39m packages/engine/test/shortage-rank.spec.ts [2m([22m[2m7 tests[22m[2m)[22m[32m 19[2mms[22m[39m
+ [32m✓[39m packages/engine/test/swap-candidates.spec.ts [2m([22m[2m13 tests[22m[2m)[22m[32m 21[2mms[22m[39m
+ [32m✓[39m packages/engine/test/score.spec.ts [2m([22m[2m51 tests[22m[2m)[22m[33m 380[2mms[22m[39m
+     [33m[2m✓[22m[39m 千套菜单 recommend 调用性能 < 50ms（AC12） [33m 349[2mms[22m[39m
+
+[2m Test Files [22m [1m[32m8 passed[39m[22m[90m (8)[39m
+[2m      Tests [22m [1m[32m124 passed[39m[22m[90m (124)[39m
+[2m   Start at [22m 12:28:11
+[2m   Duration [22m 885ms[2m (transform 623ms, setup 0ms, import 2.14s, tests 454ms, environment 1ms)[22m
+
+
