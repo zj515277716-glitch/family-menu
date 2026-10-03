@@ -1,0 +1,4 @@
+﻿engine runtime probe（@family-menu/engine dist，apps/api 同源解析）
+excluded=1 passed=0
+reason: 食材「花生米」名称含「花生」，命中 HARD 标签禁忌#seed-excl-peanut
+PROBE PASS：仅 TAG 规则下花生米宽匹配仍拦截

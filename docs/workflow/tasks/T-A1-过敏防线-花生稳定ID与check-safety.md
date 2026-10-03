@@ -36,6 +36,11 @@
 
 宽匹配口径误伤面超预期（如花生油产品形态争议）/ 需要动 shared 契约 / check:safety 与现有 fm-publish-check 关系需裁决 → 停手报主控。
 
-## 终态（主控补登）
+## 终态（主控补登 · 2026-10-03）
 
-待四角色流程完成后补登。
+**结论：PASS → 已验证（第 2 层），L3 待产品负责人审批**
+
+- DEV：`3ce94e8` + 收尾 `73ceecc`（证据 evidence/T-A1-dev-2026-10-03.md，含 L2 影响清单 6 问补答）。
+- REVIEW：PASS（evidence/T-A1-review-2026-10-03.md；两处门禁既有红经基线实跑复核非本卡引入；脚手架脚本归档 evidence/T-A1/）。
+- VERIFY：12/12 PASS（evidence/T-A1-verify-2026-10-03.md；真实库不变量 + E2E「忌口花生→推荐零花生」+ 失活对照 + 恢复闭环）。
+- L3 待批：对生产只读跑 check:safety；混合包发布（86b1263+A2 三文件+A1 增量，不夹带 T-P16/T-P17）。

@@ -1,0 +1,19 @@
+﻿pnpm : $ pnpm --dir apps/api exec tsx scripts/check-safety.ts
+At line:15 char:6279
++ ... ify-db-mutate.mjs publish-gongbao; pnpm run check:safety 2>&1 | Tee-O ...
++                                        ~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: ($ pnpm --dir ap...check-safety.ts:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+=== check:safety 过敏防线只读检查报告 ===
+检查时间：2026-10-03T05:33:41.690Z（对目标库零写入，仅 SELECT）
+规则源：DB ExclusionRule 全量 3 行（HARD 2 / SOFT 1）
+扫描范围：全库 49 道菜（任意状态，供 TAG 命中面）+ PUBLISHED 23 道（过 HARD 规则）
+
+失败项：1
+  [FAIL:PUBLISHED_VIOLATION] PUBLISHED 菜品「巨入味！清甜酸甜口宫保鸡丁！口感封」（dishId=cmtvkmre4000020pglsqyzak8）违反 HARD 禁忌：食材「花生米」名称含「花生」，命中 HARD 标签禁忌#seed-excl-peanut
+告警项：1（不改变退出码）
+  [WARN:TAG_ZERO_HIT] TAG 规则 seed-excl-organ（targetTag=内脏, severity=SOFT）对全库 49 道菜零命中：flavorTags/食材 category/食材名别名均不匹配。死规则不静默——请确认该忌口是否已有等价食材级规则覆盖（花生由 seed-excl-peanut-ing 食材级覆盖）
+
+结论：不通过（exit 1）。存在 1 项失败——修复前不得发布任何菜品。
+[ELIFECYCLE] Command failed with exit code 1.

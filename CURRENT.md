@@ -4,9 +4,9 @@
 > 整改依据：docs/复盘报告_V2_2026-09-29.md（复盘结论：三处 P0 防线缺口未补前，暂停新功能）。
 
 ## 代码版本
-- main：`542768f`（V2.1 流程切换 + T-A2 访问控制合并后 HEAD）。
+- main：`e41a52e`（V2.1 流程切换 + T-A2 访问控制及证据已合并）。
 - `fix/a2-access-control`（`2a2b9c0`）：T-A2 四角色 PASS，**已部署生产**，已合并 main。
-- `fix/a1-allergy-defense`（`3ce94e8`）：T-A1 花生防线 dev 完成（门禁四连绿，仅两处既有红外），dev 报告 evidence/T-A1-dev-2026-10-03.md；待审查/页面验收/主控报批 L3。
+- `fix/a1-allergy-defense`（`73ceecc`）：T-A1 花生防线**已验证（第 2 层）**——review PASS + 验收 12/12；对生产只读检查与发布属 L3，待产品负责人审批。
 - `deploy/a2-api-on-86b1263`（`27d1224`）：生产 API 实际源码 = `86b1263` + A2 鉴权三文件，**刻意不含 T-P16/T-P17**（决定③）。
 
 ## 生产版本（https://menu.jijingkongjian.xin）
@@ -16,7 +16,7 @@
 - 生产操作流水见 OPS-LOG.md。
 
 ## 任务队列（阶段 A 止血，L2）
-1. A1 过敏防线：dev 完成门禁绿（花生口径=名称含花生都拦；引擎 TAG 宽匹配 + seed 稳定 id `seed-ing-peanut` + `pnpm check:safety` + `pnpm release:dish` 单入口）；待四角色流程与 L3 报批。
+1. A1 过敏防线：**已验证待 L3 报批**（花生口径=名称含花生都拦；引擎宽匹配 + seed 稳定 ID + `pnpm check:safety` + `release:dish` 单入口；证据 evidence/T-A1-*）。
 2. A3 修 T-P16：虚拟菜单内容哈希 + 口碑按菜品聚合 + CookLog 关联；任务卡待派发。
 3. 清理挂账：T-A4 口令入库清理（12 个跟踪文件含本地口令值）/ T-A5 fetch2dish shebang / T-A6 lint 42 errors，任务卡待派发。
 
