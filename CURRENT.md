@@ -1,24 +1,22 @@
-# CURRENT.md — 一屏现状（2026-10-03）
+# CURRENT.md — 一屏现状（2026-10-06）
 
 > 开工必读：.trae/rules/project_rules.md → 本文件 → 当前任务卡。历史已移入 docs/archive/ 与 git log。
 > 整改依据：docs/复盘报告_V2_2026-09-29.md（复盘结论：三处 P0 防线缺口未补前，暂停新功能）。
 
 ## 代码版本
-- main：`56baeed`（V2.1 + T-A2 访问控制 + T-A1 过敏防线均已合并）。
-- `fix/a1-allergy-defense`（`fb8f94a`）：T-A1 四角色 PASS（第 2 层），已合并 main。
-- `deploy/a2-api-on-86b1263`（`27d1224`）：A2 部署用混合源码。
+- main：`b4b7dfb`（V2.1 + T-A2 访问控制 + T-A1 过敏防线均已合并）。
 - `deploy/a1-on-prodbase`（`eb90ce6`）：A1 部署用混合源码 = 86b1263 + A2 三文件 + A1 安全层，**不含 T-P16/T-P17**（决定③）。
 
 ## 生产版本（https://menu.jijingkongjian.xin）
-- API = `27d1224` 构建容器（family-menu-api，healthy）；H5 = `2a2b9c0` 构建产物（app.673395c1.js）。
-- 2026-10-03：登录门上线（输一次家庭口令 → HttpOnly cookie），生产 ACCESS_TOKEN 已轮换；冒烟 9/9 PASS（evidence/T-A2/prod-smoke-output.txt）。
-- 回滚材料：h5-dist.bak-20261003-094514 / apps.bak-20261003-100401 / .env.bak-20261003-094551（均在服务器）。
-- 生产操作流水见 OPS-LOG.md。
+- API = `eb90ce6` 构建容器（healthy，2026-10-06 上线）；H5 = `2a2b9c0` 构建产物（A1 无 H5 改动）。
+- 2026-10-03：A2 登录门上线 + ACCESS_TOKEN 轮换（冒烟 9/9）；2026-10-06：A1 防线上线（冒烟 8/8，登录门回归通过）。
+- 生产存量（check:safety exit 1，待产品负责人处置）：PUBLISHED「蚝油生菜」含花生米（可选配料，决定②误伤面）；内脏 TAG 规则零命中（WARN）。修复前 release:dish 拒发新菜。
+- 回滚：API 镜像 tag `fm-api:rollback-pre-a1`；目录备份 .bak-20261003/1006-*。流水见 OPS-LOG.md。
 
 ## 任务队列（阶段 A 止血，L2）
-1. A1 过敏防线：**已验证待 L3 报批**（花生口径=名称含花生都拦；引擎宽匹配 + seed 稳定 ID + `pnpm check:safety` + `release:dish` 单入口；证据 evidence/T-A1-*）。
-2. A3 修 T-P16：虚拟菜单内容哈希 + 口碑按菜品聚合 + CookLog 关联；任务卡待派发。
-3. 清理挂账：T-A4 口令入库清理（12 个跟踪文件含本地口令值）/ T-A5 fetch2dish shebang / T-A6 lint 42 errors，任务卡待派发。
+1. A1 过敏防线：**已上线（第 3 层）**，存量数据处置待拍板（蚝油生菜：改配方去花生/降 DRAFT/维持现状）。
+2. A3 修 T-P16：虚拟菜单内容哈希 + 口碑按菜品聚合 + CookLog 关联；**进行中**（fix/a3-tp16-reputation）。
+3. 清理挂账：T-A4 口令入库清理 / T-A5 fetch2dish shebang / T-A6 lint 42 errors，任务卡待派发。
 
 ## 阻塞
 - A3 未修复前 T-P16/T-P17 不上线；已部署的 API 混合包不含其逻辑。

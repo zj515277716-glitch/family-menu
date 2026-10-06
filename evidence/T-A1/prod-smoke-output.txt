@@ -1,0 +1,20 @@
+T-A1 生产冒烟原始输出（2026-10-06，https://menu.jijingkongjian.xin，Playwright Chromium 390×844）
+命令：$env:FM_NEW_TOKEN=(ssh fmsrv "grep '^ACCESS_TOKEN=' /opt/family-menu/.env").Split('=')[1].Trim(); node tests/e2e/T-A1-prod-smoke.mjs
+
+PASS 登录门出现（A2 回归）
+PASS 冷启动无服务异常横幅
+PASS 进首页
+PASS 忌口行含花生（防线可见）
+PASS TabBar 三项可见
+PASS document.cookie 读不到口令
+PASS 无 cookie /api/family/rules = 401
+PASS 无 cookie /api/auth/me = 200
+
+换容器前生产只读 check:safety（新镜像 docker run，零写入）：
+- 规则 4 行（HARD 2 / SOFT 2），全库 50 道菜扫描，PUBLISHED 49 道
+- FAIL×1：PUBLISHED「蚝油生菜」(cmtz3kdhp000070pga77gl5wt) 含花生米（可选配料）命中花生 HARD——决定②误伤面实证
+- WARN×1：seed-excl-organ（内脏 TAG，SOFT）全库零命中（死规则告警，不阻断）
+- 无悬空 targetId；换容器后复查结果一致（exit 1，数据项待产品负责人处置）
+
+环境事实：API 容器 = deploy/a1-on-prodbase (eb90ce6) 构建（86b1263+A2 三文件+A1 安全层，不含 T-P16/T-P17），healthy；
+回滚 tag：fm-api:rollback-pre-a1（换容器前镜像）；H5 未变（仍 2a2b9c0 产物）。

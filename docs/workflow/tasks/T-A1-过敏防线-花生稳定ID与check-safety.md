@@ -36,11 +36,11 @@
 
 宽匹配口径误伤面超预期（如花生油产品形态争议）/ 需要动 shared 契约 / check:safety 与现有 fm-publish-check 关系需裁决 → 停手报主控。
 
-## 终态（主控补登 · 2026-10-03）
+## 终态（主控补登 · 2026-10-06）
 
-**结论：PASS → 已验证（第 2 层），L3 待产品负责人审批**
+**结论：PASS → 已上线（第 3 层）**
 
-- DEV：`3ce94e8` + 收尾 `73ceecc`（证据 evidence/T-A1-dev-2026-10-03.md，含 L2 影响清单 6 问补答）。
-- REVIEW：PASS（evidence/T-A1-review-2026-10-03.md；两处门禁既有红经基线实跑复核非本卡引入；脚手架脚本归档 evidence/T-A1/）。
-- VERIFY：12/12 PASS（evidence/T-A1-verify-2026-10-03.md；真实库不变量 + E2E「忌口花生→推荐零花生」+ 失活对照 + 恢复闭环）。
-- L3 待批：对生产只读跑 check:safety；混合包发布（86b1263+A2 三文件+A1 增量，不夹带 T-P16/T-P17）。
+- DEV `3ce94e8`+`73ceecc` / REVIEW PASS / VERIFY 12/12（证据 evidence/T-A1-*）。
+- 合并 main `b4b7dfb`（fix/a1-allergy-defense → merge `56baeed`→amend 后以 b4b7dfb 推送）。
+- L3（产品负责人 2026-10-06 批准）：混合包 `deploy/a1-on-prodbase eb90ce6`（86b1263+A2 三文件+A1 安全层，不含 T-P16/T-P17；seed 三件套保持生产版防夹带）；先只读 check 后换容器；生产冒烟 8/8；回滚 tag fm-api:rollback-pre-a1；流水 OPS-LOG.md。
+- 生产存量待拍板：PUBLISHED「蚝油生菜」含花生米（可选配料）命中 HARD——改配方/降 DRAFT/维持三选一；内脏 TAG 零命中 WARN。处置前 release:dish 拒发新菜。
