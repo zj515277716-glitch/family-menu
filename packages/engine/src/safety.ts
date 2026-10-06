@@ -1,7 +1,13 @@
 // packages/engine/src/safety.ts
 // 第一层安全过滤：HARD 禁忌过滤，成分未确认滤除，产出 FilterTrace
 // 铁律：安全层永远先于评分，不可被任何权重覆盖（4.2）
-import type { DishView, ExclusionView, FilterTrace, MenuView } from './types.js';
+import type {
+  DishIngredientView,
+  DishView,
+  ExclusionView,
+  FilterTrace,
+  MenuView,
+} from './types.js';
 
 /** 构建 HARD+INGREDIENT 禁忌的匹配名称集合（含 targetName + targetAliases + targetId） */
 function buildHardIngredientNameSets(
@@ -100,6 +106,25 @@ function checkDishScope(
   return { blocked: false, reason: '' };
 }
 
+/**
+ * HARD+TAG 食材名/别名字串宽匹配（T-A1，主控决定②：名称含「花生」即拦）。
+ * 背景（复盘 V2 P0-1）：TAG 规则原先只查 flavorTags 与食材 category，对「花生米」这类
+ * 名称≠品类词的真实形态食材零拦截（09-14 生产花生防线因此失效 8–9 小时）。
+ * 口径与 tools/content-pipeline/src/allergen.ts（fm-import 侧）对齐（T-C07 S-3 定案）：
+ * 食材 name/aliases 任一子串含 targetTag 即命中；接受误伤「花生油」（安全侧零侥幸）。
+ * 返回命中的食材行（供可解释 reason），未命中返回 null。
+ */
+function ingredientNameHitTag(
+  dish: DishView,
+  tag: string,
+): DishIngredientView | null {
+  for (const ing of dish.ingredients) {
+    if (ing.ingredientName.includes(tag)) return ing;
+    if (ing.aliases.some((a) => a.includes(tag))) return ing;
+  }
+  return null;
+}
+
 /** HARD+TAG 检查：菜品 flavorTags 或食材 category 命中标签 -> 过滤 */
 function checkTagScope(
   ex: ExclusionView,
@@ -121,6 +146,13 @@ function checkTagScope(
           reason: `食材「${ing.ingredientName}」品类为「${tag}」，命中 HARD 标签禁忌#${ex.id}`,
         };
       }
+    }
+    const wide = ingredientNameHitTag(dish, tag);
+    if (wide) {
+      return {
+        blocked: true,
+        reason: `食材「${wide.ingredientName}」名称含「${tag}」，命中 HARD 标签禁忌#${ex.id}`,
+      };
     }
   }
   return { blocked: false, reason: '' };
@@ -261,6 +293,14 @@ export function filterSafeDishes(
                 blocked = `食材「${ing.ingredientName}」品类为「${tag}」，命中 HARD 标签禁忌#${ex.id}`;
                 break;
               }
+            }
+          }
+          // T-A1 宽匹配（口径同菜单级 checkTagScope）：flavorTags/category 均未命中时，
+          // 食材名/别名字串含 tag 仍拦（花生米形态：名称≠品类词，见 ingredientNameHitTag）
+          if (!blocked) {
+            const wide = ingredientNameHitTag(dish, tag);
+            if (wide) {
+              blocked = `食材「${wide.ingredientName}」名称含「${tag}」，命中 HARD 标签禁忌#${ex.id}`;
             }
           }
         }

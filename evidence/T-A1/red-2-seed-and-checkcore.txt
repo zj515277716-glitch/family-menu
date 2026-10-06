@@ -1,0 +1,102 @@
+﻿
+[1m[30m[46m RUN [49m[39m[22m [36mv4.1.10 [39m[90mD:/codex/family-menu[39m
+
+ [31m❯[39m apps/api/test/safety-check.spec.ts [2m([22m[2m0 test[22m[2m)[22m
+ [31m❯[39m apps/api/test/seed.spec.ts [2m([22m[2m22 tests[22m[2m | [22m[31m2 failed[39m[2m)[22m[32m 20[2mms[22m[39m
+     [32m✓[39m family passes FamilySchema[32m 2[2mms[22m[39m
+     [32m✓[39m familyRule passes FamilyRuleSchema[32m 1[2mms[22m[39m
+     [32m✓[39m all exclusionRules pass ExclusionRuleSchema[32m 1[2mms[22m[39m
+     [32m✓[39m has at least 1 HARD exclusion[32m 0[2mms[22m[39m
+     [32m✓[39m has at least 1 SOFT exclusion[32m 0[2mms[22m[39m
+[31m     [31m×[31m every INGREDIENT rule targetId resolves to a seeded ingredient id[39m[32m 4[2mms[22m[39m
+[31m     [31m×[31m no exclusion rule targetId is a cuid-like environment-specific id[39m[32m 1[2mms[22m[39m
+     [32m✓[39m all ingredients pass IngredientSchema[32m 2[2mms[22m[39m
+     [32m✓[39m covers all 6 categories[32m 0[2mms[22m[39m
+     [32m✓[39m all dishes pass DishSchema[32m 2[2mms[22m[39m
+     [32m✓[39m has exactly 13 dishes (T-P16 AC8: 10 seed + 3 FETCHED ribs dishes)[32m 0[2mms[22m[39m
+     [32m✓[39m covers all 4 meal roles[32m 0[2mms[22m[39m
+     [32m✓[39m has at least 1 PUBLISHED dish[32m 0[2mms[22m[39m
+     [32m✓[39m T-P16 AC8: all 4 ribs dishes are PUBLISHED[32m 0[2mms[22m[39m
+     [32m✓[39m T-P16 AC8: both ribs soups have mealRole SOUP (MAIN->SOUP corrected)[32m 0[2mms[22m[39m
+     [32m✓[39m T-P16 AC8: 3 FETCHED ribs dishes keep source/license fields[32m 0[2mms[22m[39m
+     [32m✓[39m all dishIngredients pass DishIngredientSchema[32m 2[2mms[22m[39m
+     [32m✓[39m all menus pass MenuSchema[32m 2[2mms[22m[39m
+     [32m✓[39m has exactly 7 menus (T-P16 AC8: 4 seed + 3 ribs menus)[32m 0[2mms[22m[39m
+     [32m✓[39m T-P16 AC8: 3 ribs menus are PUBLISHED with prepSequence[32m 0[2mms[22m[39m
+     [32m✓[39m covers all 4 scenes[32m 0[2mms[22m[39m
+     [32m✓[39m all menuDishes pass MenuDishSchema[32m 1[2mms[22m[39m
+pnpm.cmd : 
+At line:15 char:6290
++ ... gth; $out = & pnpm exec vitest run apps/api/test/safety-check.spec.ts ...
++                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+[31m⎯⎯⎯⎯⎯⎯[39m[1m[41m Failed Suites 1 [49m[22m[31m⎯⎯⎯⎯⎯⎯⎯[39m
+
+[41m[1m FAIL [22m[49m apps/api/test/safety-check.spec.ts[2m [ apps/api/test/safety-check.spec.ts ][22m
+[31m[1mError[22m: Cannot find module '../src/services/safetyCheck.js' imported from D:/codex/family-menu/apps/api/te
+st/safety-check.spec.ts[39m
+[36m [2m❯[22m apps/api/test/safety-check.spec.ts:[2m7:1[22m[39m
+    [90m  5|[39m [90m//            ③ TAG 规则全库零命中 WARN（不阻断）。[39m
+    [90m  6|[39m [35mimport[39m { describe[33m,[39m it[33m,[39m expect } [35mfrom[39m [32m'vitest'[39m[33m
+;[39m
+    [90m  7|[39m [35mimport[39m {
+    [90m   |[39m [31m^[39m
+    [90m  8|[39m   runSafetyCheckCore[33m,[39m
+    [90m  9|[39m   formatSafetyCheckReport[33m,[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/3]⎯[22m[39m
+
+
+[31m⎯⎯⎯⎯⎯⎯⎯[39m[1m[41m Failed Tests 2 [49m[22m[31m⎯⎯⎯⎯⎯⎯⎯[39m
+
+[41m[1m FAIL [22m[49m apps/api/test/seed.spec.ts[2m > [22mseed data: exclusion rule referential integrity (T-A1)
+[2m > [22mevery INGREDIENT rule targetId resolves to a seeded ingredient id
+[31m[1mAssertionError[22m: expected false to be true // Object.is equality[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- true[39m
+[31m+ false[39m
+
+[36m [2m❯[22m apps/api/test/seed.spec.ts:[2m61:51[22m[39m
+    [90m 59|[39m     [35mfor[39m ([35mconst[39m rule [35mof[39m exclusionRules) {
+    [90m 60|[39m       [35mif[39m (rule[33m.[39mscope [33m===[39m [32m'INGREDIENT'[39m) {
+    [90m 61|[39m         [34mexpect[39m(ingredientIds[33m.[39m[34mhas[39m(rule[33m.[39mtargetId[33m![39m))
+[33m.[39m[34mtoBe[39m([35mtrue[39m)[33m;[39m
+    [90m   |[39m                                                   [31m^[39m
+    [90m 62|[39m       }
+    [90m 63|[39m     }
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/3]⎯[22m[39m
+
+[41m[1m FAIL [22m[49m apps/api/test/seed.spec.ts[2m > [22mseed data: exclusion rule referential integrity (T-A1)
+[2m > [22mno exclusion rule targetId is a cuid-like environment-specific id
+[31m[1mAssertionError[22m: expected true to be false // Object.is equality[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- false[39m
+[31m+ true[39m
+
+[36m [2m❯[22m apps/api/test/seed.spec.ts:[2m70:54[22m[39m
+    [90m 68|[39m     [35mconst[39m cuidLike [33m=[39m [36m/^[a-z0-9]{25}$/[39m[33m;[39m
+    [90m 69|[39m     [35mfor[39m ([35mconst[39m rule [35mof[39m exclusionRules) {
+    [90m 70|[39m       [34mexpect[39m(cuidLike[33m.[39m[34mtest[39m(rule[33m.[39mtargetId [35mas[39m string
+))[33m.[39m[34mtoBe[39m([35mfalse[39m)[33m;[39m
+    [90m   |[39m                                                      [31m^[39m
+    [90m 71|[39m     }
+    [90m 72|[39m   })[33m;[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/3]⎯[22m[39m
+
+
+[2m Test Files [22m [1m[31m2 failed[39m[22m[90m (2)[39m
+[2m      Tests [22m [1m[31m2 failed[39m[22m[2m | [22m[1m[32m20 passed[39m[22m[90m (22)[39m
+[2m   Start at [22m 11:33:14
+[2m   Duration [22m 434ms[2m (transform 122ms, setup 0ms, import 277ms, tests 20ms, environment 0ms)[22m
+
+

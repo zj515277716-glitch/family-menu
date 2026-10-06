@@ -1,0 +1,13 @@
+﻿过敏原校验：规则源=DB ExclusionRule 全量 3 行（HARD 2 / SOFT 1）
+pnpm.cmd : [过敏原拦截] 宫保鸡丁（T-A1 验收夹具：人工微调后含花生米）：HARD 规则命中且 flavorTags 未标注，已拦截（未写入 DB）。命中明细：
+At line:15 char:6375
++ ... on"; $out = & pnpm --dir tools/content-pipeline exec tsx src/cli/impo ...
++                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: ([过敏原拦截] 宫保鸡丁（T-...截（未写入 DB）。命中明细：:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+  - [HARD] 规则 seed-excl-peanut（TAG scope，tag=花生）命中食材 食材「花生米」(花生米/熟花生米/油炸花生米)，flavorTags 缺标注「花生」，备注：孩子花生过敏
+  - [HARD] 规则 seed-excl-peanut-ing（INGREDIENT scope，ingredientId=seed-ing-peanut）命中食材 食材「花生米」(花生米/熟花生米/油炸花生米/seed-ing-p
+eanut)，备注：孩子花生过敏（食材级：花生米/熟花生米/油炸花生米）
+如确需入库，请显式追加 --allow-allergen-draft（HARD 豁免放行，警告保留）。
+

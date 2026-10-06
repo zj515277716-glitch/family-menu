@@ -112,15 +112,38 @@ async function main(): Promise<void> {
   });
 
   // 禁忌规则
+  // T-A1（复盘 V2 §P0-1）：INGREDIENT 规则 targetId 解析口径 = id 优先、名称回退。
+  // 全新库：seed upsert 按 name 建行用稳定 id（seed-ing-peanut），规则直连；
+  // 老库（内容管线已按 cuid 建过同名食材行）：ingredient upsert 命中 name 不改 id，
+  // 规则需回退按名称解析到真实行 id，否则稳定 id 反而悬空。update 分支同步
+  // scope/targetId/targetTag/severity/note——旧库上悬空的 cmtvnuvxvc2oy5fdrzhpxxe69
+  // 重放 seed 即自愈（PE-1 只保护 seed- 前缀规则行，属 seed 自有数据）。
   for (const rule of exclusionRules) {
+    let targetId = rule.targetId;
+    if (rule.scope === 'INGREDIENT' && rule.targetId) {
+      const byId = await prisma.ingredient.findUnique({ where: { id: rule.targetId } });
+      if (!byId) {
+        const seedIngredient = ingredients.find((i) => i.id === rule.targetId);
+        const byName = seedIngredient
+          ? await prisma.ingredient.findUnique({ where: { name: seedIngredient.name } })
+          : null;
+        if (byName) targetId = byName.id;
+      }
+    }
     await prisma.exclusionRule.upsert({
       where: { id: rule.id },
-      update: {},
+      update: {
+        scope: rule.scope,
+        targetId,
+        targetTag: rule.targetTag,
+        severity: rule.severity,
+        note: rule.note,
+      },
       create: {
         id: rule.id,
         familyId: rule.familyId,
         scope: rule.scope,
-        targetId: rule.targetId,
+        targetId,
         targetTag: rule.targetTag,
         severity: rule.severity,
         note: rule.note,
@@ -222,7 +245,7 @@ async function main(): Promise<void> {
   }
 
   console.log(
-    'Seed completed: 1 family + 1 rule + 3 exclusions + 28 ingredients + 13 dishes + 53 dish-ingredients + 7 menus + 23 menu-dishes.'
+    'Seed completed: 1 family + 1 rule + 3 exclusions + 29 ingredients + 13 dishes + 53 dish-ingredients + 7 menus + 23 menu-dishes.'
   );
 }
 

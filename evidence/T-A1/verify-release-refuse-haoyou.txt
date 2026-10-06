@@ -1,0 +1,9 @@
+﻿pnpm : $ pnpm --dir apps/api exec tsx scripts/publish-dish.ts "--" "蚝油生菜原来不炒更好吃，脆嫩还少油"
+At line:15 char:6269
++ ... ncoding]::UTF8; pnpm release:dish -- "蚝油生菜原来不炒更好吃，脆嫩还少油" 2>&1 | Tee-O ...
++                     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: ($ pnpm --dir ap...菜原来不炒更好吃，脆嫩还少油":String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+拒绝发布：菜品「蚝油生菜原来不炒更好吃，脆嫩还少油」自身违反 HARD 禁忌：食材「花生米」名称含「花生」，命中 HARD 标签禁忌#seed-excl-peanut
+[ELIFECYCLE] Command failed with exit code 1.

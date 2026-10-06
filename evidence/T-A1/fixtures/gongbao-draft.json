@@ -1,0 +1,25 @@
+{
+  "name": "宫保鸡丁（T-A1 验收夹具：人工微调后含花生米）",
+  "mealRole": "MAIN",
+  "cuisine": "川菜",
+  "flavorTags": ["香辣", "下饭"],
+  "spicyLevel": 2,
+  "splitFlavor": false,
+  "activeMinutes": 20,
+  "totalMinutes": 25,
+  "equipment": ["wok"],
+  "steps": [
+    { "order": 1, "text": "鸡丁腌制后滑炒盛出" },
+    { "order": 2, "text": "爆香辣椒花椒，下鸡丁翻炒" },
+    { "order": 3, "text": "淋入宫保汁收浓，出锅前撒花生米" }
+  ],
+  "status": "DRAFT",
+  "origin": "FETCHED",
+  "sourceSite": "xiaohongshu",
+  "sourceUrl": "https://www.xiaohongshu.com/explore/6a85799b000000002c002ec3",
+  "licenseNote": "T-A1 验收夹具：复刻 6a85799b 宫保鸡丁微调后形态（ingredients 按 ingredients-draft.json 补花生米）；仅本地验收库 family_menu_a1 使用。",
+  "ingredients": [
+    { "name": "鸡胸肉", "aliases": ["鸡丁"], "category": "肉类", "defaultUnit": "g", "qty": 200, "unit": "g", "optional": false },
+    { "name": "花生米", "aliases": ["熟花生米", "油炸花生米"], "category": "调料", "defaultUnit": "g", "qty": 50, "unit": "g", "optional": false }
+  ]
+}

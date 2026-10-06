@@ -10,6 +10,8 @@
     "test": "vitest run --no-file-parallelism",
     "test:gate": "pnpm test || pnpm test || pnpm test",
     "test:taboo": "vitest run packages/engine/test/",
+    "check:safety": "pnpm --dir apps/api exec tsx scripts/check-safety.ts",
+    "release:dish": "pnpm --dir apps/api exec tsx scripts/publish-dish.ts",
     "db:migrate": "pnpm --filter @family-menu/api prisma migrate dev",
     "db:seed": "pnpm --filter @family-menu/api prisma db seed",
     "verify": "pnpm lint && pnpm build && pnpm test",

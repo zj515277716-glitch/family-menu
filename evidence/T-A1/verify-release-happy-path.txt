@@ -1,0 +1,9 @@
+﻿pnpm : $ pnpm --dir apps/api exec tsx scripts/publish-dish.ts "--" "地三鲜"
+At line:15 char:6269
++ ... [System.Text.Encoding]::UTF8; pnpm release:dish -- "地三鲜" 2>&1 | Tee-O ...
++                                   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: ($ pnpm --dir ap...h.ts "--" "地三鲜":String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+已发布：菜品「地三鲜」（dishId=cmtvkpbrz0000dopga1ul1r6b）status DRAFT -> PUBLISHED。
+check:safety 复查通过（PUBLISHED 23 道 HARD 违规 0，无悬空规则）。

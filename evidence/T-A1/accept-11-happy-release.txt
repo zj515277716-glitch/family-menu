@@ -1,0 +1,10 @@
+﻿pnpm.cmd : $ pnpm --dir apps/api exec tsx scripts/publish-dish.ts "--" "验收-清炒土豆丝（T-A1 发布入口 happy path 夹具）"
+At line:15 char:6304
++ ... a1"; $out = & pnpm run release:dish -- "验收-清炒土豆丝（T-A1 发布入口 happy path ...
++                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: ($ pnpm --dir ap...happy path 夹具）":String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+已发布：菜品「验收-清炒土豆丝（T-A1 发布入口 happy path 夹具）」（dishId=cmurvl6gg0001mkpgdgnvuy2n）status DRAFT -> PUBLISHED。
+check:safety 复查通过（PUBLISHED 14 道 HARD 违规 0，无悬空规则）。
+

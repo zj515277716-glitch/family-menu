@@ -1,6 +1,6 @@
 // apps/api/prisma/seed-data.ts
 // 种子数据定义（纯数据，不依赖 PrismaClient）
-// 1家庭 + 1规则 + 3禁忌(HARD2/SOFT1) + 28食材(6类) + 13菜品(4角色) + 53菜品食材关联 + 7菜单(4场景) + 23菜单菜品关联
+// 1家庭 + 1规则 + 3禁忌(HARD2/SOFT1) + 29食材(6类，含T-A1花生米) + 13菜品(4角色) + 53菜品食材关联 + 7菜单(4场景) + 23菜单菜品关联
 // 数据通过 shared v0.1 zod schema 校验（见 seed.ts validateSeedData / test/seed.spec.ts）
 //
 // T-P16 AC8：固化 RIBS-MENU 方案1 手工数据（幂等可重放，teardown 重建后恢复方案1 状态）：
@@ -54,7 +54,10 @@ export const exclusionRules = [
     id: 'seed-excl-peanut-ing',
     familyId: 'seed-family',
     scope: 'INGREDIENT' as const,
-    targetId: 'cmtvnuvxvc2oy5fdrzhpxxe69',
+    // T-A1（复盘 V2 §P0-1）：不得写死本机库 cuid——花生米由内容管线导入、各环境 id 不同，
+    // 旧值 cmtvnuvxvc2oy5fdrzhpxxe69 换库即悬空（生产花生防线曾因此失效 8–9 小时）。
+    // 改用 seed 稳定 id；seed.ts 按「id 优先、名称回退」解析，老库同名 cuid 行也能命中。
+    targetId: 'seed-ing-peanut',
     targetTag: undefined,
     severity: 'HARD' as const,
     note: '孩子花生过敏（食材级：花生米/熟花生米/油炸花生米）',
@@ -86,6 +89,9 @@ export const ingredients = [
   { id: 'seed-ing-salt', name: '盐', aliases: ['食盐', '精盐'], category: '调料', defaultUnit: 'g' },
   { id: 'seed-ing-sugar', name: '白糖', aliases: ['砂糖', '白砂糖'], category: '调料', defaultUnit: 'g' },
   { id: 'seed-ing-cookingwine', name: '料酒', aliases: ['黄酒'], category: '调料', defaultUnit: 'ml' },
+  // T-A1（复盘 V2 §P0-1）：花生米纳入 seed 用稳定 id（原由内容管线导入、各环境 cuid 不同，
+  // seed 规则写死 cuid 换库即悬空）。形态复刻真实库（ingredients-draft.json）：别名/类别/单位原样。
+  { id: 'seed-ing-peanut', name: '花生米', aliases: ['熟花生米', '油炸花生米'], category: '调料', defaultUnit: 'g' },
   // 主食
   { id: 'seed-ing-rice', name: '大米', aliases: ['白米', '米', '香米'], category: '主食', defaultUnit: 'g' },
   // T-P16 AC8：RIBS-MENU 方案1 手工录入的 11 种食材（保留线上 cuid id，teardown 重建后 id 不变）
