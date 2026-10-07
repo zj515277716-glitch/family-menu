@@ -1,0 +1,69 @@
+﻿pnpm : $ eslint .
+At line:15 char:4728
++ ... rectory -Force -Path evidence\T-A6 | Out-Null; pnpm lint 2>&1 | Tee-O ...
++                                                    ~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: ($ eslint .:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+
+D:\codex\family-menu\.workflow-verify\deploy\batch-import-fetch2.ts
+  30:27  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  31:36  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  32:39  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  44:36  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  55:40  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  72:54  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+D:\codex\family-menu\.workflow-verify\deploy\fix-origin-imageurl.ts
+  19:27  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+D:\codex\family-menu\.workflow-verify\deploy\rds-probe-now.ts
+  19:27  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  20:36  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  21:39  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  25:36  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  26:38  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  29:37  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  34:37  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+D:\codex\family-menu\.workflow-verify\deploy\sync-fetch-ingredients.ts
+   33:27  error  Unexpected any. Specify a different type       @typescript-eslint/no-explicit-any
+   34:36  error  Unexpected any. Specify a different type       @typescript-eslint/no-explicit-any
+   35:39  error  Unexpected any. Specify a different type       @typescript-eslint/no-explicit-any
+   44:41  error  Unexpected any. Specify a different type       @typescript-eslint/no-explicit-any
+   48:37  error  Unexpected any. Specify a different type       @typescript-eslint/no-explicit-any
+   53:44  error  Unexpected any. Specify a different type       @typescript-eslint/no-explicit-any
+   53:63  error  Unexpected any. Specify a different type       @typescript-eslint/no-explicit-any
+   53:89  error  Unexpected any. Specify a different type       @typescript-eslint/no-explicit-any
+   54:87  error  Unexpected any. Specify a different type       @typescript-eslint/no-explicit-any
+   55:11  error  'nameById' is assigned a value but never used  @typescript-eslint/no-unused-vars
+   55:50  error  Unexpected any. Specify a different type       @typescript-eslint/no-explicit-any
+   58:38  error  Unexpected any. Specify a different type       @typescript-eslint/no-explicit-any
+   60:52  error  Unexpected any. Specify a different type       @typescript-eslint/no-explicit-any
+   63:36  error  Unexpected any. Specify a different type       @typescript-eslint/no-explicit-any
+   73:34  error  Unexpected any. Specify a different type       @typescript-eslint/no-explicit-any
+   80:31  error  Unexpected any. Specify a different type       @typescript-eslint/no-explicit-any
+   94:31  error  Unexpected any. Specify a different type       @typescript-eslint/no-explicit-any
+   96:30  error  Unexpected any. Specify a different type       @typescript-eslint/no-explicit-any
+  105:35  error  Unexpected any. Specify a different type       @typescript-eslint/no-explicit-any
+  110:15  error  Unexpected any. Specify a different type       @typescript-eslint/no-explicit-any
+  111:15  error  Unexpected any. Specify a different type       @typescript-eslint/no-explicit-any
+  112:15  error  Unexpected any. Specify a different type       @typescript-eslint/no-explicit-any
+
+D:\codex\family-menu\.workflow-verify\deploy\verify-rds-final.ts
+  17:27  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  50:51  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+D:\codex\family-menu\apps\h5\src\pages\feedback\index.tsx
+  36:5  error  Definition for rule 'react-hooks/exhaustive-deps' was not found  react-hooks/exhaustive-deps
+  42:5  error  Definition for rule 'react-hooks/exhaustive-deps' was not found  react-hooks/exhaustive-deps
+
+D:\codex\family-menu\apps\h5\src\pages\history\index.tsx
+  62:5  error  Definition for rule 'react-hooks/exhaustive-deps' was not found  react-hooks/exhaustive-deps
+
+D:\codex\family-menu\apps\h5\src\pages\plan\index.tsx
+  411:45  error  'gi' is defined but never used  @typescript-eslint/no-unused-vars
+
+✖ 42 problems (42 errors, 0 warnings)
+
+[ELIFECYCLE] Command failed with exit code 1.

@@ -408,7 +408,7 @@ export default function PlanPage() {
             </Text>
           </View>
 
-          {shoppingList?.groups.map((group, gi) => (
+          {shoppingList?.groups.map((group) => (
             <View key={group.category}>
               <Text className="fm-group-title">{group.category}</Text>
               <View className="fm-card">

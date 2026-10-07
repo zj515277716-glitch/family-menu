@@ -33,13 +33,11 @@ export default function FeedbackPage() {
 
   useEffect(() => {
     resolvePlan()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   // 每次进入页面都重新拉取（从历史页/今晚页跳转回来时状态最新）
   useDidShow(() => {
     if (planId && !submitted) loadFeedback(planId)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   })
 
   async function resolvePlan() {

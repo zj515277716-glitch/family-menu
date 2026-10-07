@@ -8,6 +8,8 @@ export default [
       '**/node_modules/**',
       '**/.taro/**',
       '**/coverage/**',
+      // 未跟踪沙箱目录（含登录态 profile），C3 阶段移出项目前先隔离出 lint
+      '**/.workflow-verify/**',
     ],
   },
   {
