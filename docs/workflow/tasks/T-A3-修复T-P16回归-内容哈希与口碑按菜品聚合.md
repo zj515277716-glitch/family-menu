@@ -32,6 +32,11 @@
 
 分支 `fix/a3-menu-identity`（从 main 切）。PG :54329 启停同 T-A2 卡；集成测试必须连真实库，禁用夹具冒充。
 
-## 终态（主控补登）
+## 终态（主控补登 · 2026-10-07）
 
-待四角色流程完成后补登。
+**结论：PASS → 已验证（第 2 层），L3 部署待产品负责人审批**
+
+- DEV `5b7ac58`（虚拟菜单 FNV-1a 内容哈希定 ID + 口碑/近期多样性/类别多样性按 dishId 聚合 + CookLog 菜级落库；报告含 5 处数字笔误已勘误；开发会话中断由主控复核后代入库）。分支实名 fix/a3-tp16-reputation。
+- REVIEW：PASS（evidence/T-A3-review-2026-10-07.md；worktree 隔离复现红证属实；不变量「反馈作用于正确对象」真实库实证；部署依赖成立——须与 T-P16/T-P17 同批或其后）。
+- VERIFY：7 组全 [✓]（evidence/T-A3-verify-2026-10-07.md；P0-3 全链路 52 断言：好评后另一含同菜组合 hist 0.7→1.0、不含者不污染、同集合同 id）。
+- 门禁：tsc 0 / taboo 130/130 / test 483 passed 0 skipped（唯一红=fetch2dish 既有）/ lint 42 基线、A3 文件 0 错。
