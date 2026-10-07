@@ -1,0 +1,21 @@
+T-A3 生产冒烟原始输出（2026-10-07，https://menu.jijingkongjian.xin，Playwright Chromium 390×844）
+命令：$env:FM_NEW_TOKEN=(ssh fmsrv "grep '^ACCESS_TOKEN=' /opt/family-menu/.env").Split('=')[1].Trim(); node tests/e2e/T-A3-prod-smoke.mjs
+
+PASS 登录门进首页（A2 回归）
+PASS 忌口行含花生（A1 回归）
+PASS 无服务异常横幅
+PASS POST /api/recommend = 200（实际 200）
+PASS 候选非空（T-P16 组合层 + A3 引擎）
+PASS 候选无花生菜（A1 防线）
+PASS 候选 id 为内容哈希形态 virt-<hex>（A3）
+candidates=virt-c33c3abc | virt-e0e1e4cf | virt-18bd39a9
+
+（首跑 v1 两处 FAIL 为脚本缺陷：请求体缺 timeBudgetMin/mustUse 不符合契约 → 400；忌口行未等数据加载。修正后 7/7。）
+
+换容器后生产只读 check:safety（蚝油生菜去花生后）：失败 0，WARN 2（花生/内脏 TAG 零命中=死规则告警，全库已无含花生食材），exit 0。
+
+测试数据清理：冒烟建 Plan cmuya9510000001mx7ih1l05o + GENERATE Event 已删（events_deleted=1 plans_deleted=1 plan_remaining=0）。
+
+环境事实：API 容器 = main `9caa1d8` 全量构建（首次与 main 同步：V2.1+T-P16/T-P17+RIBS+A1+A2+A3），healthy；
+H5 = `2a2b9c0` 产物（main 侧 apps/h5 零增量，未重发）；回滚 tag：fm-api:rollback-pre-a3。
+蚝油生菜改配方：删除可选「花生米 10g」关联行 cmtz3tta5cr2tei1b1vvqskxm（备份 dish-peanut-backup-20261007.txt 在服务器 /opt/family-menu/）。

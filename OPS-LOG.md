@@ -12,3 +12,6 @@
 | 2026-10-06 23:32~23:36 | T-A1 API 混合包发布（86b1263+A2 三文件+A1 安全层，不含 T-P16/T-P17） | API=deploy/a1-on-prodbase `eb90ce6` | 回滚 tag fm-api:rollback-pre-a1 → 备份 .bak-20261006-233237 → git archive/scp/解包 → build api → **先只读 check** → up -d api（healthy TRY=6） | BUILD_OK + HEALTHY |
 | 2026-10-06 23:46 | T-A1 生产只读 check:safety（换容器前，新镜像 docker run，零写入） | — | check-safety.ts 对生产库（50 菜/49 PUBLISHED/4 规则） | exit 1：FAIL×1 蚝油生菜含花生米（决定②误伤面）+ WARN×1 内脏 TAG 零命中；无悬空 targetId |
 | 2026-10-06 23:48 | T-A1 生产冒烟 | — | node tests/e2e/T-A1-prod-smoke.mjs | 8/8 PASS（登录门回归+忌口行花生可见+HttpOnly+401/auth-me，evidence/T-A1/prod-smoke-output.txt） |
+| 2026-10-07 23:27~23:45 | T-A3 全量 main 首次同步发布（V2.1+T-P16/T-P17+RIBS+A1+A2+A3，schema/迁移零增量、H5 零增量未重发） | API=main `9caa1d8` | 回滚 tag fm-api:rollback-pre-a3 → 备份 .bak-20261007-232722 → git archive/scp/解包 → build api → up -d api（healthy TRY=7，T_P16_LIVE/A1_LIVE 实证） | BUILD_OK + HEALTHY |
+| 2026-10-07 23:50 | 蚝油生菜改配方去花生（产品负责人批准三选一） | 生产库 DishIngredient 1 行（备份 dish-peanut-backup-20261007.txt） | 删可选「花生米 10g」行 cmtz3tta5cr2tei1b1vvqskxm（步骤文本零花生提及，无需改步骤）→ 复查 check:safety | DELETED=1；check:safety **exit 0**（失败 0，WARN 2=死规则告警） |
+| 2026-10-07 23:55 | T-A3 生产冒烟 | — | node tests/e2e/T-A3-prod-smoke.mjs | 7/7 PASS（登录门/忌口行/recommend 200/候选 virt-<hash>/无花生菜，evidence/T-A3/prod-smoke-output.txt）；冒烟 Plan+Event 已清理零残留 |
