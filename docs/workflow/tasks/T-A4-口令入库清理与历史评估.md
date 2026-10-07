@@ -26,4 +26,6 @@
 
 ## 终态（主控补登）
 
-待派发执行后补登。
+dev 完成（ab86cff，2026-10-07）：12 文件去口令（代码类改环境变量+显式 SKIP、记录类改「见本机 .env」）+ 新增 tools/check-secrets.mjs 防复发（check:secrets script）+ CURRENT.md 本地/生产口令分离策略。脱敏补登（32ae1be）。独立审查 **PASS**（evidence/T-A4-review-2026-10-07.md，全程实跑）。
+
+挂账（不阻断合并）：① 本机开发口令轮换未执行（审查建议①，需产品负责人改本机 .env 后重启本地 API）；② git 历史重写属 L3 待授权；③ tp01 12 既有 FAIL 与 .h5-verify chunk hash 过期为卡外既有挂账（基线复验同红）。完成层级：**第 2 层（已验证，无 UI 不适用页面截图）**，合并待产品负责人授权。
