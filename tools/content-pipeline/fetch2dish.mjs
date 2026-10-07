@@ -1,4 +1,3 @@
-#!/usr/bin/env node
 /**
  * fetch2dish.mjs — 试采 fetch.json → fm-import 输入形状 Dish JSON（T-C03）
  *

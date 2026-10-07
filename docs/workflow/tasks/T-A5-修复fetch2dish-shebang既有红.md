@@ -18,4 +18,4 @@
 
 ## 终态（主控补登）
 
-待派发执行后补登。
+dev 完成（2026-10-08）：删 shebang 一行；门禁 test 498 passed/0 failed、tsc 0 错、taboo 130/130、lint 与基线持平且改动文件 0 命中；前后证据归档 evidence/T-A5/。报告：evidence/T-A5-dev-2026-10-08.md。独立审查：见 evidence/T-A5-review-2026-10-08.md。
