@@ -383,6 +383,23 @@ export function makeEvent(
   return { id, type, menuId, createdAt, cookedResult, willRepeat };
 }
 
+/**
+ * T-A3 菜级事件（API 层 loadEventViews 展开形态的 fixture 化）：
+ * dishId+dishRole 携带，daysAgo/口碑语义与 makeEvent 一致（ref=1/31）。
+ */
+export function makeDishEvent(
+  id: string,
+  type: EventView['type'],
+  daysAgo: number,
+  dishId: string,
+  dishRole: DishView['mealRole'],
+  cookedResult?: 'success' | 'partial' | 'fail',
+  willRepeat?: boolean,
+): EventView {
+  const createdAt = new Date(2026, 0, 1 + 30 - daysAgo);
+  return { id, type, dishId, dishRole, createdAt, cookedResult, willRepeat };
+}
+
 // 参考时间锚点：2026-01-31（makeEvent 中 ref=1/31）
 export const HISTORY_REF_DATE = new Date(2026, 0, 31);
 

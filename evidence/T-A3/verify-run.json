@@ -1,0 +1,190 @@
+{
+  "rounds": [
+    {
+      "round": 1,
+      "request": {
+        "people": 2,
+        "timeBudgetMin": 60,
+        "mustUse": [
+          "A3验收白菜"
+        ]
+      },
+      "planId": "cmuxtkyu6001cfgpg4tkss8cj",
+      "candidates": [
+        {
+          "menuId": "virt-b7117979",
+          "score": 0.8417,
+          "dishes": [
+            "A3验收主菜一",
+            "A3验收配菜一",
+            "A3验收汤一"
+          ],
+          "historyAcceptance": 0.7,
+          "recentDiversity": 0.8,
+          "reasons": [
+            "60分钟内轻松完成",
+            "消耗1种标记食材",
+            "匹配家庭偏好菜系",
+            "近期未做过",
+            "补充近期未做的菜品类别"
+          ]
+        },
+        {
+          "menuId": "virt-ecdf0f78",
+          "score": 0.8417,
+          "dishes": [
+            "A3验收主菜二",
+            "A3验收配菜二",
+            "A3验收汤二"
+          ],
+          "historyAcceptance": 0.7,
+          "recentDiversity": 0.8,
+          "reasons": [
+            "60分钟内轻松完成",
+            "消耗1种标记食材",
+            "匹配家庭偏好菜系",
+            "近期未做过",
+            "补充近期未做的菜品类别"
+          ]
+        },
+        {
+          "menuId": "virt-fac09b7b",
+          "score": 0.8417,
+          "dishes": [
+            "A3验收主菜三",
+            "A3验收配菜三",
+            "A3验收汤三"
+          ],
+          "historyAcceptance": 0.7,
+          "recentDiversity": 0.8,
+          "reasons": [
+            "60分钟内轻松完成",
+            "消耗1种标记食材",
+            "匹配家庭偏好菜系",
+            "近期未做过",
+            "补充近期未做的菜品类别"
+          ]
+        }
+      ]
+    },
+    {
+      "round": 2,
+      "request": {
+        "people": 3,
+        "timeBudgetMin": 60,
+        "mustUse": [
+          "A3验收萝卜"
+        ]
+      },
+      "planId": "cmuxtl2vx001jfgpg940igbwc",
+      "candidates": [
+        {
+          "menuId": "virt-846b2ffe",
+          "score": 0.87,
+          "dishes": [
+            "A3验收主菜一",
+            "A3验收主菜二",
+            "A3验收配菜一",
+            "A3验收汤一"
+          ],
+          "historyAcceptance": 1,
+          "recentDiversity": 0.2,
+          "reasons": [
+            "历史接受度高",
+            "曾标记愿意再做",
+            "60分钟内轻松完成",
+            "消耗1种标记食材",
+            "匹配家庭偏好菜系",
+            "7天内已做过",
+            "候选不足3套（当前1套）"
+          ]
+        }
+      ]
+    },
+    {
+      "round": 3,
+      "request": {
+        "people": 2,
+        "timeBudgetMin": 60,
+        "mustUse": [
+          "A3验收白菜"
+        ]
+      },
+      "planId": "cmuxtl469001lfgpgew8l24bj",
+      "candidates": [
+        {
+          "menuId": "virt-ecdf0f78",
+          "score": 0.87,
+          "dishes": [
+            "A3验收主菜二",
+            "A3验收配菜二",
+            "A3验收汤二"
+          ],
+          "historyAcceptance": 1,
+          "recentDiversity": 0.2,
+          "reasons": [
+            "历史接受度高",
+            "曾标记愿意再做",
+            "60分钟内轻松完成",
+            "消耗1种标记食材",
+            "匹配家庭偏好菜系",
+            "7天内已做过"
+          ]
+        },
+        {
+          "menuId": "virt-b7117979",
+          "score": 0.825,
+          "dishes": [
+            "A3验收主菜一",
+            "A3验收配菜一",
+            "A3验收汤一"
+          ],
+          "historyAcceptance": 0.7,
+          "recentDiversity": 0.8,
+          "reasons": [
+            "60分钟内轻松完成",
+            "消耗1种标记食材",
+            "匹配家庭偏好菜系",
+            "近期未做过"
+          ]
+        },
+        {
+          "menuId": "virt-fac09b7b",
+          "score": 0.825,
+          "dishes": [
+            "A3验收主菜三",
+            "A3验收配菜三",
+            "A3验收汤三"
+          ],
+          "historyAcceptance": 0.7,
+          "recentDiversity": 0.8,
+          "reasons": [
+            "60分钟内轻松完成",
+            "消耗1种标记食材",
+            "匹配家庭偏好菜系",
+            "近期未做过"
+          ]
+        }
+      ]
+    }
+  ],
+  "lockedMenuIdRound1": "virt-ecdf0f78",
+  "feedbackTrace": [
+    {
+      "url": "/api/plans/cmuxtkyu6001cfgpg4tkss8cj/lock",
+      "status": 200,
+      "reqBody": {
+        "menuId": "virt-ecdf0f78"
+      }
+    },
+    {
+      "url": "/api/plans/cmuxtkyu6001cfgpg4tkss8cj/feedback",
+      "status": 200,
+      "reqBody": {
+        "didCook": true,
+        "taste": "good",
+        "willRepeat": true
+      }
+    }
+  ]
+}

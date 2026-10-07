@@ -53,6 +53,22 @@ function dishIngredientIds(dish: DishView): Set<string> {
 }
 
 /**
+ * T-A3：内容稳定哈希（FNV-1a 32 位，纯函数、无依赖、无随机）。
+ * 虚拟菜单 id 取「排序后菜品 id 串」的哈希——同一组合在任何生成批次、任何
+ * 槽位切分（人数/换批剔除改变轮转序）下 id 恒定，杜绝 T-P16 按生成顺序编号
+ * （virt-001…）导致的 identity 漂移与跨组合口碑错配。
+ */
+export function stableContentHash(dishIds: string[]): string {
+  const key = [...dishIds].sort().join('|');
+  let h = 0x811c9dc5;
+  for (let i = 0; i < key.length; i++) {
+    h ^= key.charCodeAt(i);
+    h = Math.imul(h, 0x01000193);
+  }
+  return (h >>> 0).toString(16).padStart(8, '0');
+}
+
+/**
  * 备菜顺序确定性串行展开（与 apps/api planService.buildPrepSequence v1 同构，
  * engine 内独立实现，不跨包引用 API 层）。
  */
@@ -160,7 +176,6 @@ export function composeMenusByRole(
   const virtualMenus: MenuView[] = [];
   const slotShortages: Record<string, string[]> = {};
   const contentSeen = new Set<string>();
-  let seq = 0;
 
   /** 产出一套虚拟菜单（内容去重；全空桌不产出） */
   const emit = (
@@ -169,14 +184,16 @@ export function composeMenusByRole(
   ): void => {
     const dishesOut = [...picked.MAIN, ...picked.SIDE, ...picked.SOUP];
     if (dishesOut.length === 0) return;
-    const key = dishesOut.map((d) => d.id).join('|');
+    // T-A3：内容去重与 id 均以「排序后菜品 id 集合」为准（槽内顺序无关），
+    // id = 内容稳定哈希（同组合跨批次同 id），name 取哈希前 4 位（展示稳定）
+    const key = dishesOut.map((d) => d.id).sort().join('|');
     if (contentSeen.has(key)) return;
     contentSeen.add(key);
-    seq += 1;
-    const id = `virt-${String(seq).padStart(3, '0')}`;
+    const hash = stableContentHash(dishesOut.map((d) => d.id));
+    const id = `virt-${hash}`;
     virtualMenus.push({
       id,
-      name: `动态组合 #${seq}`,
+      name: `动态组合 #${hash.slice(0, 4)}`,
       scene: 'WEEKDAY_FAST',
       serves: people,
       totalActiveMinutes: dishesOut.reduce((sum, d) => sum + d.activeMinutes, 0),

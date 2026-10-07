@@ -3,7 +3,7 @@
 // 路由薄、逻辑在 services（AGENTS.md 铁律），planService 是 API 层核心业务逻辑
 
 import { composeMenusByRole, filterSwapCandidates, recommend } from '@family-menu/engine';
-import type { DishView, MenuView } from '@family-menu/engine';
+import type { DishView, EventView, MenuView } from '@family-menu/engine';
 import { mergeShoppingList, type ShoppingList } from '@family-menu/list-merger';
 import type {
   Candidate,
@@ -24,12 +24,15 @@ import type {
 import { prisma } from '../db.js';
 import { matchMustUseNames } from '../utils/must-use-matcher.js';
 import {
+  extractCandidateMenuDishes,
+  toDishEventViews,
   toDishView,
   toEventView,
   toExclusionView,
   toFamilyRuleView,
   toMenuView,
   toShoppingMenu,
+  type EventMenuDishRef,
 } from './mappers.js';
 
 // ───── 错误类型 ─────
@@ -152,15 +155,62 @@ async function loadPublishedDishViews(): Promise<DishView[]> {
   return dishes.map(toDishView);
 }
 
-async function loadEventViews(familyId: string) {
+/**
+ * T-A3：历史事件装载（30 天）。COOKED/LOCK/SWAP_MENU 展开为菜级 EventView
+ * （dishId+dishRole，id=`${eventId}:${dishId}`），评分层口碑/多样性按 dishId 聚合；
+ * 菜品集合优先取 Plan.candidates 快照（虚拟组合唯一来源），快照缺失时懒水合
+ * Menu 表兜底（真实菜单/T-P16 前老计划）；两者皆无 -> 事件原样透传（旧格式
+ * menuId-only 数据不编造菜品，菜级维度自然不命中）。export 供集成测试直接断言。
+ */
+export async function loadEventViews(familyId: string): Promise<EventView[]> {
   const since = new Date();
   since.setDate(since.getDate() - 30);
   const events = await prisma.event.findMany({
     where: { familyId, createdAt: { gte: since } },
     orderBy: { createdAt: 'desc' },
-    include: { plan: { select: { lockedMenuId: true } } },
+    include: { plan: { select: { lockedMenuId: true, candidates: true } } },
   });
-  return events.map(toEventView);
+
+  const menuDishCache = new Map<string, EventMenuDishRef[] | null>();
+  const resolveMenuDishes = async (
+    menuId: string,
+    candidates: unknown,
+  ): Promise<EventMenuDishRef[] | undefined> => {
+    if (menuDishCache.has(menuId)) {
+      return menuDishCache.get(menuId) ?? undefined;
+    }
+    let dishes = extractCandidateMenuDishes(candidates, menuId);
+    if (!dishes) {
+      const menu = await prisma.menu.findUnique({
+        where: { id: menuId },
+        select: {
+          dishes: { select: { dish: { select: { id: true, mealRole: true } } } },
+        },
+      });
+      dishes = menu ? menu.dishes.map((md) => md.dish) : undefined;
+    }
+    menuDishCache.set(menuId, dishes ?? null);
+    return dishes;
+  };
+
+  const views: EventView[] = [];
+  for (const row of events) {
+    const base = toEventView(row);
+    const expandable =
+      row.type === 'COOKED' || row.type === 'LOCK' || row.type === 'SWAP_MENU';
+    if (expandable && base.menuId) {
+      const dishes = await resolveMenuDishes(
+        base.menuId,
+        row.plan?.candidates ?? null,
+      );
+      if (dishes && dishes.length > 0) {
+        views.push(...toDishEventViews(base, dishes));
+        continue;
+      }
+    }
+    views.push(base);
+  }
+  return views;
 }
 
 // ── 内部辅助：mustUse 用户原文 -> ingredientId 稳定映射（TP-02） ──
@@ -905,19 +955,40 @@ export const planService = {
         ok: 'partial',
         fail: 'fail',
       };
-      // T-P16/PD-018：虚拟菜单 id（virt-*）不在 Menu 表，CookLog.menuId 有外键到 Menu，
-      // 虚拟 id 直写会违反 FK -> 置 null（不伪造 menuId）；result/willRepeat/actualMinutes
-      // 照常落库，内容升级通道（DEC-006）不受影响
+      const result = resultMapping[taste as Taste];
       const lockedMenuId = plan.lockedMenuId ?? null;
-      await prisma.cookLog.create({
-        data: {
-          menuId: lockedMenuId !== null && lockedMenuId.startsWith('virt-') ? null : lockedMenuId,
-          result: resultMapping[taste as Taste],
-          failPoints: null, // 三问无失败原因输入，字段留给内容管线
-          willRepeat,
-          actualMinutes: actualMinutes ?? null,
-        },
-      });
+      // T-A3：虚拟菜单（virt-*）不在 Menu 表，CookLog.menuId FK 不可写（不伪造）；
+      // 改为按锁定组合每道菜写一行 dishId CookLog——内容升级通道经菜品恢复（做过的每道菜
+      // 都有试做记录），计划关联经既有 COOKED Event.planId（CookLog 无 planId 列，schema 禁改）。
+      // 真实 Menu 反馈保持单行 menuId（既有行为不变）。
+      const isVirtual = lockedMenuId !== null && lockedMenuId.startsWith('virt-');
+      if (isVirtual) {
+        const { menuView } = await hydrateLockedMenu(
+          plan as PlanRow & { lockedMenuId: string },
+        );
+        for (const dish of menuView.dishes) {
+          await prisma.cookLog.create({
+            data: {
+              menuId: null,
+              dishId: dish.id,
+              result,
+              failPoints: null, // 三问无失败原因输入，字段留给内容管线
+              willRepeat,
+              actualMinutes: actualMinutes ?? null,
+            },
+          });
+        }
+      } else {
+        await prisma.cookLog.create({
+          data: {
+            menuId: lockedMenuId,
+            result,
+            failPoints: null,
+            willRepeat,
+            actualMinutes: actualMinutes ?? null,
+          },
+        });
+      }
     }
 
     return toPlan(updated as PlanRow);
