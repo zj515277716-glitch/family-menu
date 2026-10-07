@@ -23,4 +23,4 @@
 
 ## 终态（主控补登）
 
-待派发执行后补登。
+dev 完成（00d25d5，2026-10-08）：eslint ignore `.workflow-verify` + 三页面最小删改（失效 disable 注释、未用参数 gi），lint 42→0；taboo 130/130、tsc 0 错；test 唯一红 fetch2dish 为基线自带（本分支不含 T-A5 修复，A5 先合即消）。独立审查 **PASS**（evidence/T-A6-review-2026-10-08.md，全程实跑）。完成层级：**第 2 层**（无视觉改动，页面截图不适用）；合并待产品负责人授权。
