@@ -97,7 +97,13 @@ export interface MenuView {
   dishes: DishView[];
 }
 
-/** 行为事件视图（从 Event 映射，menuId/dishId/cookedResult 为 join 后字段） */
+/**
+ * 行为事件视图（从 Event 映射，menuId/dishId/cookedResult 为 join 后字段）。
+ * T-A3 菜级聚合：API 层把 COOKED/LOCK/SWAP_MENU 事件按当时锁定/选定菜单的菜品
+ * 逐菜展开（id=`${eventId}:${dishId}`）并携带 dishRole；score 的口碑与多样性
+ * 维度按 dishId/dishRole 聚合，不再按 menuId 字面匹配（消除跨组合错配）。
+ * 无菜品信息的事件（含旧格式 menuId-only 数据）原样透传，菜级维度自然不命中。
+ */
 export interface EventView {
   id: string;
   type: EventType;
@@ -106,6 +112,8 @@ export interface EventView {
   createdAt: Date;
   cookedResult?: 'success' | 'partial' | 'fail';
   willRepeat?: boolean;
+  /** 菜级展开时携带的菜品角色（近期类别多样性按菜聚合用），展开事件必带 */
+  dishRole?: MealRole;
 }
 
 /** 推荐输入，对齐 4.2 RecommendInput */

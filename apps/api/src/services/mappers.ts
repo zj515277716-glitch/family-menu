@@ -103,7 +103,7 @@ interface EventRow {
   type: string;
   createdAt: Date;
   payload: unknown;
-  plan: { lockedMenuId: string | null } | null;
+  plan: { lockedMenuId: string | null; candidates: unknown } | null;
 }
 
 // ───── 映射函数 ─────
@@ -252,6 +252,71 @@ export function toEventView(row: EventRow): EventView {
     if (typeof payload.willRepeat === 'boolean') view.willRepeat = payload.willRepeat;
   }
   return view;
+}
+
+// ───── T-A3：事件菜级投影（口碑/多样性按 dishId 聚合的读取侧展开） ─────
+
+/** 菜级展开所需的最小菜品投影（id + 角色） */
+export interface EventMenuDishRef {
+  id: string;
+  mealRole: MealRole;
+}
+
+function isMealRole(value: unknown): value is MealRole {
+  return (
+    value === 'MAIN' || value === 'SIDE' || value === 'SOUP' || value === 'STAPLE'
+  );
+}
+
+/**
+ * T-A3：从 Plan.candidates JSON 快照提取指定菜单的菜品集合（menuId -> dishes）。
+ * 快照缺失 / 形状不符 -> undefined（调用方走 Menu 表懒水合兜底，不编造）。
+ */
+export function extractCandidateMenuDishes(
+  candidates: unknown,
+  menuId: string,
+): EventMenuDishRef[] | undefined {
+  if (!Array.isArray(candidates)) return undefined;
+  for (const c of candidates) {
+    if (typeof c !== 'object' || c === null) continue;
+    const cand = c as { menuId?: unknown; menu?: unknown };
+    if (cand.menuId !== menuId) continue;
+    const menu =
+      typeof cand.menu === 'object' && cand.menu !== null
+        ? (cand.menu as { dishes?: unknown })
+        : null;
+    if (!menu || !Array.isArray(menu.dishes)) continue;
+    const dishes: EventMenuDishRef[] = [];
+    for (const d of menu.dishes) {
+      if (typeof d !== 'object' || d === null) continue;
+      const dish = d as { id?: unknown; mealRole?: unknown };
+      if (typeof dish.id === 'string' && isMealRole(dish.mealRole)) {
+        dishes.push({ id: dish.id, mealRole: dish.mealRole });
+      }
+    }
+    if (dishes.length > 0) return dishes;
+  }
+  return undefined;
+}
+
+/**
+ * T-A3：把单条事件视图按菜品集合展开为菜级事件（每菜一条，id=`${base.id}:${dishId}`，
+ * 供集成测试与调用方精确定位）。cookedResult/willRepeat 逐菜携带（一次做饭的口碑
+ * 作用于同桌每道菜，每菜一票）；menuId 剥离——菜级口径不依赖 menuId，杜绝字面撞号。
+ */
+export function toDishEventViews(
+  base: EventView,
+  dishes: EventMenuDishRef[],
+): EventView[] {
+  return dishes.map((d) => ({
+    id: `${base.id}:${d.id}`,
+    type: base.type,
+    dishId: d.id,
+    dishRole: d.mealRole,
+    createdAt: base.createdAt,
+    ...(base.cookedResult !== undefined ? { cookedResult: base.cookedResult } : {}),
+    ...(base.willRepeat !== undefined ? { willRepeat: base.willRepeat } : {}),
+  }));
 }
 
 // ───── list-merger 输入映射（MenuView -> ShoppingMenu 鸭子类型兼容） ─────

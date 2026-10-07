@@ -43,7 +43,7 @@ describe('score 6 维评分', () => {
     history: [],
   };
 
-  // 1. 历史接受度
+  // 1. 历史接受度（T-A3：按 dishId 聚合，事件为菜级展开形态）
   it('历史接受度：没做过 = 0.7', () => {
     const r = score(F.MENU_PLAIN_RICE, baseInput);
     expect(r.breakdown.historyAcceptance).toBe(0.7);
@@ -53,8 +53,8 @@ describe('score 6 维评分', () => {
     const input: RecommendInput = {
       ...baseInput,
       history: [
-        F.makeEvent('e1', 'COOKED', 10, 'menu-plain-rice', 'success'),
-        F.makeEvent('e2', 'COOKED', 5, 'menu-plain-rice', 'success'),
+        F.makeDishEvent('e1', 'COOKED', 10, 'dish-plain-rice', 'STAPLE', 'success'),
+        F.makeDishEvent('e2', 'COOKED', 5, 'dish-plain-rice', 'STAPLE', 'success'),
       ],
     };
     const r = score(F.MENU_PLAIN_RICE, input);
@@ -66,8 +66,8 @@ describe('score 6 维评分', () => {
     const input: RecommendInput = {
       ...baseInput,
       history: [
-        F.makeEvent('e1', 'COOKED', 10, 'menu-plain-rice', 'success'),
-        F.makeEvent('e2', 'COOKED', 5, 'menu-plain-rice', 'fail'),
+        F.makeDishEvent('e1', 'COOKED', 10, 'dish-plain-rice', 'STAPLE', 'success'),
+        F.makeDishEvent('e2', 'COOKED', 5, 'dish-plain-rice', 'STAPLE', 'fail'),
       ],
     };
     const r = score(F.MENU_PLAIN_RICE, input);
@@ -78,8 +78,8 @@ describe('score 6 维评分', () => {
     const input: RecommendInput = {
       ...baseInput,
       history: [
-        F.makeEvent('e1', 'COOKED', 10, 'menu-plain-rice', 'fail'),
-        F.makeEvent('e2', 'COOKED', 5, 'menu-plain-rice', 'fail'),
+        F.makeDishEvent('e1', 'COOKED', 10, 'dish-plain-rice', 'STAPLE', 'fail'),
+        F.makeDishEvent('e2', 'COOKED', 5, 'dish-plain-rice', 'STAPLE', 'fail'),
       ],
     };
     const r = score(F.MENU_PLAIN_RICE, input);
@@ -91,7 +91,7 @@ describe('score 6 维评分', () => {
     const input: RecommendInput = {
       ...baseInput,
       history: [
-        F.makeEvent('e1', 'COOKED', 10, 'menu-plain-rice', 'success', true),
+        F.makeDishEvent('e1', 'COOKED', 10, 'dish-plain-rice', 'STAPLE', 'success', true),
       ],
     };
     const r = score(F.MENU_PLAIN_RICE, input);
@@ -287,7 +287,7 @@ describe('score 6 维评分', () => {
     const input: RecommendInput = {
       ...baseInput,
       history: [
-        F.makeEvent('e1', 'COOKED', 3, 'menu-plain-rice', 'success'),
+        F.makeDishEvent('e1', 'COOKED', 3, 'dish-plain-rice', 'STAPLE', 'success'),
         F.makeEvent('e2', 'VIEW', 0, 'menu-other'),
       ],
     };
@@ -300,7 +300,7 @@ describe('score 6 维评分', () => {
     const input: RecommendInput = {
       ...baseInput,
       history: [
-        F.makeEvent('e1', 'COOKED', 10, 'menu-plain-rice', 'success'),
+        F.makeDishEvent('e1', 'COOKED', 10, 'dish-plain-rice', 'STAPLE', 'success'),
         F.makeEvent('e2', 'VIEW', 0, 'menu-other'),
       ],
     };
@@ -313,22 +313,17 @@ describe('score 6 维评分', () => {
     expect(r.breakdown.recentDiversity).toBe(0.8);
   });
 
-  // 6. 膳食类别多样性
+  // 6. 膳食类别多样性（T-A3：按菜级事件 dishRole 聚合）
   it('膳食类别多样性：有新角色 = 1.0', () => {
-    // 构造只含 MAIN 菜品的历史菜单（不含 STAPLE）
-    const menuMainOnly: MenuView = {
-      ...F.MENU_MAPOTOFU,
-      id: 'menu-main-only',
-      dishes: [F.DISH_MAPOTOFU],
-    };
+    // 构造只含 MAIN 菜品的历史（做过麻婆豆腐，不含 STAPLE）
     const input: RecommendInput = {
       ...baseInput,
       history: [
-        F.makeEvent('e1', 'COOKED', 0, 'menu-main-only', 'success'),
+        F.makeDishEvent('e1', 'COOKED', 0, 'dish-mapotofu', 'MAIN', 'success'),
       ],
-      library: [F.MENU_PLAIN_RICE, menuMainOnly],
+      library: [F.MENU_PLAIN_RICE, F.MENU_MAPOTOFU],
     };
-    // recentRoles={MAIN}，menu-plain-rice currentRoles={STAPLE}，newRoles={STAPLE} -> 1.0
+    // recentDishRoles={MAIN}，menu-plain-rice currentRoles={STAPLE}，newRoles={STAPLE} -> 1.0
     const r = score(F.MENU_PLAIN_RICE, input);
     expect(r.breakdown.categoryDiversity).toBe(1.0);
   });
@@ -337,11 +332,11 @@ describe('score 6 维评分', () => {
     const input: RecommendInput = {
       ...baseInput,
       history: [
-        F.makeEvent('e1', 'COOKED', 0, 'menu-plain-rice', 'success'),
+        F.makeDishEvent('e1', 'COOKED', 0, 'dish-plain-rice', 'STAPLE', 'success'),
       ],
       library: [F.MENU_PLAIN_RICE],
     };
-    // recentRoles={STAPLE}，currentRoles={STAPLE}，newRoles={} -> 0.5
+    // recentDishRoles={STAPLE}，currentRoles={STAPLE}，newRoles={} -> 0.5
     const r = score(F.MENU_PLAIN_RICE, input);
     expect(r.breakdown.categoryDiversity).toBe(0.5);
   });
@@ -367,7 +362,7 @@ describe('score 回归一致性（无随机性，固定输入固定输出）', (
       context: F.CONTEXT_MUSTUSE,
       library: F.FULL_LIBRARY,
       history: [
-        F.makeEvent('e1', 'COOKED', 5, 'menu-plain-rice', 'success', true),
+        F.makeDishEvent('e1', 'COOKED', 5, 'dish-plain-rice', 'STAPLE', 'success', true),
         F.makeEvent('e2', 'VIEW', 0, 'menu-mapotofu'),
       ],
     };

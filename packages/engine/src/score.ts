@@ -30,9 +30,9 @@ interface ScoreDimResult {
   reasons: string[];
 }
 
-/** 近期多样性计算结果（含 recentMenuIds 供类别多样性复用） */
+/** 近期多样性计算结果（含 recentDishRoles 供类别多样性复用） */
 interface RecentDiversityResult extends ScoreDimResult {
-  recentMenuIds: Set<string>;
+  recentDishRoles: Set<string>;
 }
 
 // ───── SOFT 禁忌命中检查（拆分自 buildSoftHitChecker，降低圈复杂度） ─────
@@ -112,14 +112,17 @@ function buildSoftHitChecker(exclusions: ExclusionView[]) {
 
 // ───── 6 维评分子函数（拆分自 score，降低圈复杂度） ─────
 
-/** 1. 历史接受度 (权重 0.35)：没做过中性偏积极；成功率>=0.7 高接受度；>=0.4 中等；<0.4 低；willRepeat 加分 */
+/** 1. 历史接受度 (权重 0.35)：没做过中性偏积极；成功率>=0.7 高接受度；>=0.4 中等；<0.4 低；willRepeat 加分
+ * T-A3：按 dishId 聚合——做过菜单中任意一道菜即计入（菜级事件由 API 层展开，每菜一票），
+ * 不再按 menuId 字面匹配（虚拟菜单 id 每次重编号会把上周组合的反馈错压到本周同号组合）。 */
 function calcHistoryAcceptance(
   menu: MenuView,
   history: EventView[],
 ): ScoreDimResult {
   const reasons: string[] = [];
+  const menuDishIds = new Set(menu.dishes.map((d) => d.id));
   const cookedEvents = history.filter(
-    (e) => e.menuId === menu.id && e.type === 'COOKED',
+    (e) => e.type === 'COOKED' && e.dishId !== undefined && menuDishIds.has(e.dishId),
   );
 
   if (cookedEvents.length === 0) {
@@ -230,29 +233,37 @@ function calcPreferenceCoverage(
   return { value, reasons };
 }
 
-/** 5. 近期多样性 (权重 0.10)：7 天内做过降权；同时输出 recentMenuIds 供维度6复用 */
+/** 5. 近期多样性 (权重 0.10)：7 天内做过的菜降权；同时输出 recentDishRoles 供维度6复用
+ * T-A3：按 dishId 聚合（COOKED/LOCK/SWAP_MENU 的菜级事件；SWAP_DISH 的 dishId 是换出的旧菜，
+ * 不是做过/安排信号，不取）；不再按 menuId 字面匹配（虚拟菜单 id 每次重编号会跨组合错降权）。 */
 function calcRecentDiversity(
   menu: MenuView,
   history: EventView[],
   referenceTime: number,
 ): RecentDiversityResult {
   const reasons: string[] = [];
-  const recentMenuIds = new Set<string>();
+  const recentDishIds = new Set<string>();
+  const recentDishRoles = new Set<string>();
+  const ARRANGED_TYPES = new Set(['COOKED', 'LOCK', 'SWAP_MENU']);
 
   if (referenceTime > 0) {
     for (const e of history) {
       if (
-        e.menuId &&
+        ARRANGED_TYPES.has(e.type) &&
+        e.dishId !== undefined &&
         e.createdAt.getTime() <= referenceTime &&
         referenceTime - e.createdAt.getTime() <= SEVEN_DAYS_MS
       ) {
-        recentMenuIds.add(e.menuId);
+        recentDishIds.add(e.dishId);
+        if (e.dishRole) recentDishRoles.add(e.dishRole);
       }
     }
   }
 
+  const menuDishIds = new Set(menu.dishes.map((d) => d.id));
+  const doneRecently = [...menuDishIds].some((id) => recentDishIds.has(id));
   let value: number;
-  if (recentMenuIds.has(menu.id)) {
+  if (doneRecently) {
     value = 0.2;
     reasons.push('7天内已做过');
   } else {
@@ -262,34 +273,24 @@ function calcRecentDiversity(
     }
   }
 
-  return { value, reasons, recentMenuIds };
+  return { value, reasons, recentDishRoles };
 }
 
-/** 6. 膳食类别多样性 (权重 0.10)：近 7 天做过的菜品角色分布，新角色加分 */
+/** 6. 膳食类别多样性 (权重 0.10)：近 7 天做过的菜品角色分布，新角色加分
+ * T-A3：按菜级事件携带的 dishRole 聚合（历史虚拟菜单不在当前 library，
+ * 旧「recentMenuIds 查 library」口径对虚拟组合恒空 -> 类别多样性对新组合恒满分） */
 function calcCategoryDiversity(
   menu: MenuView,
-  library: MenuView[],
-  recentMenuIds: Set<string>,
+  recentDishRoles: Set<string>,
   referenceTime: number,
 ): ScoreDimResult {
   const reasons: string[] = [];
-  const menuMap = new Map(library.map((m) => [m.id, m]));
-  const recentRoles = new Set<string>();
-
-  for (const menuId of recentMenuIds) {
-    const recentMenu = menuMap.get(menuId);
-    if (recentMenu) {
-      for (const dish of recentMenu.dishes) {
-        recentRoles.add(dish.mealRole);
-      }
-    }
-  }
 
   const currentRoles = new Set(menu.dishes.map((d) => d.mealRole));
   let value: number;
 
   if (currentRoles.size > 0) {
-    const newRoles = [...currentRoles].filter((r) => !recentRoles.has(r));
+    const newRoles = [...currentRoles].filter((r) => !recentDishRoles.has(r));
     value = 0.5 + 0.5 * (newRoles.length / currentRoles.size);
     if (newRoles.length > 0 && referenceTime > 0) {
       reasons.push('补充近期未做的菜品类别');
@@ -351,11 +352,10 @@ export function score(menu: MenuView, input: RecommendInput): ScoredMenu {
   breakdown.recentDiversity = recentResult.value;
   reasons.push(...recentResult.reasons);
 
-  // 6. 膳食类别多样性 (0.10)
+  // 6. 膳食类别多样性 (0.10)——T-A3：按菜级 dishRole 聚合（不查 library）
   const categoryResult = calcCategoryDiversity(
     menu,
-    input.library,
-    recentResult.recentMenuIds,
+    recentResult.recentDishRoles,
     referenceTime,
   );
   breakdown.categoryDiversity = categoryResult.value;
