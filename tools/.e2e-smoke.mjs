@@ -3,7 +3,14 @@
 import process from 'node:process'
 
 const BASE = 'http://127.0.0.1:3000'
-const TOKEN = process.env.ACCESS_TOKEN || 'family-menu-local-2026'
+// 口令来源：仅环境变量 ACCESS_TOKEN；不设则整体 skip（退出码 2，不假绿）
+const TOKEN = process.env.ACCESS_TOKEN || ''
+if (!TOKEN) {
+  console.log('[SKIP] ACCESS_TOKEN 环境变量未设置。')
+  console.log('[SKIP] 本脚本全部用例需 access_token cookie 鉴权，无口令无法运行，整体跳过。')
+  console.log('== 结果: 0 PASS / 0 FAIL / 全部 SKIP（退出码 2）==')
+  process.exit(2)
+}
 let pass = 0
 let fail = 0
 

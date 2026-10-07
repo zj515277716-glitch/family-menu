@@ -2,9 +2,14 @@
 // Taro4 dev 架构：index.html → 宿主(runtime/app) → remoteEntry(prebundle) → boot chunk → 页面 chunk
 let pass = 0
 let fail = 0
+let skipCount = 0
 function step(name, ok, detail) {
   console.log(`[${ok ? 'PASS' : 'FAIL'}] ${name}: ${detail}`)
   ok ? pass++ : fail++
+}
+function skip(name, detail) {
+  console.log(`[SKIP] ${name}: ${detail}`)
+  skipCount++
 }
 const BASE = 'http://127.0.0.1:10086'
 const PAGES = ['tonight', 'history', 'setup', 'candidates', 'plan', 'dish']
@@ -47,8 +52,14 @@ const allJs = parts.join('\n')
 // 3. 环境注入检查（DefinePlugin 字面量）
 step('产物注入 TARO_APP_API_BASE_URL（http://127.0.0.1:3000）',
   allJs.includes('http://127.0.0.1:3000'), `出现=${allJs.includes('http://127.0.0.1:3000')}`)
-step('产物注入 TARO_APP_ACCESS_TOKEN（family-menu-local-2026）',
-  allJs.includes('family-menu-local-2026'), `出现=${allJs.includes('family-menu-local-2026')}`)
+// 口令核对值取自运行环境（TARO_APP_ACCESS_TOKEN 优先，其次 ACCESS_TOKEN），不在本脚本落明文
+const EXPECT_TOKEN = process.env.TARO_APP_ACCESS_TOKEN || process.env.ACCESS_TOKEN || ''
+if (EXPECT_TOKEN) {
+  step('产物注入 TARO_APP_ACCESS_TOKEN（核对值来自运行环境，不复述）',
+    allJs.includes(EXPECT_TOKEN), `出现=${allJs.includes(EXPECT_TOKEN)}`)
+} else {
+  skip('产物注入 TARO_APP_ACCESS_TOKEN 核对', '未设置 TARO_APP_ACCESS_TOKEN/ACCESS_TOKEN 环境变量，无法确定期望值，本项跳过（产物不应含硬编码口令）')
+}
 
 // 4. 无 Mock 兜底 + 明确失败提示（C-13）
 step('产物包含「服务未连接」明确提示（未配置时明确失败，不造假数据）',
@@ -62,5 +73,5 @@ step('产物包含业务路由与 API 调用（/api/recommend）',
   allJs.includes('pages/tonight/index') && allJs.includes('/api/recommend'),
   `路由=${allJs.includes('pages/tonight/index')} API=${allJs.includes('/api/recommend')}`)
 
-console.log(`\n== 结果: ${pass} PASS / ${fail} FAIL ==`)
+console.log(`\n== 结果: ${pass} PASS / ${fail} FAIL / ${skipCount} SKIP ==`)
 process.exit(fail === 0 ? 0 : 1)

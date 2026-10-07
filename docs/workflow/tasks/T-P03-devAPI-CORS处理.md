@@ -18,7 +18,7 @@ T-P02 首次浏览器级验收暴露 E1：H5 dev(:10086) 与 API(:3000) 跨源�
 ## 输入资源
 
 - E1 探针原文：`.workflow-verify/e1-preflight-result.txt`（3 条 OPTIONS 全部 401 + 三 CORS 头 null）
-- 现状：apps/api/src/app.ts（Fastify5，无 CORS 处理）；鉴权 authHook（cookie `ACCESS_TOKEN=family-menu-local-2026`，无令牌 401）；路由前缀 /api
+- 现状：apps/api/src/app.ts（Fastify5，无 CORS 处理）；鉴权 authHook（cookie `ACCESS_TOKEN=<本机开发口令，见本机 .env>`，无令牌 401）；路由前缀 /api
 - 本机环境：PG 17.5 @ 127.0.0.1:54329（trust）；API :3000（tsx watch）；H5 dev :10086（Taro4）；根 .env 含 DATABASE_URL / ACCESS_TOKEN / PORT
 - 回归先例：tests/tp01-mustuse-regression.cjs（真实 HTTP+PG 直查；pg 经 `createRequire(path.join(__dirname,'..','apps','api','package.json'))` 解析）；teardown 脚本先例 tests/tp02-cleanup-test-plans.cjs
 
