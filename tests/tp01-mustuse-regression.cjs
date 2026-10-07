@@ -25,7 +25,14 @@ for (const line of envRaw.split(/\r?\n/)) {
 }
 const PORT = ENV.PORT || '3000';
 const BASE = `http://127.0.0.1:${PORT}`;
-const TOKEN = ENV.ACCESS_TOKEN || 'family-menu-local-2026';
+// 口令来源：环境变量 ACCESS_TOKEN 优先，其次根 .env；不设则整体 skip（退出码 2，不假绿）
+const TOKEN = process.env.ACCESS_TOKEN || ENV.ACCESS_TOKEN || '';
+if (!TOKEN) {
+  console.log('[SKIP] ACCESS_TOKEN 未设置（环境变量 ACCESS_TOKEN 或根 .env 均未提供）。');
+  console.log('[SKIP] 本脚本全部用例需 access_token cookie 鉴权，无口令无法运行，整体跳过。');
+  console.log('== 结果: 0 PASS / 0 FAIL / 全部 SKIP（退出码 2）==');
+  process.exit(2);
+}
 const DATABASE_URL = ENV.DATABASE_URL;
 
 if (!DATABASE_URL) {
