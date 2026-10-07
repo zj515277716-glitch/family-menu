@@ -59,7 +59,6 @@ export default function HistoryPage() {
 
   useEffect(() => {
     loadPlans()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   async function loadPlans() {
