@@ -25,4 +25,8 @@
 
 ## 终态（主控补登）
 
-a 卡完成（2026-10-08）：dev e487d68+1513f93（feat/t-q04-a）——ci 全分支触发（CI run #27/#28 实跑 success）、VERSION 1.1.0、/health 返回 version（兜底 unknown 恒 200，单测 5 用例）、Dockerfile 注入 GIT_COMMIT、deploy:api/deploy:h5 脚本（ACR 参数化+dry-run，未触 fmsrv）；审查建议两处已修（fetch res.status 属性名、VERSION 行尾）。门禁：test 503/20skip/0、taboo 130、lint 0、tsc 0、check:secrets 0。独立审查 **PASS**（evidence/T-Q04-a-review-2026-10-08.md）。层级：**第 2 层**（无 UI，截图不适用）；合并待产品负责人授权。b 卡待前置：产品负责人开通 ACR + GitHub Secrets 配凭据 + 选部署窗口。
+a 卡完成（2026-10-08）：dev e487d68+1513f93（feat/t-q04-a）——ci 全分支触发（CI run #27/#28 实跑 success）、VERSION 1.1.0、/health 返回 version（兜底 unknown 恒 200，单测 5 用例）、Dockerfile 注入 GIT_COMMIT、deploy:api/deploy:h5 脚本（ACR 参数化+dry-run，未触 fmsrv）；审查建议两处已修（fetch res.status 属性名、VERSION 行尾）。门禁：test 503/20skip/0、taboo 130、lint 0、tsc 0、check:secrets 0。独立审查 **PASS**（evidence/T-Q04-a-review-2026-10-08.md）。层级：**第 2 层**（无 UI，截图不适用）。已合并 main（f84f8b1）。
+
+b1 完成（2026-10-08）：ci.yml 加 docker job（仅 main、needs verify、provenance: false 修 ACR 个人版不认 OCI attestation 的已知兼容问题）；产品负责人已配 Secrets（ACR 登录实证成功）；**run #33 verify+docker 全绿，镜像已推 ACR**（tags: `3858e7e`+`latest`，registry `crpi-4mmffpuwe56fjgxc.cn-guangzhou.personal.cr.aliyuncs.com/family-menu`）。环境事实：本机访问 GitHub 须走系统代理 127.0.0.1:7894。
+
+b2（生产切换，L3）待执行：前置 = 产品负责人在服务器 docker login ACR（一次性）+ 选低峰窗口；流程 = 备份 compose → api 段切 ACR 镜像 → `pnpm deploy:api` 一条命令 → /health version=1.1.0+<sha> 核对 → 冒烟 → OPS-LOG。
