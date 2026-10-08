@@ -2,7 +2,8 @@ name: CI
 
 on:
   push:
-    branches: [main]
+    # T-Q04 AC1：全分支触发，功能分支推送即见门禁结果（PR 触发保留）
+    branches: ['**']
   pull_request:
     branches: [main]
 

@@ -16,6 +16,7 @@ import {
 } from 'fastify-type-provider-zod';
 import { prisma } from './db.js';
 import { authHook, registerAuthRoutes } from './auth.js';
+import { getVersion } from './version.js';
 import { familyRoutes } from './routes/family.js';
 import { recommendRoutes } from './routes/recommend.js';
 import { planRoutes } from './routes/plans.js';
@@ -91,8 +92,9 @@ export async function buildApp(): Promise<FastifyInstance> {
   });
 
   // ── health 端点（不需鉴权，authHook 中豁免） ──
+  // 版本口径见 version.ts：getVersion 任何情况不抛错，/health 恒 200（compose healthcheck 依赖）
   app.get('/health', async () => {
-    return { status: 'ok', timestamp: new Date().toISOString() };
+    return { status: 'ok', version: getVersion(), timestamp: new Date().toISOString() };
   });
 
   app.get('/health/db', async () => {
