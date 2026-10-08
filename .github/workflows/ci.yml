@@ -84,6 +84,8 @@ jobs:
         with:
           context: .
           push: true
+          # ACR 个人版不认 buildx 默认附加的 OCI attestation（vnd.oci.empty.v1+json）manifest，必须关
+          provenance: false
           build-args: |
             GIT_COMMIT=${{ env.SHORT_SHA }}
           tags: |
