@@ -25,6 +25,11 @@ RUN pnpm --filter @family-menu/shared build \
 FROM node:22-slim AS runner
 WORKDIR /app
 COPY --from=builder /app/ ./
+# 运行时版本口径（T-Q04 AC3）：VERSION 供 /health 读取；GIT_COMMIT 经 build-arg 注入
+# （docker build --build-arg GIT_COMMIT=$(git rev-parse --short HEAD)），不注入则 /health 只显示文件版本
+ARG GIT_COMMIT=
+ENV GIT_COMMIT=${GIT_COMMIT}
+COPY VERSION ./
 ENV NODE_ENV=production
 EXPOSE 3000
 CMD ["node", "apps/api/dist/server.js"]
