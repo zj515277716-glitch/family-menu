@@ -87,7 +87,7 @@ while (Date.now() < deadline) {
       body = await res.json();
       break;
     }
-    step(`/health HTTP ${res.statusCode}，继续等待…`);
+    step(`/health HTTP ${res.status}，继续等待…`);
   } catch {
     step('/health 暂不可达，继续等待…');
   }
