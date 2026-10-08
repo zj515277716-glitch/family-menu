@@ -61,7 +61,8 @@ const remoteDir = process.env.REMOTE_DIR?.trim() || '/opt/family-menu';
 const healthUrl = process.env.HEALTH_URL?.trim() || 'https://menu.jijingkongjian.xin/health';
 const healthTimeoutMs = Number(process.env.HEALTH_TIMEOUT_MS || 120000);
 const image = `${registry}/${namespace}/family-menu-api:${sha}`;
-const remoteCmd = `cd ${remoteDir} && docker compose pull api && docker compose up -d api`;
+// API_TAG 经环境插值进 compose 的 image 行（服务器 compose 已参数化，T-Q04b2）
+const remoteCmd = `cd ${remoteDir} && API_TAG=${sha} docker compose pull api && API_TAG=${sha} docker compose up -d api`;
 
 step(`镜像        : ${image}`);
 step(`期望 /health: ${expectedVersion}`);

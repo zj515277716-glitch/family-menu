@@ -22,19 +22,11 @@ services:
   # ── prod profile：生产部署（ECS + RDS，不含 db） ──
   # 对齐实施方案第643-647行：prod ECS内网连RDS，.env不进git
   # 对齐实施方案第84行：直连IP:3000(过渡期) / Caddy(443, 备案后)
-  # 用法：docker compose --profile prod up -d --build
+  # 用法：本地一条命令 pnpm deploy:api（T-Q04b2 起，镜像自 ACR 拉取，生产机不再构建）
   api:
-    build:
-      context: .
-      dockerfile: Dockerfile
-      # ── 构建资源限制（2026-09-14 OOM 治理，用户裁决：build 限资源，不升配） ──
-      # NODE_OPTIONS 钳制构建容器内 node 堆（pnpm install/tsc 峰值），超限 build 失败可重试，
-      # 不伤系统。勿移除。另两层见 docs/deploy.md「三、构建资源限制」：
-      # dockerd 侧 GOMEMLIMIT（systemd drop-in）+ deploy.sh 构建前内存预检。
-      # 注：compose v2.27.0 build 段不支持 memory/cpus/memory_swap 字段（config 校验拒绝，需 v2.35+），
-      # 故资源限制不经 build 段资源字段表达。
-      args:
-        NODE_OPTIONS: --max-old-space-size=768
+    # API_TAG 由 deploy:api 传入（=提交短哈希）；手动 up 时缺省 latest。
+    # T-Q04b2 裁决：生产机构建与红线「不在生产服务器上做大构建」冲突，镜像改由 CI 推 ACR。
+    image: crpi-4mmffpuwe56fjgxc.cn-guangzhou.personal.cr.aliyuncs.com/family-menu/family-menu-api:${API_TAG:-latest}
     container_name: family-menu-api
     environment:
       DATABASE_URL: ${DATABASE_URL}
