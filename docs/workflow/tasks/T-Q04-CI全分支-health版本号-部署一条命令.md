@@ -29,4 +29,4 @@ a 卡完成（2026-10-08）：dev e487d68+1513f93（feat/t-q04-a）——ci 全�
 
 b1 完成（2026-10-08）：ci.yml 加 docker job（仅 main、needs verify、provenance: false 修 ACR 个人版不认 OCI attestation 的已知兼容问题）；产品负责人已配 Secrets（ACR 登录实证成功）；**run #33 verify+docker 全绿，镜像已推 ACR**（tags: `3858e7e`+`latest`，registry `crpi-4mmffpuwe56fjgxc.cn-guangzhou.personal.cr.aliyuncs.com/family-menu`）。环境事实：本机访问 GitHub 须走系统代理 127.0.0.1:7894。
 
-b2（生产切换，L3）待执行：前置 = 产品负责人在服务器 docker login ACR（一次性）+ 选低峰窗口；流程 = 备份 compose → api 段切 ACR 镜像 → `pnpm deploy:api` 一条命令 → /health version=1.1.0+<sha> 核对 → 冒烟 → OPS-LOG。
+b2 完成（2026-10-08，主控执行+验证，产品负责人已授权并完成服务器 docker login）：compose api 段参数化 `image: ACR:${API_TAG}`（备份 .bak-20261008-b2）→ CI run#35 构建推镜像 → `pnpm deploy:api` 首次真部署：pull+up 后 /health version=**1.1.0+1ef04f3**（=main 提交，版本=提交号闭环）→ 冒烟 7/7 → 冒烟 Plan 清理零残留。首跑发现并修复：公网 /health 是 H5 页（API 不暴露公网），探测改走服务器本地。**DEPLOY_OK + HEALTHY，生产机构建彻底退役**。T-Q04 全卡闭环。

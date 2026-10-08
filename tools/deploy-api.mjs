@@ -10,7 +10,7 @@
 //   DEPLOY_TAG   镜像 tag（默认本地 git 短哈希）
 //   SSH_HOST     ssh 别名（默认 fmsrv）
 //   REMOTE_DIR   服务器 compose 目录（默认 /opt/family-menu）
-//   HEALTH_URL   /health 地址（默认 https://menu.jijingkongjian.xin/health）
+//   HEALTH_URL   /health 地址（默认 http://127.0.0.1:3001/health，服务器视角；公网 /health 是 H5 页不能用）
 //   HEALTH_TIMEOUT_MS 轮询总时限（默认 120000）
 import { execSync } from 'node:child_process';
 import { readFileSync } from 'node:fs';
@@ -58,7 +58,7 @@ try {
 const expectedVersion = `${fileVersion}+${sha}`;
 const host = process.env.SSH_HOST?.trim() || 'fmsrv';
 const remoteDir = process.env.REMOTE_DIR?.trim() || '/opt/family-menu';
-const healthUrl = process.env.HEALTH_URL?.trim() || 'https://menu.jijingkongjian.xin/health';
+const healthUrl = process.env.HEALTH_URL?.trim() || 'http://127.0.0.1:3001/health';
 const healthTimeoutMs = Number(process.env.HEALTH_TIMEOUT_MS || 120000);
 const image = `${registry}/${namespace}/family-menu-api:${sha}`;
 // API_TAG 经环境插值进 compose 的 image 行（服务器 compose 已参数化，T-Q04b2）
@@ -78,17 +78,20 @@ step(`执行远端部署（ssh ${host}）…`);
 execSync(`ssh ${host} "${remoteCmd}"`, { stdio: 'inherit' });
 
 // ── 3. 轮询 /health 直到 healthy ──
-step(`轮询 ${healthUrl}（上限 ${healthTimeoutMs / 1000}s）…`);
+// 探测在服务器本地执行（ssh + curl）：公网域名的 /health 由 Caddy 路由给 H5（API 不暴露公网是安全现状），
+// 本机 fetch 公网会拿到 H5 页导致误判。HEALTH_URL 默认即服务器视角的容器映射端口。
+step(`轮询（服务器本地）${healthUrl}（上限 ${healthTimeoutMs / 1000}s）…`);
 const deadline = Date.now() + healthTimeoutMs;
 let body = null;
 while (Date.now() < deadline) {
   try {
-    const res = await fetch(healthUrl, { signal: AbortSignal.timeout(5000) });
-    if (res.ok) {
-      body = await res.json();
-      break;
-    }
-    step(`/health HTTP ${res.status}，继续等待…`);
+    const out = execSync(`ssh ${host} "curl -s --max-time 5 ${healthUrl}"`, {
+      encoding: 'utf8',
+      timeout: 15000,
+      stdio: ['ignore', 'pipe', 'ignore'],
+    });
+    body = JSON.parse(out);
+    break;
   } catch {
     step('/health 暂不可达，继续等待…');
   }
