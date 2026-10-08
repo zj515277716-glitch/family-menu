@@ -58,3 +58,34 @@ jobs:
 
       - name: Test (contract + seed + taboo + engine)
         run: pnpm test
+
+  # ── T-Q04 b1：main 门禁全绿后构建镜像推阿里云 ACR（生产部署改拉镜像，不在生产机构建） ──
+  # registry/命名空间为公开信息直接写死；凭据只走 Secrets（ACR_USERNAME/ACR_PASSWORD）。
+  # GIT_COMMIT 注入短哈希：与 /health 版本口径（version.ts）及 deploy-api.mjs 的 DEPLOY_TAG 对齐。
+  docker:
+    needs: verify
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Resolve short commit sha
+        run: echo "SHORT_SHA=${GITHUB_SHA::7}" >> $GITHUB_ENV
+
+      - uses: docker/setup-buildx-action@v3
+
+      - uses: docker/login-action@v3
+        with:
+          registry: crpi-4mmffpuwe56fjgxc.cn-guangzhou.personal.cr.aliyuncs.com
+          username: ${{ secrets.ACR_USERNAME }}
+          password: ${{ secrets.ACR_PASSWORD }}
+
+      - uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          build-args: |
+            GIT_COMMIT=${{ env.SHORT_SHA }}
+          tags: |
+            crpi-4mmffpuwe56fjgxc.cn-guangzhou.personal.cr.aliyuncs.com/family-menu/family-menu-api:${{ env.SHORT_SHA }}
+            crpi-4mmffpuwe56fjgxc.cn-guangzhou.personal.cr.aliyuncs.com/family-menu/family-menu-api:latest
