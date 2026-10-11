@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>family-menu UI 装饰插画预览</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: #FFF8F3; font-family: -apple-system, "Microsoft YaHei", sans-serif; color: #333; padding: 24px; }
+  h1 { color: #FF6B35; margin-bottom: 8px; }
+  .subtitle { color: #888; margin-bottom: 32px; font-size: 14px; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 24px; }
+  .card { background: #fff; border-radius: 12px; overflow: hidden; box-shadow: 0 2px 12px rgba(0,0,0,0.08); }
+  .card img { width: 100%; display: block; min-height: 100px; background: #f5f5f5; }
+  .card-body { padding: 12px 16px; }
+  .card-body h3 { font-size: 15px; color: #FF6B35; margin-bottom: 4px; }
+  .card-body p { font-size: 13px; color: #666; }
+  .label { display: inline-block; background: #FF6B35; color: #fff; font-size: 11px; padding: 2px 8px; border-radius: 4px; margin-left: 8px; vertical-align: middle; }
+  .err { color: #d00; font-size: 12px; padding: 8px; }
+</style>
+</head>
+<body>
+  <h1>family-menu UI 装饰插画预览</h1>
+  <p class="subtitle">主题色：番茄暖橙 #FF6B35 | 风格基座：扁平插画+家庭厨房 | 生成工具：Trae text_to_image | 2026-08-07</p>
+  <div class="grid">
+    <div class="card">
+      <img src="/apps/h5/src/assets/asset-common-logo@2x.png" alt="Logo" onerror="this.nextElementSibling.style.display='block';this.style.display='none'">
+      <div class="err" style="display:none">Logo 加载失败</div>
+      <div class="card-body"><h3>应用 Logo<span class="label">200x200</span></h3><p>启动页 / NavBar</p></div>
+    </div>
+    <div class="card">
+      <img src="/apps/h5/src/assets/asset-tonight-hero@2x.png" alt="Hero" onerror="this.nextElementSibling.style.display='block';this.style.display='none'">
+      <div class="err" style="display:none">Hero 加载失败</div>
+      <div class="card-body"><h3>今晚 Hero<span class="label">750x480</span></h3><p>tonight 页顶部横幅</p></div>
+    </div>
+    <div class="card">
+      <img src="/apps/h5/src/assets/asset-candidates-empty@2x.png" alt="候选空状态" onerror="this.nextElementSibling.style.display='block';this.style.display='none'">
+      <div class="err" style="display:none">候选空状态 加载失败</div>
+      <div class="card-body"><h3>候选空状态<span class="label">480x360</span></h3><p>无候选菜单时展示</p></div>
+    </div>
+    <div class="card">
+      <img src="/apps/h5/src/assets/asset-history-empty@2x.png" alt="历史空状态" onerror="this.nextElementSibling.style.display='block';this.style.display='none'">
+      <div class="err" style="display:none">历史空状态 加载失败</div>
+      <div class="card-body"><h3>历史空状态<span class="label">480x360</span></h3><p>首次使用无做饭记录</p></div>
+    </div>
+    <div class="card">
+      <img src="/apps/h5/src/assets/asset-plan-empty@2x.png" alt="清单空状态" onerror="this.nextElementSibling.style.display='block';this.style.display='none'">
+      <div class="err" style="display:none">清单空状态 加载失败</div>
+      <div class="card-body"><h3>清单空状态<span class="label">480x360</span></h3><p>采购清单为空时兜底</p></div>
+    </div>
+    <div class="card">
+      <img src="/apps/h5/src/assets/asset-candidates-lock-success@2x.png" alt="锁定成功" onerror="this.nextElementSibling.style.display='block';this.style.display='none'">
+      <div class="err" style="display:none">锁定成功 加载失败</div>
+      <div class="card-body"><h3>锁定成功反馈<span class="label">240x240</span></h3><p>候选页锁定后展示</p></div>
+    </div>
+    <div class="card">
+      <img src="/apps/h5/src/assets/asset-history-feedback-success@2x.png" alt="反馈成功" onerror="this.nextElementSibling.style.display='block';this.style.display='none'">
+      <div class="err" style="display:none">反馈成功 加载失败</div>
+      <div class="card-body"><h3>反馈成功反馈<span class="label">240x240</span></h3><p>提交"做了"后展示</p></div>
+    </div>
+    <div class="card">
+      <img src="/apps/h5/src/assets/asset-common-dish-placeholder@2x.png" alt="菜品占位图" onerror="this.nextElementSibling.style.display='block';this.style.display='none'">
+      <div class="err" style="display:none">菜品占位图 加载失败</div>
+      <div class="card-body"><h3>菜品占位图<span class="label">400x400</span></h3><p>无实拍时占位（非写实）</p></div>
+    </div>
+  </div>
+</body>
+</html>
