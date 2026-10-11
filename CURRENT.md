@@ -1,21 +1,22 @@
-# CURRENT.md — 一屏现状（2026-10-08 晚）
+# CURRENT.md — 一屏现状（2026-10-11）
 
 > 开工必读：.trae/rules/project_rules.md → 本文件 → 当前任务卡。历史已移入 docs/archive/ 与 git log。
 > 整改依据：docs/复盘报告_V2_2026-09-29.md（阶段 A + T-Q04 全部完成）。
 
 ## 代码版本
-- main：`1ef04f3`（V2.1 + 止血 A1/A2/A3 + 清理 A4/A5/A6 + T-Q04 CI/版本/部署链路）。
-- T-Q04（2026-10-08，a 卡第 2 层 + b1/b2 主控验证）：CI 全分支生效；/health 返回 `1.1.0+<提交短哈希>`；**部署一条命令 `pnpm deploy:api`（ACR 拉镜像），生产机不再构建（红线根治）**。
+- main：`05f68d4`（T-Q04 部署链路 + T-Q05 决策/归档/设计包文档）。
+- T-Q04（第 2-3 层）：CI 全分支生效；/health 返回 `1.1.0+<短哈希>`；**`pnpm deploy:api` 一条命令（ACR 拉镜像），生产机不再构建（红线根治）**。
+- T-Q05 设计包（进行中）：PD-019 视觉基准重做 + PD-020 一日三餐规划**均已批准生效**；旧视觉基准已归档（archive/ai-rebuild-ui + archive/design-v1）；导航图 v2（三餐双周期）已重写待用户确认。
 
 ## 生产版本（https://menu.jijingkongjian.xin）
-- API = **ACR 镜像 `family-menu-api:1ef04f3`**（=main `1ef04f3`，healthy，/health version=1.1.0+1ef04f3）；H5 = `2a2b9c0` 产物。
+- API = **ACR 镜像 `family-menu-api:1ef04f3`**（healthy，/health version=1.1.0+1ef04f3）；H5 = `2a2b9c0` 产物。
 - 冒烟 7/7（2026-10-08 切镜像后）；check:safety exit 0。流水见 OPS-LOG.md。
-- 回滚：compose 备份 .bak-20261008-b2（构建模式）+ 旧镜像 family-menu-api:latest、fm-api:rollback-pre-a3/-pre-a1 均在服务器。
+- 回滚：compose 备份 .bak-20261008-b2 + 旧镜像 latest、fm-api:rollback-pre-a3/-pre-a1 均在服务器。
 - 以后发版：main 合并 → CI 自动构建推 ACR → `pnpm deploy:api`（需 ACR_REGISTRY/ACR_NAMESPACE 环境变量）。
 
 ## 任务队列
-1. 阶段 A + T-Q04 全部完成（止血/清理第 2-3 层；T-Q04 a 卡第 2 层，b1/b2 主控验证+冒烟）。
-2. 候选：候选页返回交互评估（A3 验收发现）、`.workflow-verify` 移出项目（C3）、生产死规则 WARN×2 清理（低优先）、deploy:h5 一条命令实践校跑一次。
+1. **T-Q05 当前节点**：导航图 v2 待用户确认（docs/design/v2/stage2-4-navigation.md，4 个确认点）→ 确认后立 TDesign 探针卡（tdesign-mobile-react × Taro H5）→ 组件库定案 → 3 套视觉原型（手机可开链接）→ 全套屏原型+新 design-spec → 确认书 A/C 整体替换 → 实施拆卡（引擎 L2 → 契约+DB L2 → UI 全量 L2）。**PD-020 实施期间生产冻结新功能。**
+2. 候选：候选页返回交互评估、`.workflow-verify` 移出项目（C3）、生产死规则 WARN×2 清理（低优先）、deploy:h5 实战校跑、根目录未跟踪杂物（tar.gz/复盘报告/散件）清理。
 
 ## 阻塞
 - 本地（便携 PG :54329）与生产 RDS 数据分叉，本地验证结论不代表生产。

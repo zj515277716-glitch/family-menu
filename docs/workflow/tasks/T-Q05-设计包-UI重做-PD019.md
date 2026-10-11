@@ -16,20 +16,20 @@
 |---|---|
 | docs/design/v2/PD-019-draft.md | 待确认（PD-019 已登记，文档为准） |
 | docs/design/v2/PD-020-confirmation-patch.md | **待确认**（A/C 三餐修订草案） |
-| docs/design/v2/stage2-4-style-board.md | 待确认（组件库/视觉方向；TDesign 探针用户已选「先立探针」） |
-| docs/design/v2/stage2-4-navigation.md | **需重写**（原「只管晚餐」3 Tab 架构已过时，按三餐双周期流程重出） |
-| docs/design/v2/stage2-4-reconciliation.md | 待确认（缺页清单需按三餐流程补充更新） |
+| docs/design/v2/stage2-4-style-board.md | 已确认方向（组件库等探针；视觉 3 套原型等探针结果） |
+| docs/design/v2/stage2-4-navigation.md | **v2 已按三餐双周期重写（2026-10-11），待产品负责人确认（文内 4 个确认点）** |
+| docs/design/v2/stage2-4-reconciliation.md | 处置方案已批准并执行（归档+入库，提交 05f68d4）；缺页清单按三餐流程在导航图 v2 落地 |
 
-## 待产品负责人确认（汇总，一次回复即可）
+## 待确认项处理结果（2026-10-08 用户 4/4 批准）
 
-1. PD-020 确认书草案（A/C 修订）批准？三个起草新增细节（不做精确营养/饮品加餐、临时忌口标注、当天时间窗）认可？
-2. PD-019 旧基准归档决策批准？
-3. 组件库：用户已选「先立探针」看 tdesign-mobile-react 在 Taro H5 的效果——探针卡随阶段⑤前立？
-4. 视觉方向：3 套原型对比（用户要求）——选定后再出，现等组件库探针结果？
+1. PD-020 确认书草案（A/C 修订）**批准**，三个起草新增细节认可 → 已生效进 PRODUCT-CONFIRMATION.md 头部（补丁先行，全文替换随新基准）。
+2. PD-019 旧基准归档**批准** → 已执行：docs/ai-rebuild/ui → docs/archive/ai-rebuild-ui，v1 视觉资产 → docs/archive/design-v1（提交 05f68d4）。
+3. 组件库探针**同意**：tdesign-mobile-react × Taro H5 探针卡随阶段⑤前立。
+4. 视觉原型：**等组件库探针结果出来再出** 3 套。
 
 ## 阶段⑤ 及实施路线（确认后执行）
 
-1. 导航图按三餐双周期重写 → 用户确认。
+1. ~~导航图按三餐双周期重写~~ **已完成 v2（2026-10-11），待用户确认**。
 2. TDesign 探针卡（隔离页面实测 tdesign-mobile-react × Taro H5）→ 组件库定案。
 3. 3 套视觉方向原型（手机可开链接）→ 用户选定。
 4. 全套屏原型（含三餐流程新屏 + 登录门）→ 新 design-spec → 确认。
