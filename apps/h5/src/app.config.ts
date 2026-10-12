@@ -16,6 +16,8 @@ export default defineAppConfig({
     'pages/plan/index',
     'pages/dish/index',
     'pages/feedback/index',
+    // 探针页：直达路由做组件库技术验证，不进 Tabbar、无产品入口
+    'pages/probe/tdesign/index',
   ],
   window: {
     backgroundTextStyle: 'light',

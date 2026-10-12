@@ -1,0 +1,91 @@
+/* 探针页样式（一次性验证代码，非产品设计语言） */
+/* 验证点⑤：TDesign token 换主色为风格板方向① #C8541F。
+   覆盖品牌色阶 1..10（第 7 阶为主色），派生变量 --td-brand-color 等自动跟随。
+   探针页样式只在进入本页时加载，不影响产品页面。 */
+:root {
+  --td-brand-color-1: #fbf0e8;
+  --td-brand-color-2: #f5dec9;
+  --td-brand-color-3: #edc8a4;
+  --td-brand-color-4: #e3ac7b;
+  --td-brand-color-5: #d88e52;
+  --td-brand-color-6: #cb6e2f;
+  --td-brand-color-7: #c8541f;
+  --td-brand-color-8: #a8431a;
+  --td-brand-color-9: #883615;
+  --td-brand-color-10: #6b2a10;
+}
+
+.probe-page {
+  min-height: 100vh;
+  background: #f7f3ec;
+  padding-bottom: 48px;
+}
+
+.probe-banner {
+  background: #a8431a;
+  color: #fff;
+  font-size: 30px;
+  font-weight: 600;
+  text-align: center;
+  padding: 24px 32px;
+}
+
+.probe-sec {
+  margin: 24px 32px;
+  padding: 24px;
+  background: #fff;
+  border: 1px dashed #c8541f;
+  border-radius: 16px;
+}
+
+.probe-sec-title {
+  font-size: 30px;
+  font-weight: 600;
+  color: #2a2018;
+  margin-bottom: 16px;
+}
+
+.probe-note {
+  font-size: 22px;
+  color: #7a6a55;
+  line-height: 1.6;
+  margin: 12px 0;
+}
+
+.probe-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 16px;
+  margin: 16px 0;
+}
+
+/* 验证点④色条：源码 750px 应被 px2rem 转成 rem，实测铺满视口 */
+.probe-rem-box {
+  width: 750px;
+  height: 24px;
+  background: linear-gradient(90deg, #c8541f, #d88e52);
+  border-radius: 8px;
+}
+
+.probe-metrics {
+  display: block;
+  font-family: monospace;
+  font-size: 22px;
+  line-height: 1.8;
+  color: #2a2018;
+  white-space: pre-wrap;
+  background: #f7f3ec;
+  border-radius: 8px;
+  padding: 16px;
+}
+
+.probe-popup-body {
+  padding: 32px;
+  background: #fff;
+  border-radius: 24px 24px 0 0;
+}
+
+.probe-empty-emoji {
+  font-size: 72px;
+}

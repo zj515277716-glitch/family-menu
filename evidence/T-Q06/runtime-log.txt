@@ -1,0 +1,19 @@
+== .probe-metrics 实测 ==
+视口宽度: 375 CSS px
+html 根字号: 20px
+源码 750px 色条实测宽: 375px（≈视口宽 → Taro px2rem 对本工程源码生效）
+TD 主按钮实测高: 40px（TD 样式为固定 px，不经 px2rem）
+NutUI 主按钮实测高: 32px（对照组，样式随 rem 缩放）
+--td-brand-color = #c8541f（期望 #C8541F）
+--nutui-color-primary = #C8392E（期望 #C8392E）
+
+== 浏览器错误（console.error / pageerror）==
+[console.error] Access to fetch at 'http://127.0.0.1:3000/api/auth/me' from origin 'http://localhost:10088' has been blocked by CORS policy: Response to preflight request doesn't pass access control check: No 'Access-Control-Allow-Origin' header is present on the requested resource.
+[console.error] Failed to load resource: net::ERR_FAILED
+[console.error] [Login] 登录态探测失败 Error: 网络不稳定，连不上服务，请检查网络后重试
+    at friendlyNetworkError (webpack-internal:///./src/api/client.ts:78:10)
+    at eval (webpack-internal:///./src/api/client.ts:118:17)
+    at Generator.eval (webpack-internal:///../../node_modules/.pnpm/@babel+runtime@7.29.7/node_modules/@babel/runtime/helpers/esm/regenerator.js:57:51)
+    at Generator.eval [as throw] (webpack-internal:///../../node_modules/.pnpm/@babel+runtime@7.29.7/node_modules/@babel/runtime/helpers/esm/regeneratorDefine.js:15:21)
+    at asyncGeneratorStep (webpack-internal:///../../node_modules/.pnpm/@babel+runtime@7.29.7/node_modules/@babel/runtime/helpers/esm/asyncToGenerator.js:7:17)
+    at _throw (webpack-internal:///../../node_modules/.pnpm/@babel+runtime@7.29.7/node_modules/@babel/runtime/helpers/esm/asyncToGenerator.js:24:9)

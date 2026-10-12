@@ -1,0 +1,29 @@
+T-Q06 验证点⑥ 包体积粗估（taro build --type h5 生产构建，2026-10-13）
+
+方法：同一工作区先后构建两次——分支态（含探针页+tdesign）与 stash 暂存后的 main 基线态
+（探针页文件仍在但未注册路由，不参与编译；node_modules 中 tdesign 未被引用，不进产物）。
+
+== dist 总大小 ==
+main 基线（a23d979，探针分支切出点）:              1,616.1 KB (1.58 MB)
+探针分支（+tdesign-mobile-react 0.23.3 + 探针页）:  1,948.0 KB (1.90 MB)
+增量:                                               +331.9 KB（raw）
+
+== 增量归属（Taro 按页面拆 chunk） ==
+新增异步 chunk 345（探针页独有）:
+  js/345.7af6425d.js                    raw 227.5 KB → gzip 63.3 KB
+  css/345.7af6425dda09691b3449.css      raw 103.4 KB → gzip 13.2 KB
+  合计 raw 330.9 KB ≈ 全部增量；gzip 合计 ≈ 76.5 KB
+既有 chunk 对照（branch vs main，KB）:
+  js/app    228.6 vs 228.4（+0.2，运行时 chunk 映射差异）
+  js/655    214.5 vs 214.4（+0.1）
+  js/591    178.2 vs 178.2（0）
+  js/176    141.6 vs 141.5（+0.1）
+  js/664    107.0 vs 107.0（0）
+  css/app   318.2 vs 318.2（0）
+  → 结论：增量被页面级代码分割隔离在探针页 chunk，现有页面/产品包体零影响。
+
+== 解读 ==
+- 探针引入 14 个 TD 组件 + 对应按需样式（es/*/style/css.js），raw ≈ 331 KB、gzip ≈ 77 KB，
+  这是「双库并存」的代价上界（探针页同时扛 NutUI 运行时 + TD 组件）。
+- 若整体迁移（8 页全部换 TD、卸 NutUI）：各页面 chunk 内 NutUI 部分被 TD 替换，
+  每页增量应小于本探针值；精确数需在迁移卡实测，本探针只给出上界量级。
