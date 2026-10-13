@@ -1,4 +1,4 @@
-# CURRENT.md — 一屏现状（2026-10-11）
+# CURRENT.md — 一屏现状（2026-10-13）
 
 > 开工必读：.trae/rules/project_rules.md → 本文件 → 当前任务卡。历史已移入 docs/archive/ 与 git log。
 > 整改依据：docs/复盘报告_V2_2026-09-29.md（阶段 A + T-Q04 全部完成）。
@@ -15,7 +15,7 @@
 - 以后发版：main 合并 → CI 自动构建推 ACR → `pnpm deploy:api`（需 ACR_REGISTRY/ACR_NAMESPACE 环境变量）。
 
 ## 任务队列
-1. **T-Q05 当前节点**：导航图 v2 **已确认（4/4）** → **T-Q06 组件库探针派发中**（tdesign-mobile-react × Taro H5，任务卡 docs/workflow/tasks/T-Q06-组件库探针-tdesign.md）→ 定案后出 3 套视觉原型（手机可开链接）→ 全套屏原型+新 design-spec → 确认书 A/C 整体替换 → 实施拆卡（引擎 L2 → 契约+DB L2 → UI 全量 L2）。**PD-020 实施期间生产冻结新功能。**
+1. **T-Q05 当前节点**：导航图 v2 已确认（4/4）→ **组件库定案：沿用 NutUI（PD-021，T-Q06 探针第 2 层，分支 t-q06-tdesign-probe 留档不合并）** → 下一步出 3 套视觉方向原型（手机可开链接）→ 用户选定 → 全套屏原型+新 design-spec → 确认书 A/C 整体替换 → 实施拆卡（引擎 L2 → 契约+DB L2 → UI 全量 L2）。**PD-020 实施期间生产冻结新功能。**
 2. 候选：候选页返回交互评估、`.workflow-verify` 移出项目（C3）、生产死规则 WARN×2 清理（低优先）、deploy:h5 实战校跑、根目录未跟踪杂物（tar.gz/复盘报告/散件）清理。
 
 ## 阻塞

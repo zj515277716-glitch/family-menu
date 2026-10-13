@@ -32,3 +32,10 @@
 1. 探针页可在 `pnpm dev:h5` 下打开（http://localhost:10086/#/pages/probe/tdesign）。
 2. evidence/T-Q06/probe-report.md（≤1 页）：6 个验证点逐项结论 + 截图（正常/异常各留证）+ 迁移成本粗估（页面改造点数、风险清单）+ **定案建议**（可用/有条件可用/不可用）。
 3. 分支推送 + 主控复核后交产品负责人定案；探针分支在定案后按结论处理（采用则另立迁移卡，弃用则分支留档不合并）。
+
+## 终态（主控补登，2026-10-13）
+
+- 完成层级：**第 2 层**（已验证）。fm-dev 交付（分支 t-q06-tdesign-probe，ac4febb，门禁全绿）→ fm-reviewer 独立审查**通过**（实跑命令取证，报告 evidence/T-Q06/review-report.md）。
+- 探针结论：tdesign-mobile-react 0.23.3 × Taro 4 H5「有条件可用」，详见 evidence/T-Q06/probe-report.md（截图与取证脚本在留档分支）。
+- **定案：产品负责人选「沿用 NutUI」，2026-10-13，登记 PD-021；探针分支留档不合并。**审查 3 条建议级意见按规则不入账。
+- 遗留：审查临时目录 D:\codex\fm-review-tq06 被沙箱拦截删除，已请产品负责人在资源管理器手动删除。
