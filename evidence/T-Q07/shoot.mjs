@@ -1,5 +1,6 @@
 // T-Q07 视觉方向原型截图取证：3 方向 × 3 屏 + 索引页，375×812
-// 用法：先起 node tools/preview-server.mjs（8888），再 node evidence/T-Q07/shoot.mjs
+// 用法：先起 node tools/preview-server.mjs（8888），再 node evidence/T-Q07/shoot.mjs [逗号分隔名前缀]
+// 2026-10-13 迭代：方向①配示意菜品图后支持按名筛选，如 node evidence/T-Q07/shoot.mjs 1a,1b,1c
 import { chromium } from '@playwright/test'
 import fs from 'node:fs'
 import path from 'node:path'
@@ -7,7 +8,7 @@ import { fileURLToPath } from 'node:url'
 
 const OUT = path.dirname(fileURLToPath(import.meta.url))
 const BASE = process.env.PROTO_BASE ?? 'http://localhost:8888/docs/design/v2/prototypes'
-const pages = [
+const ALL = [
   ['00-index', '/index.html'],
   ['1a-home', '/style-1/a.html'],
   ['1b-meals', '/style-1/b.html'],
@@ -19,6 +20,8 @@ const pages = [
   ['3b-meals', '/style-3/b.html'],
   ['3c-shopping', '/style-3/c.html'],
 ]
+const only = (process.argv[2] ?? '').split(',').map((s) => s.trim()).filter(Boolean)
+const pages = only.length ? ALL.filter(([n]) => only.some((p) => n.startsWith(p))) : ALL
 
 const errors = []
 const log = []
