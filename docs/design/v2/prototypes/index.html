@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>视觉方向对比原型 · 索引</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif; background: #F5F2EC; color: #2C2420; font-size: 16px; line-height: 1.55; }
+  .page { max-width: 420px; margin: 0 auto; padding: 20px 16px 48px; }
+  h1 { font-size: 22px; }
+  .sub { font-size: 14px; color: #6F6156; margin: 6px 0 20px; }
+  .dir { background: #fff; border: 1px solid #EAE2D5; border-radius: 14px; padding: 16px; margin-bottom: 14px; }
+  .dir-head { display: flex; align-items: center; gap: 10px; margin-bottom: 4px; }
+  .sw { width: 30px; height: 30px; border-radius: 50%; flex: none; border: 1px solid rgba(0,0,0,.08); }
+  .dir-name { font-size: 17px; font-weight: 700; }
+  .dir-desc { font-size: 14px; color: #6F6156; margin: 8px 0 12px; }
+  .links { display: flex; gap: 8px; }
+  .links a { flex: 1; display: flex; align-items: center; justify-content: center; min-height: 48px; border-radius: 10px; font-size: 15px; font-weight: 600; color: #fff; text-decoration: none; }
+  .links a:active { opacity: .82; }
+  .note { font-size: 13px; color: #A2937F; margin-top: 18px; }
+</style>
+</head>
+<body>
+<div class="page">
+  <h1>视觉方向对比原型</h1>
+  <p class="sub">3 套方向 × 3 关键屏（a 首页 / b 三餐菜单 / c 采购清单）。手机 375 宽浏览最佳；同一张内容，只换视觉语言。</p>
+
+  <div class="dir">
+    <div class="dir-head">
+      <span class="sw" style="background:#C8541F"></span>
+      <span class="dir-name">方向① 暖白极简</span>
+    </div>
+    <div class="dir-desc">米白底 + 深棕字 + 暖陶橙 #C8541F 点缀。分区靠留白与细线，几乎无阴影；高对比、大留白，长辈友好最强（主控推荐）。</div>
+    <div class="links">
+      <a style="background:#C8541F" href="./style-1/a.html">a 首页</a>
+      <a style="background:#C8541F" href="./style-1/b.html">b 三餐菜单</a>
+      <a style="background:#C8541F" href="./style-1/c.html">c 采购清单</a>
+    </div>
+  </div>
+
+  <div class="dir">
+    <div class="dir-head">
+      <span class="sw" style="background:#B07D4E"></span>
+      <span class="dir-name">方向② 和风暖木</span>
+    </div>
+    <div class="dir-desc">米纸底 + 暖木褐 #B07D4E。圆角更大、暖影柔和、标题字距放宽，像木质食盒一样温润；字色偏浅，长辈辨识度中等。</div>
+    <div class="links">
+      <a style="background:#B07D4E" href="./style-2/a.html">a 首页</a>
+      <a style="background:#B07D4E" href="./style-2/b.html">b 三餐菜单</a>
+      <a style="background:#B07D4E" href="./style-2/c.html">c 采购清单</a>
+    </div>
+  </div>
+
+  <div class="dir">
+    <div class="dir-head">
+      <span class="sw" style="background:#4A9D8F"></span>
+      <span class="dir-name">方向③ 青瓷清新（降权）</span>
+    </div>
+    <div class="dir-desc">青瓷绿 #4A9D8F 主色，暖米白底 + 暖橙点缀弥补冷感，占位菜品色块用暖色衬食欲。偏好表「偏冷」降权，照出供对比。</div>
+    <div class="links">
+      <a style="background:#4A9D8F" href="./style-3/a.html">a 首页</a>
+      <a style="background:#4A9D8F" href="./style-3/b.html">b 三餐菜单</a>
+      <a style="background:#4A9D8F" href="./style-3/c.html">c 采购清单</a>
+    </div>
+  </div>
+
+  <p class="note">静态原型：菜名为真实家庭菜谱语境，菜品图一律「占位色块 + 实拍图位」标注，不使用 AI 菜品图。数据为同一份示例（2 大 1 小 · 10月14日三餐），便于纯视觉对比。</p>
+</div>
+</body>
+</html>
