@@ -1,0 +1,42 @@
+/* ============================================================
+   方向① 大图版 A · 杂志大图风（v2）
+   token 全部继承 ../style.css（同一变量组，配色/字阶不动）；
+   本文件只加版式与图片比例：每餐头图通宽 16:9 + 底部渐变遮罩
+   压餐次名与标签；同餐其余菜品用 100px 中图行；清单屏小圆图点缀。
+   ============================================================ */
+
+/* --- 杂志头图（卡内通宽，圆角随卡 --r-2） --- */
+.meal-card { padding: 0; overflow: hidden; }
+.hero { position: relative; display: block; }
+.hero img { display: block; width: 100%; aspect-ratio: 16 / 9; object-fit: cover; }
+.hero-tags { position: absolute; top: 10px; right: 10px; display: flex; gap: 6px; }
+.hero-tags .tag { box-shadow: 0 1px 6px rgba(30, 18, 8, .28); }
+.hero-act {
+  position: absolute; top: 10px; right: 10px;
+  display: inline-flex; align-items: center; min-height: 44px; padding: 0 16px;
+  border-radius: var(--r-pill); background: rgba(255, 255, 255, .94);
+  color: var(--c-primary); font-size: var(--fs-small); font-weight: 700;
+  box-shadow: 0 1px 6px rgba(30, 18, 8, .25);
+}
+.hero-act:active { opacity: .82; }
+.hero-mask {
+  position: absolute; left: 0; right: 0; bottom: 0;
+  padding: 28px var(--sp-4) var(--sp-3);
+  background: linear-gradient(180deg, rgba(32, 20, 10, 0) 0%, rgba(32, 20, 10, .66) 100%);
+  color: #FFF;
+}
+.hero-line1 { display: flex; align-items: baseline; gap: var(--sp-2); }
+.hero-meal { font-size: var(--fs-h1); font-weight: var(--fw-head); text-shadow: 0 1px 6px rgba(0, 0, 0, .3); }
+.hero-time { font-size: var(--fs-small); opacity: .92; }
+.hero-line2 { margin-top: 1px; font-size: var(--fs-small); opacity: .95; }
+.meal-body { padding: var(--sp-1) var(--sp-4) var(--sp-4); }
+
+/* --- 中图行（96~104px 方图，取 100px） --- */
+.mdish { display: flex; align-items: center; gap: var(--sp-3); padding: var(--sp-3) 0; border-top: 1px solid var(--c-line); }
+.mdish:first-child { border-top: 0; }
+.mdish-img { width: 100px; height: 100px; flex: none; border-radius: var(--r-2); object-fit: cover; display: block; box-shadow: var(--sh-card); }
+
+/* --- 清单屏小圆图点缀（分组标题右侧，叠放圆形小图） --- */
+.gthumbs { display: flex; align-items: center; margin-left: auto; padding-right: var(--sp-2); }
+.gthumbs img { width: 34px; height: 34px; border-radius: 50%; object-fit: cover; border: 2px solid var(--c-card); box-shadow: var(--sh-card); margin-left: -10px; }
+.gthumbs img:first-child { margin-left: 0; }

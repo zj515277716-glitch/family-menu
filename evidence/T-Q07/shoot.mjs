@@ -19,6 +19,14 @@ const ALL = [
   ['3a-home', '/style-3/a.html'],
   ['3b-meals', '/style-3/b.html'],
   ['3c-shopping', '/style-3/c.html'],
+  // 方向①大图版变体（2026-10-13 迭代）：2v=杂志风 3v=网格风，避免覆盖 v1 图
+  ['00-index-v23', '/index.html'],
+  ['2v-a-home', '/style-1/v2/a.html'],
+  ['2v-b-meals', '/style-1/v2/b.html'],
+  ['2v-c-shopping', '/style-1/v2/c.html'],
+  ['3v-a-home', '/style-1/v3/a.html'],
+  ['3v-b-meals', '/style-1/v3/b.html'],
+  ['3v-c-shopping', '/style-1/v3/c.html'],
 ]
 const only = (process.argv[2] ?? '').split(',').map((s) => s.trim()).filter(Boolean)
 const pages = only.length ? ALL.filter(([n]) => only.some((p) => n.startsWith(p))) : ALL

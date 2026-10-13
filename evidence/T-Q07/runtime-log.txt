@@ -1,6 +1,10 @@
-1a-home.png  http=200
-1b-meals.png  http=200
-1c-shopping.png  http=200
+00-index-v23.png  http=200
+2v-a-home.png  http=200
+2v-b-meals.png  http=200
+2v-c-shopping.png  http=200
+3v-a-home.png  http=200
+3v-b-meals.png  http=200
+3v-c-shopping.png  http=200
 
 == 浏览器错误（console.error / pageerror）==
 （无）

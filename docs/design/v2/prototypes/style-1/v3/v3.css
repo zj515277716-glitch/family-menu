@@ -1,0 +1,34 @@
+/* ============================================================
+   方向① 大图版 B · 网格卡片风（v3）
+   token 全部继承 ../style.css（同一变量组，配色/字阶不动）；
+   本文件只加版式与图片比例：菜品卡上图下文（图 4:3 通宽卡顶），
+   b 屏双列网格；首页「今天三餐」每餐区横滑卡片流；操作收成卡片
+   底部小按钮；清单屏小圆图点缀。
+   ============================================================ */
+
+/* --- 菜品卡（上图下文，图 4:3） --- */
+.fcard { background: var(--c-card); border: 1px solid var(--c-line); border-radius: var(--r-2); box-shadow: var(--sh-card); overflow: hidden; display: flex; flex-direction: column; }
+.fcard > img { display: block; width: 100%; aspect-ratio: 4 / 3; object-fit: cover; }
+.fcard-body { padding: 10px var(--sp-3) var(--sp-3); display: flex; flex-direction: column; gap: 2px; flex: 1; }
+.fcard-name { font-size: 15.5px; font-weight: 700; }
+.fcard-meta { font-size: 13px; color: var(--c-ink-2); }
+.fcard-act { margin-top: auto; padding-top: var(--sp-2); }
+.fcard-act .mini { display: flex; align-items: center; justify-content: center; min-height: 40px; border-radius: var(--r-1); background: var(--c-tag-bg); color: var(--c-ink-2); font-size: var(--fs-small); font-weight: 600; }
+.fcard-act .mini:active { opacity: .82; }
+
+/* --- 双列网格（b 屏三餐菜单） --- */
+.grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: var(--sp-3); }
+
+/* --- 横滑卡片流（首页每餐区，真实横向滚动） --- */
+.hscroll { display: flex; gap: var(--sp-3); overflow-x: auto; padding: 2px 2px var(--sp-2); scroll-snap-type: x proximity; -webkit-overflow-scrolling: touch; }
+.hscroll .fcard { flex: 0 0 158px; scroll-snap-align: start; }
+.hscroll::-webkit-scrollbar { height: 0; }
+.hscroll-wide .fcard { flex-basis: 196px; }
+.meal-block + .meal-block { margin-top: var(--sp-5); }
+.meal-block .meal-head { margin-bottom: var(--sp-2); }
+.meal-block .btn-row { margin-top: var(--sp-2); }
+
+/* --- 清单屏小圆图点缀（分组标题右侧，叠放圆形小图） --- */
+.gthumbs { display: flex; align-items: center; margin-left: auto; padding-right: var(--sp-2); }
+.gthumbs img { width: 34px; height: 34px; border-radius: 50%; object-fit: cover; border: 2px solid var(--c-card); box-shadow: var(--sh-card); margin-left: -10px; }
+.gthumbs img:first-child { margin-left: 0; }
