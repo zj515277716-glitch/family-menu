@@ -1,7 +1,8 @@
 // T-Q08 全套屏原型截图取证：索引 + 13 屏（方向① v3 网格卡片风），375×812
-// 迭代 2026-10-14 第二轮：质感加重（大跨度暖渐变 fixed 视口 / 磨砂下沉：
-// sticky 标题条·横幅·下一餐胶囊·弹层头部 / 亮白卡+加深暖棕影 / serif 菜名），
-// 版式与屏号结构不动，同名覆盖重截；另加 1 张滚动态 sticky 磨砂穿透演示。
+// 迭代 2026-10-15 第三轮：做「收」（纯净浅底 #FAFAF8 弃全页渐变 / 品牌感
+// 只留首页品牌渐变带 / serif 全弃、层级靠字号字重 / 白卡浅边极轻影 /
+// 磨砂只留 Tabbar / 设置页 iOS 分组列表 / 换一道文本小按钮），
+// 版式与屏号结构不动，同名覆盖重截；另加 1 张滚动态 sticky 白条演示。
 // 用法：先起 node tools/preview-server.mjs（8888），再 node evidence/T-Q08/shoot.mjs
 import { chromium } from '@playwright/test'
 import fs from 'node:fs'
@@ -43,6 +44,9 @@ page.on('pageerror', (err) => errors.push(`[pageerror] ${err.message}`))
 
 for (const [name, url] of ALL) {
   const resp = await page.goto(`${BASE}${url}`, { waitUntil: 'networkidle' })
+  // fullPage 拼接会把 position:sticky 的吸底操作栏钉在首屏底部遮挡内容；
+  // 截图时临时转 static 还原整页布局（吸底行为由 CSS 保证，不在证据图演示）
+  await page.addStyleTag({ content: '.stickybar{position:static !important}' })
   await page.waitForTimeout(400)
   await page.screenshot({ path: path.join(OUT, `${name}.png`), fullPage: true })
   log.push(`${name}.png  http=${resp.status()}`)

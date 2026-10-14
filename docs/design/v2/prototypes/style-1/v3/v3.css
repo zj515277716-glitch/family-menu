@@ -4,30 +4,33 @@
    本文件只加版式与图片比例：菜品卡上图下文（图 4:3 通宽卡顶），
    b 屏双列网格；首页「今天三餐」每餐区横滑卡片流；操作收成卡片
    底部小按钮；清单屏小圆图点缀。
-   质感第二轮（2026-10-14）：网格卡菜名上 serif；警示横幅/弹层头部
-   明显毛玻璃；首页顶部标题区 sticky 磨砂条（滚动时内容从条下穿过）。
+   质感第三轮（2026-10-15）：做「收」——serif 全弃（层级靠字号字重）；
+   磨砂收敛到只剩 Tabbar（sticky 标题条纯白+hairline、横幅/弹层头实色）；
+   「换一道」改文本小按钮、候选行弱化；首页顶部品牌渐变带（全页唯一
+   装饰面）；设置页改 iOS 分组列表（sgroup/srow/seg/chips-row）。
    ============================================================ */
 
 /* --- 菜品卡（上图下文，图 4:3） --- */
 .fcard { background: var(--c-card); border: 1px solid var(--c-line); border-radius: var(--r-2); box-shadow: var(--sh-card); overflow: hidden; display: flex; flex-direction: column; }
 .fcard > img { display: block; width: 100%; aspect-ratio: 4 / 3; object-fit: cover; }
 .fcard-body { padding: 10px var(--sp-3) var(--sp-3); display: flex; flex-direction: column; gap: 2px; flex: 1; }
-/* 网格卡菜名：serif 展示字 + 700，与正文无衬线拉开层级 */
-.fcard-name { font-family: var(--ff-display); font-size: 15.5px; font-weight: 700; }
-.fcard-meta { font-size: 13px; color: var(--c-ink-2); }
+/* 网格卡菜名：无衬线 15/600，层级靠字重不靠字体 */
+.fcard-name { font-size: var(--fs-h2); font-weight: var(--fw-sub); letter-spacing: var(--ls-head); }
+.fcard-meta { font-size: var(--fs-small); color: var(--c-ink-2); }
 .fcard-act { margin-top: auto; padding-top: var(--sp-2); }
-.fcard-act .mini { display: flex; align-items: center; justify-content: center; min-height: 40px; border-radius: var(--r-1); background: var(--c-tag-bg); color: var(--c-ink-2); font-size: var(--fs-small); font-weight: 600; }
+/* 「换一道」：文本小按钮（品牌色文字无框，40px 触达不缩） */
+.fcard-act .mini { display: flex; align-items: center; justify-content: center; min-height: 40px; border-radius: var(--r-1); color: var(--c-primary); font-size: var(--fs-small); font-weight: 600; }
 .fcard-act .mini:active { opacity: .82; }
 
 /* --- 双列网格（b 屏三餐菜单） --- */
-.grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: var(--sp-3); }
+.grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
 
 /* --- 横滑卡片流（首页每餐区，真实横向滚动） --- */
-.hscroll { display: flex; gap: var(--sp-3); overflow-x: auto; padding: 2px 2px var(--sp-2); scroll-snap-type: x proximity; -webkit-overflow-scrolling: touch; }
+.hscroll { display: flex; gap: 14px; overflow-x: auto; padding: 2px 2px var(--sp-2); scroll-snap-type: x proximity; -webkit-overflow-scrolling: touch; }
 .hscroll .fcard { flex: 0 0 158px; scroll-snap-align: start; }
 .hscroll::-webkit-scrollbar { height: 0; }
 .hscroll-wide .fcard { flex-basis: 196px; }
-.meal-block + .meal-block { margin-top: var(--sp-5); }
+.meal-block + .meal-block { margin-top: 28px; }
 .meal-block .meal-head { margin-bottom: var(--sp-2); }
 .meal-block .btn-row { margin-top: var(--sp-2); }
 
@@ -56,11 +59,8 @@
 .tag-bad { background: rgba(166, 58, 34, .10); color: var(--c-bad-ink); box-shadow: inset 0 0 0 1px rgba(166, 58, 34, .26); }
 .tag-none { background: rgba(138, 133, 120, .10); color: var(--c-none-ink); box-shadow: inset 0 0 0 1px rgba(138, 133, 120, .26); }
 
-/* --- 警示横幅（服务未连接 + 重试，与 .banner 同构）：明显毛玻璃，保持警示辨识度 --- */
-.banner-warn { background: rgba(249, 237, 218, .95); color: var(--c-warn-ink); box-shadow: inset 0 0 0 1px rgba(154, 103, 28, .22); }
-@supports (backdrop-filter: blur(1px)) {
-  .banner-warn { background: rgba(249, 237, 218, .62); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); box-shadow: inset 0 0 0 1px var(--c-glass-edge), inset 0 0 0 2px rgba(154, 103, 28, .10); }
-}
+/* --- 警示横幅（服务未连接 + 重试）：浅黄实底一行式（磨砂已收敛） --- */
+.banner-warn { background: var(--c-warn-bg); color: var(--c-warn-ink); }
 .banner .act { margin-left: auto; flex: none; align-self: center; font-weight: 700; text-decoration: underline; white-space: nowrap; }
 .banner .act:active { opacity: .82; }
 
@@ -70,11 +70,11 @@
 
 /* --- 登录门 --- */
 .gate { min-height: 72vh; display: flex; flex-direction: column; justify-content: center; }
-.gate-title { font-family: var(--ff-display); font-size: var(--fs-display); font-weight: var(--fw-head); text-align: center; }
+.gate-title { font-size: var(--fs-display); font-weight: var(--fw-head); letter-spacing: var(--ls-head); text-align: center; }
 .gate-sub { text-align: center; color: var(--c-ink-2); font-size: var(--fs-small); margin: var(--sp-2) 0 var(--sp-5); }
 
 /* --- 表单（卡片复用 ../style.css .card） --- */
-.form-title { font-size: var(--fs-h2); font-weight: var(--fw-head); }
+.form-title { font-size: var(--fs-h2); font-weight: var(--fw-sub); letter-spacing: var(--ls-head); }
 .form-note { font-size: var(--fs-small); color: var(--c-ink-3); margin-top: 2px; }
 .frow { display: flex; align-items: center; justify-content: space-between; gap: var(--sp-3); padding: var(--sp-3) 0 0; }
 .frow-label { font-size: var(--fs-body); font-weight: 600; }
@@ -88,6 +88,10 @@
 .stepper { display: flex; align-items: center; gap: var(--sp-3); }
 .step-btn { width: 44px; height: 44px; border-radius: 50%; background: var(--c-primary-soft); color: var(--c-primary); font-size: 20px; font-weight: 700; display: flex; align-items: center; justify-content: center; }
 .step-val { min-width: 30px; text-align: center; font-size: var(--fs-h2); font-weight: 700; }
+/* 紧凑步进器（设置页行式布局右侧）：36px 圆钮，精致小 */
+.stepper-sm { gap: var(--sp-2); }
+.stepper-sm .step-btn { width: 36px; height: 36px; font-size: 18px; }
+.stepper-sm .step-val { min-width: 22px; font-size: var(--fs-body); font-weight: 600; }
 
 /* --- 标签 chips：半透柔彩底 + 1px 同色细边；「仅明天生效」等警示 chip 保持辨识度 --- */
 .chips { display: flex; flex-wrap: wrap; gap: var(--sp-2); margin-top: var(--sp-3); }
@@ -96,13 +100,40 @@
 .chip-temp { background: rgba(154, 103, 28, .10); color: var(--c-warn-ink); box-shadow: inset 0 0 0 1px rgba(154, 103, 28, .30); }
 .chip-hard { background: rgba(166, 58, 34, .10); color: var(--c-bad-ink); box-shadow: inset 0 0 0 1px rgba(166, 58, 34, .30); }
 .chip-soft { background: rgba(138, 123, 104, .10); color: var(--c-tag-ink); box-shadow: inset 0 0 0 1px rgba(138, 123, 104, .26); }
-.chip-add { background: rgba(255, 253, 249, .45); border: 1px dashed var(--c-primary); color: var(--c-primary); box-shadow: none; }
+.chip-add { background: transparent; border: 1px dashed var(--c-primary); color: var(--c-primary); box-shadow: none; }
 
 /* --- 选项胶囊（单/多选，选中=主色浅底描边，44px 触达） --- */
 .opts { display: flex; flex-wrap: wrap; gap: var(--sp-2); margin-top: var(--sp-3); }
 .opt { display: inline-flex; align-items: center; justify-content: center; min-height: 44px; padding: 0 18px; border-radius: var(--r-pill); background: var(--c-tag-bg); color: var(--c-ink-2); font-size: var(--fs-small); font-weight: 600; }
 .opt.on { background: var(--c-primary-soft); color: var(--c-primary); box-shadow: inset 0 0 0 1.5px var(--c-primary); }
 .opt:active, .chip:active, .step-btn:active { opacity: .82; }
+
+/* ============================================================
+   设置页 · iOS 分组列表（S-12 重排）：组 = 小灰字组标题（组外左上）
+   + 一个圆角白容器；组内「label 左 / 控件右」行式布局，行间 hairline；
+   选择类控件用分段控件或单排紧凑 chip，不多行堆叠散落。
+   ============================================================ */
+.sgroup-block + .sgroup-block { margin-top: 28px; }
+.sgroup-label { font-size: var(--fs-small); font-weight: 500; color: var(--c-ink-3); padding: 0 var(--sp-1) var(--sp-2); }
+.sgroup { background: var(--c-card); border: 1px solid var(--c-line); border-radius: var(--r-2); box-shadow: var(--sh-card); overflow: hidden; }
+.sgroup-note { font-size: var(--fs-mini); font-weight: 400; color: var(--c-ink-3); padding: var(--sp-2) var(--sp-1) 0; }
+/* 行式：label 左 / 控件右，行间 hairline */
+.srow { display: flex; align-items: center; justify-content: space-between; gap: var(--sp-3); min-height: 52px; padding: var(--sp-2) var(--sp-4); background: var(--line-fade) no-repeat top / 100% 1px; }
+.srow:first-child { background: none; }
+.srow-label { font-size: var(--fs-body); }
+.srow-note { display: block; font-size: var(--fs-mini); color: var(--c-ink-3); }
+/* 分段控件行（控件占整行） */
+.srow-pad { padding: var(--sp-3) var(--sp-4); }
+/* 分段控件：灰底槽 + 选中白段浮起（iOS 口径） */
+.seg { display: flex; gap: 2px; width: 100%; background: var(--c-tag-bg); border-radius: 10px; padding: 2px; }
+.seg a { flex: 1; display: flex; align-items: center; justify-content: center; min-height: 36px; border-radius: var(--r-1); font-size: var(--fs-small); font-weight: 500; color: var(--c-ink-2); white-space: nowrap; }
+.seg a.on { background: var(--c-card); color: var(--c-ink); font-weight: 600; box-shadow: 0 1px 3px rgba(60, 40, 20, .12); }
+.seg a:active { opacity: .82; }
+/* 单排紧凑 chip 行（不可多行堆叠散落，超出横滑） */
+.chips-row { display: flex; flex-wrap: nowrap; gap: var(--sp-2); overflow-x: auto; padding: var(--sp-3) var(--sp-4); -webkit-overflow-scrolling: touch; }
+.chips-row::-webkit-scrollbar { height: 0; }
+.chips-row .opt { flex: none; min-height: 40px; padding: 0 12px; }
+.chips-row .chip { flex: none; min-height: 36px; padding: 0 10px; }
 
 /* --- 骨架屏（形状照抄网格卡片与横幅，加载中演示） --- */
 .sk { background: var(--c-tag-bg); border-radius: var(--r-1); }
@@ -120,7 +151,7 @@
 .dhero-back { position: absolute; top: 12px; left: 12px; width: 44px; height: 44px; border-radius: 50%; background: rgba(255, 255, 255, .94); color: var(--c-ink); font-size: 20px; display: flex; align-items: center; justify-content: center; box-shadow: var(--sh-pop); }
 .dhero-back:active { opacity: .82; }
 .dhero-mask { position: absolute; left: 0; right: 0; bottom: 0; padding: 30px var(--sp-4) var(--sp-3); background: linear-gradient(180deg, rgba(32, 20, 10, 0) 0%, rgba(32, 20, 10, .68) 100%); color: #FFF; }
-.dhero-name { font-family: var(--ff-display); font-size: var(--fs-h1); font-weight: var(--fw-head); text-shadow: 0 1px 6px rgba(0, 0, 0, .3); }
+.dhero-name { font-size: var(--fs-h1); font-weight: var(--fw-head); letter-spacing: var(--ls-head); text-shadow: 0 1px 6px rgba(0, 0, 0, .3); }
 .dhero-sub { font-size: var(--fs-small); opacity: .92; margin-top: 1px; }
 .dchips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: var(--sp-2); }
 .dchip { display: inline-flex; align-items: center; min-height: 26px; padding: 0 10px; border-radius: var(--r-pill); background: rgba(255, 255, 255, .24); color: #FFF; font-size: var(--fs-mini); font-weight: 600; }
@@ -138,16 +169,12 @@
 
 /* --- 记一笔弹层（演示页：底层内容压暗 + 底部弹层静态呈现） --- */
 .dim { opacity: .45; pointer-events: none; }
-/* 弹层头部：明显毛玻璃带（64% 半透 + blur(14px) + 顶部 1px 亮边），::before 承载不改结构；
-   低版本为 95% 实色带。子元素提为 positioned 以绘于磨砂带之上 */
+/* 弹层头部：实色带 + hairline 下边（磨砂已收敛），::before 承载不改结构 */
 .sheet { position: relative; overflow: hidden; background: var(--c-card); border: 1px solid var(--c-line); border-radius: var(--r-3) var(--r-3) 0 0; box-shadow: var(--sh-pop); padding: var(--sp-4) var(--sp-4) var(--sp-5); margin-top: var(--sp-5); }
 .sheet > * { position: relative; }
-.sheet::before { content: ""; position: absolute; left: 0; right: 0; top: 0; height: 88px; border-radius: var(--r-3) var(--r-3) 0 0; background: rgba(255, 253, 249, .95); border-bottom: 1px solid var(--c-glass-line); box-shadow: inset 0 1px 0 var(--c-glass-edge); }
-@supports (backdrop-filter: blur(1px)) {
-  .sheet::before { background: var(--c-glass-soft); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); }
-}
+.sheet::before { content: ""; position: absolute; left: 0; right: 0; top: 0; height: 88px; border-radius: var(--r-3) var(--r-3) 0 0; background: var(--c-card); border-bottom: 1px solid var(--c-line); }
 .sheet-grab { width: 40px; height: 4px; border-radius: var(--r-pill); background: var(--c-line); margin: 0 auto var(--sp-3); }
-.sheet-title { font-size: var(--fs-h2); font-weight: var(--fw-head); text-align: center; }
+.sheet-title { font-size: var(--fs-h2); font-weight: var(--fw-sub); letter-spacing: var(--ls-head); text-align: center; }
 .sheet-sub { font-size: var(--fs-small); color: var(--c-ink-3); text-align: center; margin-top: 2px; }
 .q { padding: var(--sp-3) 0 0; }
 .q-title { font-size: var(--fs-body); font-weight: 700; }
@@ -155,7 +182,7 @@
 
 /* --- 历史（按日分组，每餐一行：餐次 + 圆图 + 菜名 + 评价标签） --- */
 .day-head { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: var(--sp-2); }
-.day-title { font-family: var(--ff-display); font-size: var(--fs-h2); font-weight: var(--fw-head); }
+.day-title { font-size: var(--fs-h2); font-weight: var(--fw-sub); letter-spacing: var(--ls-head); }
 .day-note { font-size: var(--fs-mini); color: var(--c-ink-3); }
 .meal-row { display: flex; align-items: center; gap: var(--sp-3); padding: var(--sp-3) 0; background: var(--line-fade) no-repeat top / 100% 1px; }
 .meal-row:first-of-type { background: none; }
@@ -167,12 +194,18 @@
 
 /* --- 空态（emoji 免用，文字结论 + 出口按钮） --- */
 .empty-box { text-align: center; padding: var(--sp-4) var(--sp-4) var(--sp-5); }
-.empty-title { font-size: var(--fs-h2); font-weight: var(--fw-head); }
+.empty-title { font-size: var(--fs-h2); font-weight: var(--fw-sub); letter-spacing: var(--ls-head); }
 .empty-text { font-size: var(--fs-small); color: var(--c-ink-2); margin: var(--sp-2) 0 var(--sp-4); }
 
-/* --- 首页顶部标题条：sticky 磨砂（滚动时菜品图从条下穿过，blur 肉眼可见） ---
-   负边距满宽出血，条内文字左右仍对齐页面安全边距；低版本 95% 实色 */
-.topbar-sticky { position: sticky; top: 0; z-index: 30; margin-left: calc(-1 * var(--sp-4)); margin-right: calc(-1 * var(--sp-4)); padding: var(--sp-2) var(--sp-4); background: var(--c-glass-solid); border-bottom: 1px solid var(--c-glass-line); box-shadow: inset 0 1px 0 var(--c-glass-edge); }
-@supports (backdrop-filter: blur(1px)) {
-  .topbar-sticky { background: var(--c-glass-soft); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); }
-}
+/* --- 首页顶部 sticky 标题条：纯白实底 + hairline 下边（磨砂已收敛） ---
+   负边距满宽出血，条内文字左右仍对齐页面安全边距 */
+.topbar-sticky { position: sticky; top: 0; z-index: 30; margin-left: calc(-1 * var(--sp-4)); margin-right: calc(-1 * var(--sp-4)); padding: var(--sp-2) var(--sp-4); background: var(--c-card); border-bottom: 1px solid var(--c-line); }
+.topbar-row { display: flex; align-items: baseline; gap: var(--sp-3); }
+.topbar-row .back { margin-bottom: 0; }
+.topbar-title { font-size: var(--fs-h2); font-weight: var(--fw-sub); letter-spacing: var(--ls-head); }
+
+/* --- 首页品牌渐变带：全页唯一装饰面（暖橙浅渐变，圆角 --r-2，文字深棕） ---
+   内含日期大标题 + 下一餐摘要；其余页纯底无装饰面 */
+.brand-hero { margin-top: var(--sp-2); padding: var(--sp-4); border-radius: var(--r-2); background: var(--grad-brand); }
+.brand-hero h1 { font-size: var(--fs-h1); font-weight: var(--fw-head); letter-spacing: var(--ls-head); color: var(--c-ink); }
+.brand-hero .sub { font-size: var(--fs-small); color: var(--c-ink-2); margin-top: 3px; }

@@ -1,22 +1,24 @@
 /* ============================================================
    方向① 暖白极简 · 共享 token 组（本方向 3 屏共用，换 token 即换风格）
-   质感迭代第二轮（2026-10-14）：明显暖渐变底（固定视口）+ 顶部氛围光 +
-   磨砂下沉到看得见的位置（sticky 标题条/横幅/下一餐胶囊/弹层头部）+
-   亮白卡浮起（加深暖棕投影+内高光）+ serif 展示标题与菜名。
-   原则：手机一臂距离肉眼可辨；文字颜色/字号/触达高度不动，对比度不降级。
+   质感迭代第三轮（2026-10-15）：做「收」——干净、克制、高级（Apple 系清洁感）。
+   · 背景：弃全页暖渐变与顶部光晕，回纯净浅底 #FAFAF8；品牌感只放首页顶部
+     品牌渐变带（--grad-brand，暖橙浅渐变），其余页纯底无装饰面。
+   · 字体：全弃 serif（--ff-display 移除，经真机评估弃用）；层级靠字号字重：
+     页标题 20/700、卡内分区题 15/600、正文 15/400、辅助说明 12.5~13/400 灰。
+   · 卡片：纯白 + 1px 浅边 + 极轻投影；去内高光与多层重影。
+   · 磨砂收敛：只保留底部 Tabbar；sticky 标题条/横幅/弹层头部一律实色。
+   原则：文字对比度 AA 以上，长辈可用（主按钮 48、选项 44 触达不缩）。
    ============================================================ */
 :root {
   /* 色板 */
-  --c-bg: #FDF6EA;            /* 页面底（渐变亮端，纯色场景回退值） */
-  --c-bg-lo: #EEDCC0;         /* 页面底渐变暗端（与亮端拉开，一眼可见上下色差） */
-  --grad-bg: linear-gradient(165deg, var(--c-bg) 0%, var(--c-bg-lo) 100%);
-  --glow-top: radial-gradient(100% 34% at 50% 0%, rgba(216, 120, 52, .18) 0%, rgba(216, 120, 52, 0) 72%); /* 顶部暖橙氛围光，覆盖上 1/3 屏 */
-  --c-card: #FFFCF5;          /* 卡片底（亮暖白，与暖底拉开对比） */
+  --c-bg: #FAFAF8;            /* 页面底（纯净浅暖白，全页纯色无渐变） */
+  --grad-brand: linear-gradient(135deg, #FDF0E3 0%, #FADFCB 100%); /* 品牌渐变带：仅首页顶部「今天·日期/下一餐」容器使用 */
+  --c-card: #FFFFFF;          /* 卡片底（纯白） */
   --c-ink: #2C2420;           /* 深棕主文字 */
   --c-ink-2: #6F6156;         /* 次文字 */
-  --c-ink-3: #A2937F;         /* 辅助弱化 */
-  --c-line: #EAE2D5;          /* 细分隔线 */
-  --line-fade: linear-gradient(90deg, rgba(234, 226, 213, 0) 0%, rgba(234, 226, 213, 1) 14%, rgba(234, 226, 213, 1) 86%, rgba(234, 226, 213, 0) 100%); /* 两侧渐隐分隔线 */
+  --c-ink-3: #8A7B6B;         /* 辅助说明灰（白底对比度 ≥4.5:1） */
+  --c-line: #EFE9E0;          /* 卡片 1px 浅边 / hairline 分隔 */
+  --line-fade: linear-gradient(90deg, rgba(239, 233, 224, 0) 0%, rgba(239, 233, 224, 1) 14%, rgba(239, 233, 224, 1) 86%, rgba(239, 233, 224, 0) 100%); /* 两侧渐隐行级分隔线（随 --c-line） */
   --c-primary: #C8541F;       /* 暖陶橙主色 */
   --c-primary-hi: #D86A2E;    /* 主色渐变亮端 */
   --c-primary-lo: #C8521C;    /* 主色渐变暗端 */
@@ -28,14 +30,10 @@
   --c-ok-ink: #476B3C;        /* 必消/好评绿字 */
   --c-tag-bg: #F1EDE5;        /* 中性标签底 */
   --c-tag-ink: #8A7B68;       /* 中性标签字 */
-  /* 磨砂浮层（Tabbar / sticky 操作栏与标题条 / 轻浮横幅 / 弹层头部） */
-  --c-glass: rgba(255, 253, 249, .75);        /* Tabbar/操作栏：75% 半透底（仍见模糊、文字清晰） */
-  --c-glass-soft: rgba(255, 253, 249, .64);   /* 标题条/横幅/弹层头部：60~70% 半透 */
-  --c-glass-edge: rgba(255, 255, 255, .9);    /* 磨砂面 1px 亮边（受光上边） */
-  --c-glass-solid: rgba(255, 253, 249, .95);  /* 低版本降级：95% 不透明实色 */
-  --c-glass-line: rgba(90, 60, 30, .08);      /* 磨砂区发际线 */
-  /* 展示字体栈：一级标题、数字日期与菜名用 serif，正文保持无衬线 */
-  --ff-display: "Noto Serif SC", "Songti SC", "SimSun", serif;
+  /* 磨砂浮层：仅底部 Tabbar 保留（75% 半透 + blur 12px） */
+  --c-glass: rgba(255, 255, 255, .75);          /* Tabbar 半透底 */
+  --c-glass-solid: rgba(255, 255, 255, .95);    /* 低版本降级：95% 不透明实色 */
+  --c-glass-line: rgba(60, 40, 20, .08);        /* 磨砂区发际线 */
   /* 菜品占位色块（暖色系，标注「实拍图位」） */
   --ph-1: #F2B27E;
   --ph-2: #E8956B;
@@ -43,23 +41,24 @@
   --ph-4: #E9C987;
   --ph-5: #D9A48F;
   --ph-6: #B7C4BC;
-  /* 字阶（正文 16px ≥15px，长辈可用） */
-  --fs-display: 26px;
-  --fs-h1: 21px;
-  --fs-h2: 17px;
-  --fs-body: 16px;
-  --fs-small: 14px;
-  --fs-mini: 12.5px;
+  /* 字阶（正文 15px ≥15px，长辈可用；层级靠字号字重，不靠字体） */
+  --fs-display: 24px;   /* 登录门品牌题 */
+  --fs-h1: 20px;        /* 页标题 20/700 */
+  --fs-h2: 15px;        /* 卡内分区题 15/600 */
+  --fs-body: 15px;      /* 正文 15/400 */
+  --fs-small: 13px;     /* 辅助说明/次级控件 13/400 */
+  --fs-mini: 12.5px;    /* 弱化辅助 12.5/400 */
   --fw-head: 700;
-  --ls-head: 0;
+  --fw-sub: 600;
+  --ls-head: -0.01em;   /* 标题收紧字距 */
   /* 间距 */
   --sp-1: 4px; --sp-2: 8px; --sp-3: 12px; --sp-4: 16px; --sp-5: 24px; --sp-6: 32px;
   /* 圆角 */
   --r-1: 8px; --r-2: 12px; --r-3: 16px; --r-pill: 999px;
-  /* 阴影（近处贴地 + 远处大模糊暖棕柔影加深一档 + 卡顶 1px 半透内高光，卡片明确浮起） */
-  --sh-card: 0 2px 4px rgba(90, 60, 30, .06), 0 10px 28px rgba(90, 60, 30, .12), inset 0 1px 0 rgba(255, 255, 255, .9);
-  --sh-pop: 0 12px 32px rgba(90, 60, 30, .14);
-  --sh-primary: 0 6px 18px rgba(200, 84, 31, .26);        /* 主按钮柔和橙影 */
+  /* 阴影（卡片浮感 = 1px 浅边 + 极轻影 + 干净底；无内高光、无多层重影） */
+  --sh-card: 0 1px 3px rgba(60, 40, 20, .05);
+  --sh-pop: 0 8px 24px rgba(60, 40, 20, .12);
+  --sh-primary: 0 6px 18px rgba(200, 84, 31, .26);        /* 主按钮柔和橙影（保持现状） */
   --sh-primary-press: 0 2px 8px rgba(200, 84, 31, .20);   /* 按压态下沉 */
 }
 
@@ -68,9 +67,7 @@
 html { -webkit-text-size-adjust: 100%; }
 body {
   font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
-  /* 暖色斜向渐变底（固定视口：任意一屏内即可见上下色差）+ 顶部暖橙氛围光 */
-  background: var(--c-bg);
-  background: var(--glow-top) fixed, var(--grad-bg) fixed;
+  background: var(--c-bg);   /* 纯净浅底，无渐变无光晕 */
   color: var(--c-ink);
   font-size: var(--fs-body); line-height: 1.55;
   font-variant-numeric: tabular-nums; /* 价格/人数/时长等数字等宽对齐 */
@@ -83,29 +80,28 @@ a { color: inherit; text-decoration: none; }
 
 .topbar { margin-bottom: var(--sp-4); }
 .topbar .back { display: inline-block; font-size: var(--fs-small); color: var(--c-ink-2); margin-bottom: var(--sp-2); min-height: 32px; line-height: 32px; }
-/* 一级标题：serif 展示字栈，与正文无衬线拉开层级 */
-.topbar h1 { font-family: var(--ff-display); font-size: var(--fs-h1); font-weight: var(--fw-head); letter-spacing: var(--ls-head); }
+/* 页标题：20/700，无衬线，-0.01em 收紧 */
+.topbar h1 { font-size: var(--fs-h1); font-weight: var(--fw-head); letter-spacing: var(--ls-head); }
 .topbar .sub { font-size: var(--fs-small); color: var(--c-ink-2); margin-top: 2px; }
 
-.section { margin-top: var(--sp-5); }
+.section { margin-top: 28px; }
 .section-head { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: var(--sp-3); }
-.section-title { font-family: var(--ff-display); font-size: var(--fs-h2); font-weight: var(--fw-head); letter-spacing: var(--ls-head); }
+/* 卡内分区题：15/600，无衬线 */
+.section-title { font-size: var(--fs-h2); font-weight: var(--fw-sub); letter-spacing: var(--ls-head); }
 .section-note { font-size: var(--fs-small); color: var(--c-ink-3); }
 
 .card { background: var(--c-card); border: 1px solid var(--c-line); border-radius: var(--r-2); box-shadow: var(--sh-card); padding: var(--sp-4); }
-.card + .card { margin-top: var(--sp-3); }
+.card + .card { margin-top: var(--sp-4); }
 
 .meal-head { display: flex; align-items: center; gap: var(--sp-2); margin-bottom: var(--sp-2); }
-.meal-name { font-size: var(--fs-h2); font-weight: var(--fw-head); letter-spacing: var(--ls-head); }
+.meal-name { font-size: var(--fs-h2); font-weight: var(--fw-sub); letter-spacing: var(--ls-head); }
 .meal-time { font-size: var(--fs-small); color: var(--c-accent); }
 .meal-head .tag { margin-left: auto; }
 
-/* 标签：半透柔彩底 + 1px 同色细边（inset），去实色块塑料感；「下一餐」磨砂胶囊（64% 半透 + blur(14px) + 亮边）浮起 */
+/* 标签：半透柔彩底 + 1px 同色细边（inset），去实色块塑料感 */
 .tag { display: inline-flex; align-items: center; min-height: 26px; padding: 0 10px; border-radius: var(--r-pill); font-size: var(--fs-mini); font-weight: 600; white-space: nowrap; }
-.tag-next { background: rgba(255, 247, 238, .95); color: var(--c-primary); font-weight: 700; box-shadow: inset 0 0 0 1px rgba(200, 84, 31, .32), 0 3px 10px rgba(200, 84, 31, .18); }
-@supports (backdrop-filter: blur(1px)) {
-  .tag-next { background: rgba(255, 247, 238, .62); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); box-shadow: inset 0 0 0 1px var(--c-glass-edge), inset 0 0 0 2px rgba(200, 84, 31, .18), 0 3px 10px rgba(200, 84, 31, .18); }
-}
+/* 「下一餐」：主色浅底实色 + 同色细边（磨砂已收敛，不再半透 blur） */
+.tag-next { background: var(--c-primary-soft); color: var(--c-primary); font-weight: 700; box-shadow: inset 0 0 0 1px rgba(200, 84, 31, .18); }
 .tag-ok { background: rgba(71, 107, 60, .10); color: var(--c-ok-ink); box-shadow: inset 0 0 0 1px rgba(71, 107, 60, .26); }
 .tag-mid { background: rgba(138, 123, 104, .10); color: var(--c-tag-ink); box-shadow: inset 0 0 0 1px rgba(138, 123, 104, .26); }
 
@@ -120,28 +116,26 @@ a { color: inherit; text-decoration: none; }
 .dish-img { width: 64px; height: 64px; flex: none; border-radius: var(--r-1); object-fit: cover; display: block; }
 .img-note { font-size: 11px; color: var(--c-ink-3); text-align: center; margin-top: var(--sp-4); }
 .dish-info { flex: 1; min-width: 0; }
-/* 菜名：serif 展示字加码（网格卡内菜名同口径，见 v3.css .fcard-name） */
-.dish-name { font-family: var(--ff-display); font-size: var(--fs-body); font-weight: 700; }
+/* 菜名：无衬线 15/600，层级靠字重（网格卡内菜名同口径，见 v3.css .fcard-name） */
+.dish-name { font-size: var(--fs-body); font-weight: var(--fw-sub); }
 .dish-meta { font-size: var(--fs-small); color: var(--c-ink-2); }
 .dish-src { font-size: var(--fs-mini); color: var(--c-ink-3); margin-top: 1px; }
 
-/* 主按钮：暖橙纵向微渐变 + 柔和橙影；次按钮幽灵风 + 半透细边 */
+/* 主按钮：暖橙纵向微渐变 + 柔和橙影（保持现状，用户已认可）；次按钮幽灵细边 */
 .btn { display: flex; align-items: center; justify-content: center; min-height: 48px; padding: 0 var(--sp-4); border-radius: var(--r-2); border: 1px solid transparent; background: var(--grad-primary); color: var(--c-primary-ink); font-size: var(--fs-body); font-weight: 600; text-align: center; box-shadow: var(--sh-primary); }
-.btn-ghost { background: rgba(255, 253, 249, .55); color: var(--c-primary); border-color: rgba(200, 84, 31, .5); box-shadow: none; }
+.btn-ghost { background: transparent; color: var(--c-primary); border-color: rgba(200, 84, 31, .45); box-shadow: none; }
 .btn-plain { background: var(--c-tag-bg); color: var(--c-ink-2); box-shadow: none; }
 .btn-sm { min-height: 44px; padding: 0 14px; font-size: var(--fs-small); border-radius: var(--r-1); }
 .btn-row { display: flex; gap: var(--sp-3); margin-top: var(--sp-3); }
 .btn-row .btn { flex: 1; }
 
-/* 必消横幅：明显毛玻璃（60% 半透 + blur(14px) + 1px 亮边），低版本为 95% 实色 */
-.banner { display: flex; gap: var(--sp-2); align-items: flex-start; background: rgba(237, 243, 228, .95); color: var(--c-ok-ink); border-radius: var(--r-2); padding: var(--sp-3) var(--sp-4); font-size: var(--fs-small); box-shadow: inset 0 0 0 1px rgba(71, 107, 60, .20); }
+/* 必消横幅：浅绿实底一行式（磨砂已收敛，无 blur 无亮边） */
+.banner { display: flex; gap: var(--sp-2); align-items: center; background: var(--c-ok-bg); color: var(--c-ok-ink); border-radius: var(--r-2); padding: var(--sp-3) var(--sp-4); font-size: var(--fs-small); }
 .banner b { font-weight: 700; }
-@supports (backdrop-filter: blur(1px)) {
-  .banner { background: rgba(237, 243, 228, .60); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); box-shadow: inset 0 0 0 1px var(--c-glass-edge), inset 0 0 0 2px rgba(71, 107, 60, .10); }
-}
 
-.cand-row { display: flex; flex-wrap: wrap; gap: var(--sp-2); padding: 0 0 var(--sp-3); }
-.cand { display: inline-flex; align-items: center; min-height: 36px; padding: 0 14px; border: 1px dashed var(--c-primary); color: var(--c-primary); border-radius: var(--r-pill); font-size: var(--fs-small); }
+/* 「换成：xx」候选行：弱化成极浅底小圆钮（灰小字，可点有反馈） */
+.cand-row { display: flex; flex-wrap: wrap; gap: var(--sp-2); padding: var(--sp-2) 0 var(--sp-3); }
+.cand { display: inline-flex; align-items: center; min-height: 32px; padding: 0 10px; background: var(--c-tag-bg); color: var(--c-ink-2); border-radius: var(--r-pill); font-size: var(--fs-mini); }
 
 .group-title { display: flex; justify-content: space-between; align-items: baseline; font-size: var(--fs-small); font-weight: 700; color: var(--c-ink-2); padding: var(--sp-3) var(--sp-1) var(--sp-2); }
 .group-title em { font-style: normal; font-weight: 400; color: var(--c-ink-3); }
@@ -157,20 +151,21 @@ a { color: inherit; text-decoration: none; }
 .item.owned .qty { color: var(--c-ink-3); }
 
 .prep-card { background: var(--c-card); border: 1px solid var(--c-line); border-radius: var(--r-2); box-shadow: var(--sh-card); padding: var(--sp-4); }
-.prep-card + .prep-card { margin-top: var(--sp-3); }
-.prep-title { font-size: var(--fs-h2); font-weight: var(--fw-head); letter-spacing: var(--ls-head); margin-bottom: var(--sp-1); }
+.prep-card + .prep-card { margin-top: var(--sp-4); }
+.prep-title { font-size: var(--fs-h2); font-weight: var(--fw-sub); letter-spacing: var(--ls-head); margin-bottom: var(--sp-1); }
 .prep-sub { font-size: var(--fs-small); color: var(--c-ink-3); margin-bottom: var(--sp-3); }
 .step { display: flex; gap: var(--sp-3); padding: var(--sp-2) 0; }
 .step .num { width: 28px; height: 28px; flex: none; border-radius: 50%; background: var(--c-primary-soft); color: var(--c-primary); font-size: var(--fs-small); font-weight: 700; display: flex; align-items: center; justify-content: center; }
 .step p { flex: 1; font-size: var(--fs-body); }
 
-/* 底部操作栏 / Tabbar：半透磨砂（blur 12px）；不支持时降级 95% 不透明实色 */
-.stickybar { margin: var(--sp-5) calc(-1 * var(--sp-4)) calc(-1 * var(--sp-6)); padding: var(--sp-3) var(--sp-4) var(--sp-4); background: var(--c-glass-solid); border-top: 1px solid var(--c-glass-line); display: flex; gap: var(--sp-3); }
+/* 底部操作栏：吸底（sticky 底部安全区内），纯白实色 + hairline 顶边，不磨砂 */
+.stickybar { position: sticky; bottom: 0; z-index: 20; margin: var(--sp-5) calc(-1 * var(--sp-4)) calc(-1 * var(--sp-6)); padding: var(--sp-3) var(--sp-4) var(--sp-4); background: var(--c-card); border-top: 1px solid var(--c-line); display: flex; gap: var(--sp-3); }
 .stickybar .btn { flex: 1; }
 
+/* Tabbar：全局唯一保留磨砂处（75% 半透 + blur 12px）；不支持时降级 95% 实色 */
 .tabbar { position: static; width: 100%; max-width: 420px; margin: var(--sp-5) auto 0; background: var(--c-glass-solid); border-top: 1px solid var(--c-glass-line); display: flex; z-index: 10; }
 @supports (backdrop-filter: blur(1px)) {
-  .stickybar, .tabbar { background: var(--c-glass); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); }
+  .tabbar { background: var(--c-glass); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); }
 }
 .tab { flex: 1; text-align: center; padding: 12px 0 14px; font-size: var(--fs-small); color: var(--c-ink-3); }
 .tab.active { color: var(--c-primary); font-weight: 700; }
