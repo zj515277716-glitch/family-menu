@@ -12,6 +12,7 @@ s10-feedback-sheet.png  http=200
 s11-history.png  http=200
 s12-settings.png  http=200
 s13-home-offline.png  http=200
+s03-home-sticky.png  http=200（滚动 300px 视口截图）
 
 == 浏览器错误（console.error / pageerror）==
 （无）

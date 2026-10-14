@@ -4,13 +4,16 @@
    本文件只加版式与图片比例：菜品卡上图下文（图 4:3 通宽卡顶），
    b 屏双列网格；首页「今天三餐」每餐区横滑卡片流；操作收成卡片
    底部小按钮；清单屏小圆图点缀。
+   质感第二轮（2026-10-14）：网格卡菜名上 serif；警示横幅/弹层头部
+   明显毛玻璃；首页顶部标题区 sticky 磨砂条（滚动时内容从条下穿过）。
    ============================================================ */
 
 /* --- 菜品卡（上图下文，图 4:3） --- */
 .fcard { background: var(--c-card); border: 1px solid var(--c-line); border-radius: var(--r-2); box-shadow: var(--sh-card); overflow: hidden; display: flex; flex-direction: column; }
 .fcard > img { display: block; width: 100%; aspect-ratio: 4 / 3; object-fit: cover; }
 .fcard-body { padding: 10px var(--sp-3) var(--sp-3); display: flex; flex-direction: column; gap: 2px; flex: 1; }
-.fcard-name { font-size: 15.5px; font-weight: 700; }
+/* 网格卡菜名：serif 展示字 + 700，与正文无衬线拉开层级 */
+.fcard-name { font-family: var(--ff-display); font-size: 15.5px; font-weight: 700; }
 .fcard-meta { font-size: 13px; color: var(--c-ink-2); }
 .fcard-act { margin-top: auto; padding-top: var(--sp-2); }
 .fcard-act .mini { display: flex; align-items: center; justify-content: center; min-height: 40px; border-radius: var(--r-1); background: var(--c-tag-bg); color: var(--c-ink-2); font-size: var(--fs-small); font-weight: 600; }
@@ -53,10 +56,10 @@
 .tag-bad { background: rgba(166, 58, 34, .10); color: var(--c-bad-ink); box-shadow: inset 0 0 0 1px rgba(166, 58, 34, .26); }
 .tag-none { background: rgba(138, 133, 120, .10); color: var(--c-none-ink); box-shadow: inset 0 0 0 1px rgba(138, 133, 120, .26); }
 
-/* --- 警示横幅（服务未连接 + 重试，与 .banner 同构）：轻磨砂，保持警示辨识度 --- */
-.banner-warn { background: rgba(249, 237, 218, .84); color: var(--c-warn-ink); box-shadow: inset 0 0 0 1px rgba(154, 103, 28, .20); }
+/* --- 警示横幅（服务未连接 + 重试，与 .banner 同构）：明显毛玻璃，保持警示辨识度 --- */
+.banner-warn { background: rgba(249, 237, 218, .95); color: var(--c-warn-ink); box-shadow: inset 0 0 0 1px rgba(154, 103, 28, .22); }
 @supports (backdrop-filter: blur(1px)) {
-  .banner-warn { background: rgba(249, 237, 218, .70); }
+  .banner-warn { background: rgba(249, 237, 218, .62); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); box-shadow: inset 0 0 0 1px var(--c-glass-edge), inset 0 0 0 2px rgba(154, 103, 28, .10); }
 }
 .banner .act { margin-left: auto; flex: none; align-self: center; font-weight: 700; text-decoration: underline; white-space: nowrap; }
 .banner .act:active { opacity: .82; }
@@ -135,7 +138,14 @@
 
 /* --- 记一笔弹层（演示页：底层内容压暗 + 底部弹层静态呈现） --- */
 .dim { opacity: .45; pointer-events: none; }
-.sheet { background: var(--c-card); border: 1px solid var(--c-line); border-radius: var(--r-3) var(--r-3) 0 0; box-shadow: var(--sh-pop); padding: var(--sp-4) var(--sp-4) var(--sp-5); margin-top: var(--sp-5); }
+/* 弹层头部：明显毛玻璃带（64% 半透 + blur(14px) + 顶部 1px 亮边），::before 承载不改结构；
+   低版本为 95% 实色带。子元素提为 positioned 以绘于磨砂带之上 */
+.sheet { position: relative; overflow: hidden; background: var(--c-card); border: 1px solid var(--c-line); border-radius: var(--r-3) var(--r-3) 0 0; box-shadow: var(--sh-pop); padding: var(--sp-4) var(--sp-4) var(--sp-5); margin-top: var(--sp-5); }
+.sheet > * { position: relative; }
+.sheet::before { content: ""; position: absolute; left: 0; right: 0; top: 0; height: 88px; border-radius: var(--r-3) var(--r-3) 0 0; background: rgba(255, 253, 249, .95); border-bottom: 1px solid var(--c-glass-line); box-shadow: inset 0 1px 0 var(--c-glass-edge); }
+@supports (backdrop-filter: blur(1px)) {
+  .sheet::before { background: var(--c-glass-soft); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); }
+}
 .sheet-grab { width: 40px; height: 4px; border-radius: var(--r-pill); background: var(--c-line); margin: 0 auto var(--sp-3); }
 .sheet-title { font-size: var(--fs-h2); font-weight: var(--fw-head); text-align: center; }
 .sheet-sub { font-size: var(--fs-small); color: var(--c-ink-3); text-align: center; margin-top: 2px; }
@@ -159,3 +169,10 @@
 .empty-box { text-align: center; padding: var(--sp-4) var(--sp-4) var(--sp-5); }
 .empty-title { font-size: var(--fs-h2); font-weight: var(--fw-head); }
 .empty-text { font-size: var(--fs-small); color: var(--c-ink-2); margin: var(--sp-2) 0 var(--sp-4); }
+
+/* --- 首页顶部标题条：sticky 磨砂（滚动时菜品图从条下穿过，blur 肉眼可见） ---
+   负边距满宽出血，条内文字左右仍对齐页面安全边距；低版本 95% 实色 */
+.topbar-sticky { position: sticky; top: 0; z-index: 30; margin-left: calc(-1 * var(--sp-4)); margin-right: calc(-1 * var(--sp-4)); padding: var(--sp-2) var(--sp-4); background: var(--c-glass-solid); border-bottom: 1px solid var(--c-glass-line); box-shadow: inset 0 1px 0 var(--c-glass-edge); }
+@supports (backdrop-filter: blur(1px)) {
+  .topbar-sticky { background: var(--c-glass-soft); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); }
+}

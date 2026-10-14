@@ -1,16 +1,17 @@
 /* ============================================================
    方向① 暖白极简 · 共享 token 组（本方向 3 屏共用，换 token 即换风格）
-   质感迭代（2026-10-14）：暖色微渐变底 + 磨砂浮层 + 主色纵向渐变 +
-   微暖白卡（内高光+多层柔影）+ serif 展示标题 + 两侧渐隐分隔线。
-   原则：克制，不改文字颜色/字号/触达高度，对比度不降级。
+   质感迭代第二轮（2026-10-14）：明显暖渐变底（固定视口）+ 顶部氛围光 +
+   磨砂下沉到看得见的位置（sticky 标题条/横幅/下一餐胶囊/弹层头部）+
+   亮白卡浮起（加深暖棕投影+内高光）+ serif 展示标题与菜名。
+   原则：手机一臂距离肉眼可辨；文字颜色/字号/触达高度不动，对比度不降级。
    ============================================================ */
 :root {
   /* 色板 */
-  --c-bg: #FBF7F0;            /* 页面底（渐变亮端，纯色场景回退值） */
-  --c-bg-lo: #F4EBDD;         /* 页面底渐变暗端 */
+  --c-bg: #FDF6EA;            /* 页面底（渐变亮端，纯色场景回退值） */
+  --c-bg-lo: #EEDCC0;         /* 页面底渐变暗端（与亮端拉开，一眼可见上下色差） */
   --grad-bg: linear-gradient(165deg, var(--c-bg) 0%, var(--c-bg-lo) 100%);
-  --glow-top: radial-gradient(90% 40% at 50% 0%, rgba(216, 120, 52, .09) 0%, rgba(216, 120, 52, 0) 70%); /* 顶部暖橙氛围光，极低透明度 */
-  --c-card: #FFFDF9;          /* 卡片底（微暖白） */
+  --glow-top: radial-gradient(100% 34% at 50% 0%, rgba(216, 120, 52, .18) 0%, rgba(216, 120, 52, 0) 72%); /* 顶部暖橙氛围光，覆盖上 1/3 屏 */
+  --c-card: #FFFCF5;          /* 卡片底（亮暖白，与暖底拉开对比） */
   --c-ink: #2C2420;           /* 深棕主文字 */
   --c-ink-2: #6F6156;         /* 次文字 */
   --c-ink-3: #A2937F;         /* 辅助弱化 */
@@ -27,11 +28,13 @@
   --c-ok-ink: #476B3C;        /* 必消/好评绿字 */
   --c-tag-bg: #F1EDE5;        /* 中性标签底 */
   --c-tag-ink: #8A7B68;       /* 中性标签字 */
-  /* 磨砂浮层（Tabbar / sticky 操作栏 / 轻浮横幅） */
-  --c-glass: rgba(255, 253, 249, .62);        /* @supports 生效时的半透底 */
+  /* 磨砂浮层（Tabbar / sticky 操作栏与标题条 / 轻浮横幅 / 弹层头部） */
+  --c-glass: rgba(255, 253, 249, .75);        /* Tabbar/操作栏：75% 半透底（仍见模糊、文字清晰） */
+  --c-glass-soft: rgba(255, 253, 249, .64);   /* 标题条/横幅/弹层头部：60~70% 半透 */
+  --c-glass-edge: rgba(255, 255, 255, .9);    /* 磨砂面 1px 亮边（受光上边） */
   --c-glass-solid: rgba(255, 253, 249, .95);  /* 低版本降级：95% 不透明实色 */
   --c-glass-line: rgba(90, 60, 30, .08);      /* 磨砂区发际线 */
-  /* 展示字体栈：仅一级标题与数字日期用 serif，正文保持无衬线 */
+  /* 展示字体栈：一级标题、数字日期与菜名用 serif，正文保持无衬线 */
   --ff-display: "Noto Serif SC", "Songti SC", "SimSun", serif;
   /* 菜品占位色块（暖色系，标注「实拍图位」） */
   --ph-1: #F2B27E;
@@ -53,8 +56,8 @@
   --sp-1: 4px; --sp-2: 8px; --sp-3: 12px; --sp-4: 16px; --sp-5: 24px; --sp-6: 32px;
   /* 圆角 */
   --r-1: 8px; --r-2: 12px; --r-3: 16px; --r-pill: 999px;
-  /* 阴影（克制叠加：近处贴地 + 远处大模糊柔影 + 卡顶 1px 半透内高光） */
-  --sh-card: 0 1px 2px rgba(90, 60, 30, .04), 0 10px 24px rgba(90, 60, 30, .05), inset 0 1px 0 rgba(255, 255, 255, .85);
+  /* 阴影（近处贴地 + 远处大模糊暖棕柔影加深一档 + 卡顶 1px 半透内高光，卡片明确浮起） */
+  --sh-card: 0 2px 4px rgba(90, 60, 30, .06), 0 10px 28px rgba(90, 60, 30, .12), inset 0 1px 0 rgba(255, 255, 255, .9);
   --sh-pop: 0 12px 32px rgba(90, 60, 30, .14);
   --sh-primary: 0 6px 18px rgba(200, 84, 31, .26);        /* 主按钮柔和橙影 */
   --sh-primary-press: 0 2px 8px rgba(200, 84, 31, .20);   /* 按压态下沉 */
@@ -65,9 +68,9 @@
 html { -webkit-text-size-adjust: 100%; }
 body {
   font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
-  /* 暖色斜向微渐变底 + 顶部低透明暖橙氛围光；body 背景自动铺满整页画布 */
+  /* 暖色斜向渐变底（固定视口：任意一屏内即可见上下色差）+ 顶部暖橙氛围光 */
   background: var(--c-bg);
-  background: var(--glow-top), var(--grad-bg);
+  background: var(--glow-top) fixed, var(--grad-bg) fixed;
   color: var(--c-ink);
   font-size: var(--fs-body); line-height: 1.55;
   font-variant-numeric: tabular-nums; /* 价格/人数/时长等数字等宽对齐 */
@@ -97,9 +100,12 @@ a { color: inherit; text-decoration: none; }
 .meal-time { font-size: var(--fs-small); color: var(--c-accent); }
 .meal-head .tag { margin-left: auto; }
 
-/* 标签：半透柔彩底 + 1px 同色细边（inset），去实色块塑料感；「下一餐」用主色渐变浮起 */
+/* 标签：半透柔彩底 + 1px 同色细边（inset），去实色块塑料感；「下一餐」磨砂胶囊（64% 半透 + blur(14px) + 亮边）浮起 */
 .tag { display: inline-flex; align-items: center; min-height: 26px; padding: 0 10px; border-radius: var(--r-pill); font-size: var(--fs-mini); font-weight: 600; white-space: nowrap; }
-.tag-next { background: var(--grad-primary); color: var(--c-primary-ink); box-shadow: 0 3px 10px rgba(200, 84, 31, .28); }
+.tag-next { background: rgba(255, 247, 238, .95); color: var(--c-primary); font-weight: 700; box-shadow: inset 0 0 0 1px rgba(200, 84, 31, .32), 0 3px 10px rgba(200, 84, 31, .18); }
+@supports (backdrop-filter: blur(1px)) {
+  .tag-next { background: rgba(255, 247, 238, .62); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); box-shadow: inset 0 0 0 1px var(--c-glass-edge), inset 0 0 0 2px rgba(200, 84, 31, .18), 0 3px 10px rgba(200, 84, 31, .18); }
+}
 .tag-ok { background: rgba(71, 107, 60, .10); color: var(--c-ok-ink); box-shadow: inset 0 0 0 1px rgba(71, 107, 60, .26); }
 .tag-mid { background: rgba(138, 123, 104, .10); color: var(--c-tag-ink); box-shadow: inset 0 0 0 1px rgba(138, 123, 104, .26); }
 
@@ -114,7 +120,8 @@ a { color: inherit; text-decoration: none; }
 .dish-img { width: 64px; height: 64px; flex: none; border-radius: var(--r-1); object-fit: cover; display: block; }
 .img-note { font-size: 11px; color: var(--c-ink-3); text-align: center; margin-top: var(--sp-4); }
 .dish-info { flex: 1; min-width: 0; }
-.dish-name { font-size: var(--fs-body); font-weight: 600; }
+/* 菜名：serif 展示字加码（网格卡内菜名同口径，见 v3.css .fcard-name） */
+.dish-name { font-family: var(--ff-display); font-size: var(--fs-body); font-weight: 700; }
 .dish-meta { font-size: var(--fs-small); color: var(--c-ink-2); }
 .dish-src { font-size: var(--fs-mini); color: var(--c-ink-3); margin-top: 1px; }
 
@@ -126,11 +133,11 @@ a { color: inherit; text-decoration: none; }
 .btn-row { display: flex; gap: var(--sp-3); margin-top: var(--sp-3); }
 .btn-row .btn { flex: 1; }
 
-/* 必消横幅：轻磨砂浮层（半透 + 同色细边），低版本为 95% 实色 */
-.banner { display: flex; gap: var(--sp-2); align-items: flex-start; background: rgba(237, 243, 228, .82); color: var(--c-ok-ink); border-radius: var(--r-2); padding: var(--sp-3) var(--sp-4); font-size: var(--fs-small); box-shadow: inset 0 0 0 1px rgba(71, 107, 60, .16); }
+/* 必消横幅：明显毛玻璃（60% 半透 + blur(14px) + 1px 亮边），低版本为 95% 实色 */
+.banner { display: flex; gap: var(--sp-2); align-items: flex-start; background: rgba(237, 243, 228, .95); color: var(--c-ok-ink); border-radius: var(--r-2); padding: var(--sp-3) var(--sp-4); font-size: var(--fs-small); box-shadow: inset 0 0 0 1px rgba(71, 107, 60, .20); }
 .banner b { font-weight: 700; }
 @supports (backdrop-filter: blur(1px)) {
-  .banner { background: rgba(237, 243, 228, .68); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
+  .banner { background: rgba(237, 243, 228, .60); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); box-shadow: inset 0 0 0 1px var(--c-glass-edge), inset 0 0 0 2px rgba(71, 107, 60, .10); }
 }
 
 .cand-row { display: flex; flex-wrap: wrap; gap: var(--sp-2); padding: 0 0 var(--sp-3); }

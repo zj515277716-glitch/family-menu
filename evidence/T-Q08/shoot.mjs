@@ -1,7 +1,7 @@
 // T-Q08 全套屏原型截图取证：索引 + 13 屏（方向① v3 网格卡片风），375×812
-// 迭代 2026-10-14：质感升级（暖色渐变底+氛围光 / 磨砂 Tabbar 与 sticky 栏 / 主色渐变按钮 /
-// 微暖白卡+内高光柔影 / serif 展示标题+tabular-nums / 半透柔彩标签 / 渐隐分隔线），
-// 版式与屏号结构不动，同名覆盖重截。
+// 迭代 2026-10-14 第二轮：质感加重（大跨度暖渐变 fixed 视口 / 磨砂下沉：
+// sticky 标题条·横幅·下一餐胶囊·弹层头部 / 亮白卡+加深暖棕影 / serif 菜名），
+// 版式与屏号结构不动，同名覆盖重截；另加 1 张滚动态 sticky 磨砂穿透演示。
 // 用法：先起 node tools/preview-server.mjs（8888），再 node evidence/T-Q08/shoot.mjs
 import { chromium } from '@playwright/test'
 import fs from 'node:fs'
@@ -46,6 +46,15 @@ for (const [name, url] of ALL) {
   await page.waitForTimeout(400)
   await page.screenshot({ path: path.join(OUT, `${name}.png`), fullPage: true })
   log.push(`${name}.png  http=${resp.status()}`)
+}
+
+// 加拍：首页滚动 300px 后 sticky 标题条的磨砂穿透效果（视口截图，非整页）
+{
+  const resp = await page.goto(`${BASE}${V3}/a.html`, { waitUntil: 'networkidle' })
+  await page.evaluate(() => window.scrollTo(0, 300))
+  await page.waitForTimeout(400)
+  await page.screenshot({ path: path.join(OUT, 's03-home-sticky.png'), fullPage: false })
+  log.push(`s03-home-sticky.png  http=${resp.status()}（滚动 300px 视口截图）`)
 }
 
 log.push('')
