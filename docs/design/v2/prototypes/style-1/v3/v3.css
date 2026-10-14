@@ -32,3 +32,127 @@
 .gthumbs { display: flex; align-items: center; margin-left: auto; padding-right: var(--sp-2); }
 .gthumbs img { width: 34px; height: 34px; border-radius: 50%; object-fit: cover; border: 2px solid var(--c-card); box-shadow: var(--sh-card); margin-left: -10px; }
 .gthumbs img:first-child { margin-left: 0; }
+
+/* ============================================================
+   全套屏扩展组件（T-Q08）：沿用 ../style.css token，不改动既有规则；
+   仅追加。新增 3 组语义色（评价/警示）在下方 :root，供 design-spec-v2 定稿。
+   ============================================================ */
+:root {
+  /* 警示（服务未连接等可重试场景） */
+  --c-warn-bg: #F9EDDA;
+  --c-warn-ink: #9A671C;
+  /* 翻车 / 硬禁忌 / 错误 */
+  --c-bad-bg: #F7E3DB;
+  --c-bad-ink: #A63A22;
+  /* 没做 / 未记录 */
+  --c-none-bg: #EFEDE8;
+  --c-none-ink: #8A8578;
+}
+
+/* --- 状态标签补充（tag-next/tag-ok/tag-mid 在 ../style.css） --- */
+.tag-bad { background: var(--c-bad-bg); color: var(--c-bad-ink); }
+.tag-none { background: var(--c-none-bg); color: var(--c-none-ink); }
+
+/* --- 警示横幅（服务未连接 + 重试，与 .banner 同构） --- */
+.banner-warn { background: var(--c-warn-bg); color: var(--c-warn-ink); }
+.banner .act { margin-left: auto; flex: none; align-self: center; font-weight: 700; text-decoration: underline; white-space: nowrap; }
+.banner .act:active { opacity: .82; }
+
+/* --- 原型标注（演示态虚线胶囊，非产品 UI） --- */
+.demo-tag { display: inline-flex; align-items: center; min-height: 22px; padding: 0 8px; border-radius: var(--r-pill); background: var(--c-card); border: 1px dashed var(--c-ink-3); color: var(--c-ink-2); font-size: 11px; font-weight: 700; white-space: nowrap; }
+.demo-head { display: flex; justify-content: flex-end; margin-bottom: var(--sp-2); }
+
+/* --- 登录门 --- */
+.gate { min-height: 72vh; display: flex; flex-direction: column; justify-content: center; }
+.gate-title { font-size: var(--fs-display); font-weight: var(--fw-head); text-align: center; }
+.gate-sub { text-align: center; color: var(--c-ink-2); font-size: var(--fs-small); margin: var(--sp-2) 0 var(--sp-5); }
+
+/* --- 表单（卡片复用 ../style.css .card） --- */
+.form-title { font-size: var(--fs-h2); font-weight: var(--fw-head); }
+.form-note { font-size: var(--fs-small); color: var(--c-ink-3); margin-top: 2px; }
+.frow { display: flex; align-items: center; justify-content: space-between; gap: var(--sp-3); padding: var(--sp-3) 0 0; }
+.frow-label { font-size: var(--fs-body); font-weight: 600; }
+.frow-note { display: block; font-size: var(--fs-mini); color: var(--c-ink-3); font-weight: 400; }
+.input { display: block; width: 100%; min-height: 48px; margin-top: var(--sp-3); padding: 0 var(--sp-4); border: 1px solid var(--c-line); border-radius: var(--r-2); background: var(--c-card); color: var(--c-ink); font-size: var(--fs-body); }
+.input:focus { outline: none; border-color: var(--c-primary); box-shadow: 0 0 0 3px var(--c-primary-soft); }
+.input::placeholder { color: var(--c-ink-3); }
+.field-err { color: var(--c-bad-ink); font-size: var(--fs-small); margin-top: var(--sp-2); }
+
+/* --- 步进器（主按钮级 44px 触达） --- */
+.stepper { display: flex; align-items: center; gap: var(--sp-3); }
+.step-btn { width: 44px; height: 44px; border-radius: 50%; background: var(--c-primary-soft); color: var(--c-primary); font-size: 20px; font-weight: 700; display: flex; align-items: center; justify-content: center; }
+.step-val { min-width: 30px; text-align: center; font-size: var(--fs-h2); font-weight: 700; }
+
+/* --- 标签 chips（必消=绿 / 临时忌口=警示 / 硬禁忌=红 / 软偏好=灰 / 添加=虚线） --- */
+.chips { display: flex; flex-wrap: wrap; gap: var(--sp-2); margin-top: var(--sp-3); }
+.chip { display: inline-flex; align-items: center; gap: 6px; min-height: 40px; padding: 0 14px; border-radius: var(--r-pill); background: var(--c-ok-bg); color: var(--c-ok-ink); font-size: var(--fs-small); font-weight: 600; }
+.chip .x { opacity: .6; font-weight: 700; }
+.chip-temp { background: var(--c-warn-bg); color: var(--c-warn-ink); }
+.chip-hard { background: var(--c-bad-bg); color: var(--c-bad-ink); }
+.chip-soft { background: var(--c-tag-bg); color: var(--c-tag-ink); }
+.chip-add { background: transparent; border: 1px dashed var(--c-primary); color: var(--c-primary); }
+
+/* --- 选项胶囊（单/多选，选中=主色浅底描边，44px 触达） --- */
+.opts { display: flex; flex-wrap: wrap; gap: var(--sp-2); margin-top: var(--sp-3); }
+.opt { display: inline-flex; align-items: center; justify-content: center; min-height: 44px; padding: 0 18px; border-radius: var(--r-pill); background: var(--c-tag-bg); color: var(--c-ink-2); font-size: var(--fs-small); font-weight: 600; }
+.opt.on { background: var(--c-primary-soft); color: var(--c-primary); box-shadow: inset 0 0 0 1.5px var(--c-primary); }
+.opt:active, .chip:active, .step-btn:active { opacity: .82; }
+
+/* --- 骨架屏（形状照抄网格卡片与横幅，加载中演示） --- */
+.sk { background: var(--c-tag-bg); border-radius: var(--r-1); }
+.sk-card { background: var(--c-card); border: 1px solid var(--c-line); border-radius: var(--r-2); box-shadow: var(--sh-card); overflow: hidden; }
+.sk-img { width: 100%; aspect-ratio: 4 / 3; border-radius: 0; }
+.sk-body { padding: 10px var(--sp-3) var(--sp-3); display: flex; flex-direction: column; gap: 8px; }
+.sk-line { height: 14px; }
+.sk-line.w70 { width: 70%; }
+.sk-line.w45 { width: 45%; }
+.sk-banner { height: 44px; border-radius: var(--r-2); }
+
+/* --- 菜品做法 · 沉浸大图（PD-016 方向 A，按 v3 图片比例取 4:3 全出血） --- */
+.dhero { position: relative; margin: calc(-1 * var(--sp-4)) calc(-1 * var(--sp-4)) 0; }
+.dhero img { display: block; width: 100%; aspect-ratio: 4 / 3; object-fit: cover; }
+.dhero-back { position: absolute; top: 12px; left: 12px; width: 44px; height: 44px; border-radius: 50%; background: rgba(255, 255, 255, .94); color: var(--c-ink); font-size: 20px; display: flex; align-items: center; justify-content: center; box-shadow: var(--sh-pop); }
+.dhero-back:active { opacity: .82; }
+.dhero-mask { position: absolute; left: 0; right: 0; bottom: 0; padding: 30px var(--sp-4) var(--sp-3); background: linear-gradient(180deg, rgba(32, 20, 10, 0) 0%, rgba(32, 20, 10, .68) 100%); color: #FFF; }
+.dhero-name { font-size: var(--fs-h1); font-weight: var(--fw-head); text-shadow: 0 1px 6px rgba(0, 0, 0, .3); }
+.dhero-sub { font-size: var(--fs-small); opacity: .92; margin-top: 1px; }
+.dchips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: var(--sp-2); }
+.dchip { display: inline-flex; align-items: center; min-height: 26px; padding: 0 10px; border-radius: var(--r-pill); background: rgba(255, 255, 255, .24); color: #FFF; font-size: var(--fs-mini); font-weight: 600; }
+.dchip.hot { background: var(--c-primary); }
+.dswitch { display: flex; justify-content: space-between; align-items: center; gap: var(--sp-3); margin-top: var(--sp-3); font-size: var(--fs-small); color: var(--c-ink-2); }
+.dswitch a { min-height: 36px; display: inline-flex; align-items: center; }
+.dswitch a:active { opacity: .82; }
+.dswitch .dimmed { color: var(--c-ink-3); }
+
+/* --- 用料行（名称左 / 用量右） --- */
+.ing-row { display: flex; justify-content: space-between; gap: var(--sp-3); padding: var(--sp-2) 0; border-top: 1px solid var(--c-line); }
+.ing-row:first-of-type { border-top: 0; }
+.ing-name { font-size: var(--fs-body); font-weight: 600; }
+.ing-qty { font-size: var(--fs-small); color: var(--c-ink-2); text-align: right; }
+
+/* --- 记一笔弹层（演示页：底层内容压暗 + 底部弹层静态呈现） --- */
+.dim { opacity: .45; pointer-events: none; }
+.sheet { background: var(--c-card); border: 1px solid var(--c-line); border-radius: var(--r-3) var(--r-3) 0 0; box-shadow: var(--sh-pop); padding: var(--sp-4) var(--sp-4) var(--sp-5); margin-top: var(--sp-5); }
+.sheet-grab { width: 40px; height: 4px; border-radius: var(--r-pill); background: var(--c-line); margin: 0 auto var(--sp-3); }
+.sheet-title { font-size: var(--fs-h2); font-weight: var(--fw-head); text-align: center; }
+.sheet-sub { font-size: var(--fs-small); color: var(--c-ink-3); text-align: center; margin-top: 2px; }
+.q { padding: var(--sp-3) 0 0; }
+.q-title { font-size: var(--fs-body); font-weight: 700; }
+.q-note { font-size: var(--fs-mini); color: var(--c-ink-3); font-weight: 400; }
+
+/* --- 历史（按日分组，每餐一行：餐次 + 圆图 + 菜名 + 评价标签） --- */
+.day-head { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: var(--sp-2); }
+.day-title { font-size: var(--fs-h2); font-weight: var(--fw-head); }
+.day-note { font-size: var(--fs-mini); color: var(--c-ink-3); }
+.meal-row { display: flex; align-items: center; gap: var(--sp-3); padding: var(--sp-3) 0; border-top: 1px solid var(--c-line); }
+.meal-row:first-of-type { border-top: 0; }
+.meal-row .gthumbs { margin-left: 0; padding-right: 0; }
+.meal-row-name { flex: none; width: 30px; font-size: var(--fs-small); font-weight: 700; color: var(--c-ink-2); }
+.meal-row-body { flex: 1; min-width: 0; }
+.meal-row-dishes { font-size: var(--fs-body); }
+.meal-row-meta { font-size: var(--fs-mini); color: var(--c-ink-3); margin-top: 1px; }
+
+/* --- 空态（emoji 免用，文字结论 + 出口按钮） --- */
+.empty-box { text-align: center; padding: var(--sp-4) var(--sp-4) var(--sp-5); }
+.empty-title { font-size: var(--fs-h2); font-weight: var(--fw-head); }
+.empty-text { font-size: var(--fs-small); color: var(--c-ink-2); margin: var(--sp-2) 0 var(--sp-4); }

@@ -32,6 +32,7 @@
 
 ## 浏览方式
 
-- 索引：`docs/design/v2/prototypes/index.html`（3×3 矩阵入口）。
+- 索引：`docs/design/v2/prototypes/index.html`（T-Q08 起改为「全套走查」：方向① v3 定案 13 屏按双周期动线排序；②③方向与 v1/v2 收进「历史版本」折叠区）。
 - 手机：`node tools/preview-server.mjs` 后访问 `http://<局域网IP>:8888/docs/design/v2/prototypes/index.html`。
-- 截图证据：`evidence/T-Q07/`（Playwright 375×812，10 页）。
+- 截图证据：`evidence/T-Q07/`（方向对比，10 页）、`evidence/T-Q08/`（全套 14 页）。
+- 定案全套 = `style-1/v3/`（S-01~S-13，新 design-spec 见 `docs/design/v2/design-spec-v2.md`）。

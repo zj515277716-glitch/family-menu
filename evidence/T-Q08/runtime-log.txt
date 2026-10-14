@@ -1,0 +1,17 @@
+00-index.png  http=200
+s01-login.png  http=200
+s02-onboarding.png  http=200
+s03-home.png  http=200
+s04-meal-setup.png  http=200
+s05-generating.png  http=200
+s06-meals.png  http=200
+s07-empty-hand.png  http=200
+s08-shopping.png  http=200
+s09-dish.png  http=200
+s10-feedback-sheet.png  http=200
+s11-history.png  http=200
+s12-settings.png  http=200
+s13-home-offline.png  http=200
+
+== 浏览器错误（console.error / pageerror）==
+（无）
