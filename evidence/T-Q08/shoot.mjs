@@ -1,4 +1,7 @@
 // T-Q08 全套屏原型截图取证：索引 + 13 屏（方向① v3 网格卡片风），375×812
+// 迭代 2026-10-14：质感升级（暖色渐变底+氛围光 / 磨砂 Tabbar 与 sticky 栏 / 主色渐变按钮 /
+// 微暖白卡+内高光柔影 / serif 展示标题+tabular-nums / 半透柔彩标签 / 渐隐分隔线），
+// 版式与屏号结构不动，同名覆盖重截。
 // 用法：先起 node tools/preview-server.mjs（8888），再 node evidence/T-Q08/shoot.mjs
 import { chromium } from '@playwright/test'
 import fs from 'node:fs'

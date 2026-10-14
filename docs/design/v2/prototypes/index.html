@@ -6,22 +6,23 @@
 <title>全套屏原型 · 走查索引</title>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif; background: #F5F2EC; color: #2C2420; font-size: 16px; line-height: 1.55; }
+  body { font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif; background: #FBF7F0; background: radial-gradient(90% 40% at 50% 0%, rgba(216,120,52,.09) 0%, rgba(216,120,52,0) 70%), linear-gradient(165deg, #FBF7F0 0%, #F4EBDD 100%); color: #2C2420; font-size: 16px; line-height: 1.55; font-variant-numeric: tabular-nums; }
   .page { max-width: 420px; margin: 0 auto; padding: 20px 16px 48px; }
-  h1 { font-size: 22px; }
+  h1 { font-family: "Noto Serif SC", "Songti SC", "SimSun", serif; font-size: 22px; }
   .sub { font-size: 14px; color: #6F6156; margin: 6px 0 20px; }
-  .flow { background: #fff; border: 1px solid #EAE2D5; border-radius: 14px; padding: 16px; margin-bottom: 14px; }
-  .flow-name { font-size: 17px; font-weight: 700; }
+  .flow { background: #FFFDF9; border: 1px solid #EAE2D5; border-radius: 14px; padding: 16px; margin-bottom: 14px; box-shadow: 0 1px 2px rgba(90,60,30,.04), 0 10px 24px rgba(90,60,30,.05), inset 0 1px 0 rgba(255,255,255,.85); }
+  .flow-name { font-family: "Noto Serif SC", "Songti SC", "SimSun", serif; font-size: 17px; font-weight: 700; }
   .flow-desc { font-size: 14px; color: #6F6156; margin: 6px 0 12px; }
   .steps { display: flex; flex-direction: column; gap: 8px; }
-  .steps a { display: flex; align-items: center; gap: 10px; min-height: 48px; padding: 10px 14px; border-radius: 10px; background: #C8541F; color: #fff; text-decoration: none; }
-  .steps a.alt { background: #fff; color: #C8541F; border: 1px solid #C8541F; }
-  .steps a:active { opacity: .82; }
+  .steps a { display: flex; align-items: center; gap: 10px; min-height: 48px; padding: 10px 14px; border-radius: 10px; background: linear-gradient(180deg, #D86A2E 0%, #C8521C 100%); color: #fff; text-decoration: none; box-shadow: 0 6px 18px rgba(200,84,31,.26); }
+  .steps a.alt { background: rgba(255,253,249,.55); color: #C8541F; border: 1px solid rgba(200,84,31,.5); box-shadow: none; }
+  .steps a:active { transform: translateY(1px); box-shadow: 0 2px 8px rgba(200,84,31,.20); }
+  .steps a.alt:active { transform: none; opacity: .82; }
   .sno { flex: none; width: 44px; font-size: 13px; font-weight: 700; opacity: .85; }
   .sbody { flex: 1; min-width: 0; display: flex; flex-direction: column; }
   .sname { font-size: 15px; font-weight: 600; }
   .sdesc { font-size: 12.5px; font-weight: 400; opacity: .85; }
-  details { background: #fff; border: 1px solid #EAE2D5; border-radius: 14px; padding: 16px; margin-bottom: 14px; }
+  details { background: #FFFDF9; border: 1px solid #EAE2D5; border-radius: 14px; padding: 16px; margin-bottom: 14px; box-shadow: 0 1px 2px rgba(90,60,30,.04), 0 10px 24px rgba(90,60,30,.05), inset 0 1px 0 rgba(255,255,255,.85); }
   summary { font-size: 15px; font-weight: 700; color: #8A7B68; cursor: pointer; min-height: 32px; }
   .old { margin-top: 12px; }
   .old-head { font-size: 13px; font-weight: 700; color: #8A7B68; margin: 10px 0 6px; }
