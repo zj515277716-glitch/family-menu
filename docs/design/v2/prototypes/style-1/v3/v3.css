@@ -8,6 +8,8 @@
    磨砂收敛到只剩 Tabbar（sticky 标题条纯白+hairline、横幅/弹层头实色）；
    「换一道」改文本小按钮、候选行弱化；首页顶部品牌渐变带（全页唯一
    装饰面）；设置页改 iOS 分组列表（sgroup/srow/seg/chips-row）。
+   质感第四轮（2026-10-15）：选择类全圆角胶囊 → 10px 圆角矩形选项块
+   （s04/s12 同一组件；用户反馈不喜欢胶囊样式），详见 .opt/.chip 注释。
    ============================================================ */
 
 /* --- 菜品卡（上图下文，图 4:3） --- */
@@ -93,19 +95,22 @@
 .stepper-sm .step-btn { width: 36px; height: 36px; font-size: 18px; }
 .stepper-sm .step-val { min-width: 22px; font-size: var(--fs-body); font-weight: 600; }
 
-/* --- 标签 chips：半透柔彩底 + 1px 同色细边；「仅明天生效」等警示 chip 保持辨识度 --- */
+/* --- 选择块（第四轮起：全圆角胶囊 → 10px 圆角矩形块，s04/s12 同一组件） ---
+   已添加标签（带 ×）：36px 块，保留五色语义（硬禁忌红=安全信号不换主色） --- */
 .chips { display: flex; flex-wrap: wrap; gap: var(--sp-2); margin-top: var(--sp-3); }
-.chip { display: inline-flex; align-items: center; gap: 6px; min-height: 40px; padding: 0 14px; border-radius: var(--r-pill); background: rgba(71, 107, 60, .10); color: var(--c-ok-ink); font-size: var(--fs-small); font-weight: 600; box-shadow: inset 0 0 0 1px rgba(71, 107, 60, .26); }
+.chip { display: inline-flex; align-items: center; gap: 6px; min-height: 36px; padding: 0 12px; border-radius: 10px; background: rgba(71, 107, 60, .10); border: 1px solid rgba(71, 107, 60, .26); color: var(--c-ok-ink); font-size: var(--fs-small); font-weight: 600; }
 .chip .x { opacity: .6; font-weight: 700; }
-.chip-temp { background: rgba(154, 103, 28, .10); color: var(--c-warn-ink); box-shadow: inset 0 0 0 1px rgba(154, 103, 28, .30); }
-.chip-hard { background: rgba(166, 58, 34, .10); color: var(--c-bad-ink); box-shadow: inset 0 0 0 1px rgba(166, 58, 34, .30); }
-.chip-soft { background: rgba(138, 123, 104, .10); color: var(--c-tag-ink); box-shadow: inset 0 0 0 1px rgba(138, 123, 104, .26); }
-.chip-add { background: transparent; border: 1px dashed var(--c-primary); color: var(--c-primary); box-shadow: none; }
+.chip-temp { background: rgba(154, 103, 28, .10); border-color: rgba(154, 103, 28, .30); color: var(--c-warn-ink); }
+.chip-hard { background: rgba(166, 58, 34, .10); border-color: rgba(166, 58, 34, .30); color: var(--c-bad-ink); }
+.chip-soft { background: rgba(138, 123, 104, .10); border-color: rgba(138, 123, 104, .26); color: var(--c-tag-ink); }
+.chip-add { background: transparent; border: 1px dashed var(--c-primary); color: var(--c-primary); }
 
-/* --- 选项胶囊（单/多选，选中=主色浅底描边，44px 触达） --- */
+/* --- 选项块（单/多选，40px）：未选=白底 + 1px #E5DED4 浅灰边 + 灰棕字；
+   选中=品牌橙 9% 浅底 + #C8541F 字与同色细边 + 文字前 12px 对勾（选中反馈更明确） --- */
 .opts { display: flex; flex-wrap: wrap; gap: var(--sp-2); margin-top: var(--sp-3); }
-.opt { display: inline-flex; align-items: center; justify-content: center; min-height: 44px; padding: 0 18px; border-radius: var(--r-pill); background: var(--c-tag-bg); color: var(--c-ink-2); font-size: var(--fs-small); font-weight: 600; }
-.opt.on { background: var(--c-primary-soft); color: var(--c-primary); box-shadow: inset 0 0 0 1.5px var(--c-primary); }
+.opt { display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-height: 40px; padding: 0 14px; border-radius: 10px; background: var(--c-card); border: 1px solid #E5DED4; color: var(--c-ink-2); font-size: var(--fs-small); font-weight: 600; }
+.opt.on { background: rgba(200, 84, 31, .09); border-color: var(--c-primary); color: var(--c-primary); }
+.opt.on::before { content: "✓"; font-size: 12px; font-weight: 700; line-height: 1; }
 .opt:active, .chip:active, .step-btn:active { opacity: .82; }
 
 /* ============================================================
@@ -129,11 +134,10 @@
 .seg a { flex: 1; display: flex; align-items: center; justify-content: center; min-height: 36px; border-radius: var(--r-1); font-size: var(--fs-small); font-weight: 500; color: var(--c-ink-2); white-space: nowrap; }
 .seg a.on { background: var(--c-card); color: var(--c-ink); font-weight: 600; box-shadow: 0 1px 3px rgba(60, 40, 20, .12); }
 .seg a:active { opacity: .82; }
-/* 单排紧凑 chip 行（不可多行堆叠散落，超出横滑） */
+/* 单排紧凑选择块行（不可多行堆叠散落，超出横滑）；块高/圆角同基础 .opt/.chip */
 .chips-row { display: flex; flex-wrap: nowrap; gap: var(--sp-2); overflow-x: auto; padding: var(--sp-3) var(--sp-4); -webkit-overflow-scrolling: touch; }
 .chips-row::-webkit-scrollbar { height: 0; }
-.chips-row .opt { flex: none; min-height: 40px; padding: 0 12px; }
-.chips-row .chip { flex: none; min-height: 36px; padding: 0 10px; }
+.chips-row .opt, .chips-row .chip { flex: none; }
 
 /* --- 骨架屏（形状照抄网格卡片与横幅，加载中演示） --- */
 .sk { background: var(--c-tag-bg); border-radius: var(--r-1); }
