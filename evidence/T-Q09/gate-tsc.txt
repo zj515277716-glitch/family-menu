@@ -1,0 +1,3 @@
+$ pnpm -r exec tsc --noEmit
+（全部包类型检查通过，无输出）
+exit=0
