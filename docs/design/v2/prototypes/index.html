@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>全套屏原型 · 走查索引</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif; background: #FAFAF8; color: #2C2420; font-size: 15px; line-height: 1.55; font-variant-numeric: tabular-nums; }
+  .page { max-width: 420px; margin: 0 auto; padding: 20px 16px 48px; }
+  h1 { font-size: 20px; font-weight: 700; letter-spacing: -0.01em; }
+  .sub { font-size: 13px; color: #8A7B6B; margin: 6px 0 20px; }
+  .flow { background: #FFF; border: 1px solid #EFE9E0; border-radius: 14px; padding: 16px; margin-bottom: 16px; box-shadow: 0 1px 3px rgba(60,40,20,.05); }
+  .flow-name { font-size: 15px; font-weight: 600; letter-spacing: -0.01em; }
+  .flow-desc { font-size: 13px; color: #6F6156; margin: 6px 0 12px; }
+  .steps { display: flex; flex-direction: column; gap: 8px; }
+  .steps a { display: flex; align-items: center; gap: 10px; min-height: 48px; padding: 10px 14px; border-radius: 10px; background: linear-gradient(180deg, #D86A2E 0%, #C8521C 100%); color: #fff; text-decoration: none; box-shadow: 0 6px 18px rgba(200,84,31,.26); }
+  .steps a.alt { background: transparent; color: #C8541F; border: 1px solid rgba(200,84,31,.45); box-shadow: none; }
+  .steps a:active { transform: translateY(1px); box-shadow: 0 2px 8px rgba(200,84,31,.20); }
+  .steps a.alt:active { transform: none; opacity: .82; }
+  .sno { flex: none; width: 44px; font-size: 13px; font-weight: 700; opacity: .85; }
+  .sbody { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+  .sname { font-size: 15px; font-weight: 600; }
+  .sdesc { font-size: 12.5px; font-weight: 400; opacity: .85; }
+  details { background: #FFF; border: 1px solid #EFE9E0; border-radius: 14px; padding: 16px; margin-bottom: 16px; box-shadow: 0 1px 3px rgba(60,40,20,.05); }
+  summary { font-size: 15px; font-weight: 600; color: #8A7B6B; cursor: pointer; min-height: 32px; }
+  .old { margin-top: 12px; }
+  .old-head { font-size: 13px; font-weight: 600; color: #8A7B6B; margin: 10px 0 6px; }
+  .links { display: flex; gap: 8px; }
+  .links a { flex: 1; display: flex; align-items: center; justify-content: center; min-height: 44px; border-radius: 10px; font-size: 14px; font-weight: 600; color: #fff; text-decoration: none; }
+  .links a:active { opacity: .82; }
+  .note { font-size: 13px; color: #A2937F; margin-top: 18px; }
+</style>
+</head>
+<body>
+<div class="page">
+  <h1>家庭菜谱 · 全套屏原型</h1>
+  <p class="sub">方向① 暖白极简 × v3 网格卡片风（PD-022 / PD-023 定案）· 13 屏 · 按双周期动线走查，手机 375 宽最佳。</p>
+
+  <div class="flow">
+    <div class="flow-name">第一次用</div>
+    <div class="flow-desc">进门一次口令 → 1 分钟引导 → 先填长期设置（C-8 冷启动）。</div>
+    <div class="steps">
+      <a href="./style-1/v3/login.html"><span class="sno">S-01</span><span class="sbody"><span class="sname">登录门（口令页）</span><span class="sdesc">含错误提示演示</span></span></a>
+      <a href="./style-1/v3/onboarding.html"><span class="sno">S-02</span><span class="sbody"><span class="sname">冷启动引导</span><span class="sdesc">首次 → 先填设置</span></span></a>
+      <a href="./style-1/v3/settings.html"><span class="sno">S-12</span><span class="sbody"><span class="sname">设置（长期生效）</span><span class="sdesc">含已吃菜避开窗口 3/5/7</span></span></a>
+    </div>
+  </div>
+
+  <div class="flow">
+    <div class="flow-name">晚上 · 定明天的餐（第 N 天晚）</div>
+    <div class="flow-desc">首页下半区入口 → 填条件 → 生成 → 审 / 换 → 确认 → 一张清单一次买齐。</div>
+    <div class="steps">
+      <a href="./style-1/v3/a.html"><span class="sno">S-03</span><span class="sbody"><span class="sname">首页（今天 + 定明天）</span><span class="sdesc">双区 · 每餐区横滑</span></span></a>
+      <a href="./style-1/v3/meal-setup.html"><span class="sno">S-04</span><span class="sbody"><span class="sname">定明天的餐</span><span class="sdesc">人数 / 必消 / 临时忌口 / 想吃 / 餐次</span></span></a>
+      <a href="./style-1/v3/generating.html"><span class="sno">S-05</span><span class="sbody"><span class="sname">生成中（骨架屏）</span><span class="sdesc">演示态：加载中</span></span></a>
+      <a href="./style-1/v3/b.html"><span class="sno">S-06</span><span class="sbody"><span class="sname">三餐菜单（审 / 换）</span><span class="sdesc">换一道 / 换一餐 / 换一批</span></span></a>
+      <a href="./style-1/v3/c.html"><span class="sno">S-08</span><span class="sbody"><span class="sname">采购清单 + 备菜建议</span><span class="sdesc">合并去重 · 今晚预处理 / 明早先做</span></span></a>
+      <a class="alt" href="./style-1/v3/empty-hand.html"><span class="sno">S-07</span><span class="sbody"><span class="sname">空手场景（两型）</span><span class="sdesc">异常分支：无菜型 / 时间型，给出路</span></span></a>
+    </div>
+  </div>
+
+  <div class="flow">
+    <div class="flow-name">次日 · 照着做（第 N+1 天）</div>
+    <div class="flow-desc">首页上半区看今天三餐 → 点菜看做法 → 做完一餐就地「记一笔」。</div>
+    <div class="steps">
+      <a href="./style-1/v3/dish.html"><span class="sno">S-09</span><span class="sbody"><span class="sname">菜品做法（沉浸大图）</span><span class="sdesc">用料按人数缩放 · 分步</span></span></a>
+      <a href="./style-1/v3/feedback-sheet.html"><span class="sno">S-10</span><span class="sbody"><span class="sname">记一笔（餐卡弹层）</span><span class="sdesc">按餐三问 · 耗时选填</span></span></a>
+    </div>
+  </div>
+
+  <div class="flow">
+    <div class="flow-name">随时</div>
+    <div class="flow-desc">过去的事在历史，长期的事在设置。</div>
+    <div class="steps">
+      <a href="./style-1/v3/history.html"><span class="sno">S-11</span><span class="sbody"><span class="sname">历史（按日分组）</span><span class="sdesc">每餐四色评价标签 · 含空态演示</span></span></a>
+      <a href="./style-1/v3/settings.html"><span class="sno">S-12</span><span class="sbody"><span class="sname">设置（长期生效）</span><span class="sdesc">人数 / 时长档 / 锅 / 菜系 / 忌口 / 避开窗口</span></span></a>
+    </div>
+  </div>
+
+  <div class="flow">
+    <div class="flow-name">异常态</div>
+    <div class="flow-desc">连不上服务就明说，绝不显示假菜单（C-3 失败恢复）。</div>
+    <div class="steps">
+      <a class="alt" href="./style-1/v3/home-offline.html"><span class="sno">S-13</span><span class="sbody"><span class="sname">服务未连接（首页叠加）</span><span class="sdesc">演示态：错误（可重试）</span></span></a>
+    </div>
+  </div>
+
+  <details>
+    <summary>历史版本（T-Q07 方向对比稿，仅追溯）</summary>
+    <div class="old">
+      <div class="old-head">方向① v1 小图版（64px 图行，初版对照）</div>
+      <div class="links">
+        <a style="background:#C8541F" href="./style-1/a.html">a 首页</a>
+        <a style="background:#C8541F" href="./style-1/b.html">b 三餐菜单</a>
+        <a style="background:#C8541F" href="./style-1/c.html">c 采购清单</a>
+      </div>
+      <div class="old-head">方向① v2 杂志风（大图版 A，未选）</div>
+      <div class="links">
+        <a style="background:#C8541F" href="./style-1/v2/a.html">a 首页</a>
+        <a style="background:#C8541F" href="./style-1/v2/b.html">b 三餐菜单</a>
+        <a style="background:#C8541F" href="./style-1/v2/c.html">c 采购清单</a>
+      </div>
+      <div class="old-head">方向② 和风暖木（未选）</div>
+      <div class="links">
+        <a style="background:#B07D4E" href="./style-2/a.html">a 首页</a>
+        <a style="background:#B07D4E" href="./style-2/b.html">b 三餐菜单</a>
+        <a style="background:#B07D4E" href="./style-2/c.html">c 采购清单</a>
+      </div>
+      <div class="old-head">方向③ 青瓷清新（降权，未选）</div>
+      <div class="links">
+        <a style="background:#4A9D8F" href="./style-3/a.html">a 首页</a>
+        <a style="background:#4A9D8F" href="./style-3/b.html">b 三餐菜单</a>
+        <a style="background:#4A9D8F" href="./style-3/c.html">c 采购清单</a>
+      </div>
+    </div>
+  </details>
+
+  <p class="note">静态原型：菜名为真实家庭菜谱语境，数据为同一份示例（2 大 1 小 · 10月14日三餐）。菜品图一律 AI 示意图占位（assets/dishes/ 13 张），各页标注「示意图·正式版为试做实拍」（PD-023 口径，DEC-007 不变）。</p>
+</div>
+</body>
+</html>

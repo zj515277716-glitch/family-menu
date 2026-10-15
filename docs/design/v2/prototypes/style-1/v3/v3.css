@@ -1,0 +1,215 @@
+/* ============================================================
+   方向① 大图版 B · 网格卡片风（v3）
+   token 全部继承 ../style.css（同一变量组，配色/字阶不动）；
+   本文件只加版式与图片比例：菜品卡上图下文（图 4:3 通宽卡顶），
+   b 屏双列网格；首页「今天三餐」每餐区横滑卡片流；操作收成卡片
+   底部小按钮；清单屏小圆图点缀。
+   质感第三轮（2026-10-15）：做「收」——serif 全弃（层级靠字号字重）；
+   磨砂收敛到只剩 Tabbar（sticky 标题条纯白+hairline、横幅/弹层头实色）；
+   「换一道」改文本小按钮、候选行弱化；首页顶部品牌渐变带（全页唯一
+   装饰面）；设置页改 iOS 分组列表（sgroup/srow/seg/chips-row）。
+   质感第四轮（2026-10-15）：选择类全圆角胶囊 → 10px 圆角矩形选项块
+   （s04/s12 同一组件；用户反馈不喜欢胶囊样式），详见 .opt/.chip 注释。
+   ============================================================ */
+
+/* --- 菜品卡（上图下文，图 4:3） --- */
+.fcard { background: var(--c-card); border: 1px solid var(--c-line); border-radius: var(--r-2); box-shadow: var(--sh-card); overflow: hidden; display: flex; flex-direction: column; }
+.fcard > img { display: block; width: 100%; aspect-ratio: 4 / 3; object-fit: cover; }
+.fcard-body { padding: 10px var(--sp-3) var(--sp-3); display: flex; flex-direction: column; gap: 2px; flex: 1; }
+/* 网格卡菜名：无衬线 15/600，层级靠字重不靠字体 */
+.fcard-name { font-size: var(--fs-h2); font-weight: var(--fw-sub); letter-spacing: var(--ls-head); }
+.fcard-meta { font-size: var(--fs-small); color: var(--c-ink-2); }
+.fcard-act { margin-top: auto; padding-top: var(--sp-2); }
+/* 「换一道」：文本小按钮（品牌色文字无框，40px 触达不缩） */
+.fcard-act .mini { display: flex; align-items: center; justify-content: center; min-height: 40px; border-radius: var(--r-1); color: var(--c-primary); font-size: var(--fs-small); font-weight: 600; }
+.fcard-act .mini:active { opacity: .82; }
+
+/* --- 双列网格（b 屏三餐菜单） --- */
+.grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+
+/* --- 横滑卡片流（首页每餐区，真实横向滚动） --- */
+.hscroll { display: flex; gap: 14px; overflow-x: auto; padding: 2px 2px var(--sp-2); scroll-snap-type: x proximity; -webkit-overflow-scrolling: touch; }
+.hscroll .fcard { flex: 0 0 158px; scroll-snap-align: start; }
+.hscroll::-webkit-scrollbar { height: 0; }
+.hscroll-wide .fcard { flex-basis: 196px; }
+.meal-block + .meal-block { margin-top: 28px; }
+.meal-block .meal-head { margin-bottom: var(--sp-2); }
+.meal-block .btn-row { margin-top: var(--sp-2); }
+
+/* --- 清单屏小圆图点缀（分组标题右侧，叠放圆形小图） --- */
+.gthumbs { display: flex; align-items: center; margin-left: auto; padding-right: var(--sp-2); }
+.gthumbs img { width: 34px; height: 34px; border-radius: 50%; object-fit: cover; border: 2px solid var(--c-card); box-shadow: var(--sh-card); margin-left: -10px; }
+.gthumbs img:first-child { margin-left: 0; }
+
+/* ============================================================
+   全套屏扩展组件（T-Q08）：沿用 ../style.css token，不改动既有规则；
+   仅追加。新增 3 组语义色（评价/警示）在下方 :root，供 design-spec-v2 定稿。
+   ============================================================ */
+:root {
+  /* 警示（服务未连接等可重试场景） */
+  --c-warn-bg: #F9EDDA;
+  --c-warn-ink: #9A671C;
+  /* 翻车 / 硬禁忌 / 错误 */
+  --c-bad-bg: #F7E3DB;
+  --c-bad-ink: #A63A22;
+  /* 没做 / 未记录 */
+  --c-none-bg: #EFEDE8;
+  --c-none-ink: #8A8578;
+}
+
+/* --- 状态标签补充（tag-next/tag-ok/tag-mid 在 ../style.css）：同款半透柔彩 + 同色细边 --- */
+.tag-bad { background: rgba(166, 58, 34, .10); color: var(--c-bad-ink); box-shadow: inset 0 0 0 1px rgba(166, 58, 34, .26); }
+.tag-none { background: rgba(138, 133, 120, .10); color: var(--c-none-ink); box-shadow: inset 0 0 0 1px rgba(138, 133, 120, .26); }
+
+/* --- 警示横幅（服务未连接 + 重试）：浅黄实底一行式（磨砂已收敛） --- */
+.banner-warn { background: var(--c-warn-bg); color: var(--c-warn-ink); }
+.banner .act { margin-left: auto; flex: none; align-self: center; font-weight: 700; text-decoration: underline; white-space: nowrap; }
+.banner .act:active { opacity: .82; }
+
+/* --- 原型标注（演示态虚线胶囊，非产品 UI） --- */
+.demo-tag { display: inline-flex; align-items: center; min-height: 22px; padding: 0 8px; border-radius: var(--r-pill); background: var(--c-card); border: 1px dashed var(--c-ink-3); color: var(--c-ink-2); font-size: 11px; font-weight: 700; white-space: nowrap; }
+.demo-head { display: flex; justify-content: flex-end; margin-bottom: var(--sp-2); }
+
+/* --- 登录门 --- */
+.gate { min-height: 72vh; display: flex; flex-direction: column; justify-content: center; }
+.gate-title { font-size: var(--fs-display); font-weight: var(--fw-head); letter-spacing: var(--ls-head); text-align: center; }
+.gate-sub { text-align: center; color: var(--c-ink-2); font-size: var(--fs-small); margin: var(--sp-2) 0 var(--sp-5); }
+
+/* --- 表单（卡片复用 ../style.css .card） --- */
+.form-title { font-size: var(--fs-h2); font-weight: var(--fw-sub); letter-spacing: var(--ls-head); }
+.form-note { font-size: var(--fs-small); color: var(--c-ink-3); margin-top: 2px; }
+.frow { display: flex; align-items: center; justify-content: space-between; gap: var(--sp-3); padding: var(--sp-3) 0 0; }
+.frow-label { font-size: var(--fs-body); font-weight: 600; }
+.frow-note { display: block; font-size: var(--fs-mini); color: var(--c-ink-3); font-weight: 400; }
+.input { display: block; width: 100%; min-height: 48px; margin-top: var(--sp-3); padding: 0 var(--sp-4); border: 1px solid var(--c-line); border-radius: var(--r-2); background: var(--c-card); color: var(--c-ink); font-size: var(--fs-body); }
+.input:focus { outline: none; border-color: var(--c-primary); box-shadow: 0 0 0 3px var(--c-primary-soft); }
+.input::placeholder { color: var(--c-ink-3); }
+.field-err { color: var(--c-bad-ink); font-size: var(--fs-small); margin-top: var(--sp-2); }
+
+/* --- 步进器（主按钮级 44px 触达） --- */
+.stepper { display: flex; align-items: center; gap: var(--sp-3); }
+.step-btn { width: 44px; height: 44px; border-radius: 50%; background: var(--c-primary-soft); color: var(--c-primary); font-size: 20px; font-weight: 700; display: flex; align-items: center; justify-content: center; }
+.step-val { min-width: 30px; text-align: center; font-size: var(--fs-h2); font-weight: 700; }
+/* 紧凑步进器（设置页行式布局右侧）：36px 圆钮，精致小 */
+.stepper-sm { gap: var(--sp-2); }
+.stepper-sm .step-btn { width: 36px; height: 36px; font-size: 18px; }
+.stepper-sm .step-val { min-width: 22px; font-size: var(--fs-body); font-weight: 600; }
+
+/* --- 选择块（第四轮起：全圆角胶囊 → 10px 圆角矩形块，s04/s12 同一组件） ---
+   已添加标签（带 ×）：36px 块，保留五色语义（硬禁忌红=安全信号不换主色） --- */
+.chips { display: flex; flex-wrap: wrap; gap: var(--sp-2); margin-top: var(--sp-3); }
+.chip { display: inline-flex; align-items: center; gap: 6px; min-height: 36px; padding: 0 12px; border-radius: 10px; background: rgba(71, 107, 60, .10); border: 1px solid rgba(71, 107, 60, .26); color: var(--c-ok-ink); font-size: var(--fs-small); font-weight: 600; }
+.chip .x { opacity: .6; font-weight: 700; }
+.chip-temp { background: rgba(154, 103, 28, .10); border-color: rgba(154, 103, 28, .30); color: var(--c-warn-ink); }
+.chip-hard { background: rgba(166, 58, 34, .10); border-color: rgba(166, 58, 34, .30); color: var(--c-bad-ink); }
+.chip-soft { background: rgba(138, 123, 104, .10); border-color: rgba(138, 123, 104, .26); color: var(--c-tag-ink); }
+.chip-add { background: transparent; border: 1px dashed var(--c-primary); color: var(--c-primary); }
+
+/* --- 选项块（单/多选，40px）：未选=白底 + 1px #E5DED4 浅灰边 + 灰棕字；
+   选中=品牌橙 9% 浅底 + #C8541F 字与同色细边 + 文字前 12px 对勾（选中反馈更明确） --- */
+.opts { display: flex; flex-wrap: wrap; gap: var(--sp-2); margin-top: var(--sp-3); }
+.opt { display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-height: 40px; padding: 0 14px; border-radius: 10px; background: var(--c-card); border: 1px solid #E5DED4; color: var(--c-ink-2); font-size: var(--fs-small); font-weight: 600; }
+.opt.on { background: rgba(200, 84, 31, .09); border-color: var(--c-primary); color: var(--c-primary); }
+.opt.on::before { content: "✓"; font-size: 12px; font-weight: 700; line-height: 1; }
+.opt:active, .chip:active, .step-btn:active { opacity: .82; }
+
+/* ============================================================
+   设置页 · iOS 分组列表（S-12 重排）：组 = 小灰字组标题（组外左上）
+   + 一个圆角白容器；组内「label 左 / 控件右」行式布局，行间 hairline；
+   选择类控件用分段控件或单排紧凑 chip，不多行堆叠散落。
+   ============================================================ */
+.sgroup-block + .sgroup-block { margin-top: 28px; }
+.sgroup-label { font-size: var(--fs-small); font-weight: 500; color: var(--c-ink-3); padding: 0 var(--sp-1) var(--sp-2); }
+.sgroup { background: var(--c-card); border: 1px solid var(--c-line); border-radius: var(--r-2); box-shadow: var(--sh-card); overflow: hidden; }
+.sgroup-note { font-size: var(--fs-mini); font-weight: 400; color: var(--c-ink-3); padding: var(--sp-2) var(--sp-1) 0; }
+/* 行式：label 左 / 控件右，行间 hairline */
+.srow { display: flex; align-items: center; justify-content: space-between; gap: var(--sp-3); min-height: 52px; padding: var(--sp-2) var(--sp-4); background: var(--line-fade) no-repeat top / 100% 1px; }
+.srow:first-child { background: none; }
+.srow-label { font-size: var(--fs-body); }
+.srow-note { display: block; font-size: var(--fs-mini); color: var(--c-ink-3); }
+/* 分段控件行（控件占整行） */
+.srow-pad { padding: var(--sp-3) var(--sp-4); }
+/* 分段控件：灰底槽 + 选中白段浮起（iOS 口径） */
+.seg { display: flex; gap: 2px; width: 100%; background: var(--c-tag-bg); border-radius: 10px; padding: 2px; }
+.seg a { flex: 1; display: flex; align-items: center; justify-content: center; min-height: 36px; border-radius: var(--r-1); font-size: var(--fs-small); font-weight: 500; color: var(--c-ink-2); white-space: nowrap; }
+.seg a.on { background: var(--c-card); color: var(--c-ink); font-weight: 600; box-shadow: 0 1px 3px rgba(60, 40, 20, .12); }
+.seg a:active { opacity: .82; }
+/* 单排紧凑选择块行（不可多行堆叠散落，超出横滑）；块高/圆角同基础 .opt/.chip */
+.chips-row { display: flex; flex-wrap: nowrap; gap: var(--sp-2); overflow-x: auto; padding: var(--sp-3) var(--sp-4); -webkit-overflow-scrolling: touch; }
+.chips-row::-webkit-scrollbar { height: 0; }
+.chips-row .opt, .chips-row .chip { flex: none; }
+
+/* --- 骨架屏（形状照抄网格卡片与横幅，加载中演示） --- */
+.sk { background: var(--c-tag-bg); border-radius: var(--r-1); }
+.sk-card { background: var(--c-card); border: 1px solid var(--c-line); border-radius: var(--r-2); box-shadow: var(--sh-card); overflow: hidden; }
+.sk-img { width: 100%; aspect-ratio: 4 / 3; border-radius: 0; }
+.sk-body { padding: 10px var(--sp-3) var(--sp-3); display: flex; flex-direction: column; gap: 8px; }
+.sk-line { height: 14px; }
+.sk-line.w70 { width: 70%; }
+.sk-line.w45 { width: 45%; }
+.sk-banner { height: 44px; border-radius: var(--r-2); }
+
+/* --- 菜品做法 · 沉浸大图（PD-016 方向 A，按 v3 图片比例取 4:3 全出血） --- */
+.dhero { position: relative; margin: calc(-1 * var(--sp-4)) calc(-1 * var(--sp-4)) 0; }
+.dhero img { display: block; width: 100%; aspect-ratio: 4 / 3; object-fit: cover; }
+.dhero-back { position: absolute; top: 12px; left: 12px; width: 44px; height: 44px; border-radius: 50%; background: rgba(255, 255, 255, .94); color: var(--c-ink); font-size: 20px; display: flex; align-items: center; justify-content: center; box-shadow: var(--sh-pop); }
+.dhero-back:active { opacity: .82; }
+.dhero-mask { position: absolute; left: 0; right: 0; bottom: 0; padding: 30px var(--sp-4) var(--sp-3); background: linear-gradient(180deg, rgba(32, 20, 10, 0) 0%, rgba(32, 20, 10, .68) 100%); color: #FFF; }
+.dhero-name { font-size: var(--fs-h1); font-weight: var(--fw-head); letter-spacing: var(--ls-head); text-shadow: 0 1px 6px rgba(0, 0, 0, .3); }
+.dhero-sub { font-size: var(--fs-small); opacity: .92; margin-top: 1px; }
+.dchips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: var(--sp-2); }
+.dchip { display: inline-flex; align-items: center; min-height: 26px; padding: 0 10px; border-radius: var(--r-pill); background: rgba(255, 255, 255, .24); color: #FFF; font-size: var(--fs-mini); font-weight: 600; }
+.dchip.hot { background: var(--grad-primary); box-shadow: 0 3px 10px rgba(200, 84, 31, .30); }
+.dswitch { display: flex; justify-content: space-between; align-items: center; gap: var(--sp-3); margin-top: var(--sp-3); font-size: var(--fs-small); color: var(--c-ink-2); }
+.dswitch a { min-height: 36px; display: inline-flex; align-items: center; }
+.dswitch a:active { opacity: .82; }
+.dswitch .dimmed { color: var(--c-ink-3); }
+
+/* --- 用料行（名称左 / 用量右） --- */
+.ing-row { display: flex; justify-content: space-between; gap: var(--sp-3); padding: var(--sp-2) 0; background: var(--line-fade) no-repeat top / 100% 1px; }
+.ing-row:first-of-type { background: none; }
+.ing-name { font-size: var(--fs-body); font-weight: 600; }
+.ing-qty { font-size: var(--fs-small); color: var(--c-ink-2); text-align: right; }
+
+/* --- 记一笔弹层（演示页：底层内容压暗 + 底部弹层静态呈现） --- */
+.dim { opacity: .45; pointer-events: none; }
+/* 弹层头部：实色带 + hairline 下边（磨砂已收敛），::before 承载不改结构 */
+.sheet { position: relative; overflow: hidden; background: var(--c-card); border: 1px solid var(--c-line); border-radius: var(--r-3) var(--r-3) 0 0; box-shadow: var(--sh-pop); padding: var(--sp-4) var(--sp-4) var(--sp-5); margin-top: var(--sp-5); }
+.sheet > * { position: relative; }
+.sheet::before { content: ""; position: absolute; left: 0; right: 0; top: 0; height: 88px; border-radius: var(--r-3) var(--r-3) 0 0; background: var(--c-card); border-bottom: 1px solid var(--c-line); }
+.sheet-grab { width: 40px; height: 4px; border-radius: var(--r-pill); background: var(--c-line); margin: 0 auto var(--sp-3); }
+.sheet-title { font-size: var(--fs-h2); font-weight: var(--fw-sub); letter-spacing: var(--ls-head); text-align: center; }
+.sheet-sub { font-size: var(--fs-small); color: var(--c-ink-3); text-align: center; margin-top: 2px; }
+.q { padding: var(--sp-3) 0 0; }
+.q-title { font-size: var(--fs-body); font-weight: 700; }
+.q-note { font-size: var(--fs-mini); color: var(--c-ink-3); font-weight: 400; }
+
+/* --- 历史（按日分组，每餐一行：餐次 + 圆图 + 菜名 + 评价标签） --- */
+.day-head { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: var(--sp-2); }
+.day-title { font-size: var(--fs-h2); font-weight: var(--fw-sub); letter-spacing: var(--ls-head); }
+.day-note { font-size: var(--fs-mini); color: var(--c-ink-3); }
+.meal-row { display: flex; align-items: center; gap: var(--sp-3); padding: var(--sp-3) 0; background: var(--line-fade) no-repeat top / 100% 1px; }
+.meal-row:first-of-type { background: none; }
+.meal-row .gthumbs { margin-left: 0; padding-right: 0; }
+.meal-row-name { flex: none; width: 30px; font-size: var(--fs-small); font-weight: 700; color: var(--c-ink-2); }
+.meal-row-body { flex: 1; min-width: 0; }
+.meal-row-dishes { font-size: var(--fs-body); }
+.meal-row-meta { font-size: var(--fs-mini); color: var(--c-ink-3); margin-top: 1px; }
+
+/* --- 空态（emoji 免用，文字结论 + 出口按钮） --- */
+.empty-box { text-align: center; padding: var(--sp-4) var(--sp-4) var(--sp-5); }
+.empty-title { font-size: var(--fs-h2); font-weight: var(--fw-sub); letter-spacing: var(--ls-head); }
+.empty-text { font-size: var(--fs-small); color: var(--c-ink-2); margin: var(--sp-2) 0 var(--sp-4); }
+
+/* --- 首页顶部 sticky 标题条：纯白实底 + hairline 下边（磨砂已收敛） ---
+   负边距满宽出血，条内文字左右仍对齐页面安全边距 */
+.topbar-sticky { position: sticky; top: 0; z-index: 30; margin-left: calc(-1 * var(--sp-4)); margin-right: calc(-1 * var(--sp-4)); padding: var(--sp-2) var(--sp-4); background: var(--c-card); border-bottom: 1px solid var(--c-line); }
+.topbar-row { display: flex; align-items: baseline; gap: var(--sp-3); }
+.topbar-row .back { margin-bottom: 0; }
+.topbar-title { font-size: var(--fs-h2); font-weight: var(--fw-sub); letter-spacing: var(--ls-head); }
+
+/* --- 首页品牌渐变带：全页唯一装饰面（暖橙浅渐变，圆角 --r-2，文字深棕） ---
+   内含日期大标题 + 下一餐摘要；其余页纯底无装饰面 */
+.brand-hero { margin-top: var(--sp-2); padding: var(--sp-4); border-radius: var(--r-2); background: var(--grad-brand); }
+.brand-hero h1 { font-size: var(--fs-h1); font-weight: var(--fw-head); letter-spacing: var(--ls-head); color: var(--c-ink); }
+.brand-hero .sub { font-size: var(--fs-small); color: var(--c-ink-2); margin-top: 3px; }

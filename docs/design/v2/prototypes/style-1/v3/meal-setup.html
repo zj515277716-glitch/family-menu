@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>定明天的餐 · 全套屏原型 S-04</title>
+<link rel="stylesheet" href="../style.css?v=4">
+<link rel="stylesheet" href="./v3.css?v=5">
+</head>
+<body>
+<div class="page">
+  <div class="proto-badge"><span>全套屏原型 · 方向① v3 网格卡片风 · S-04 定明天的餐</span></div>
+
+  <header class="topbar">
+    <a class="back" href="a.html">‹ 返回首页</a>
+    <h1>定明天的餐</h1>
+    <p class="sub">10月14日 周三 · 填完点「推荐菜谱」；重进不丢已填内容</p>
+  </header>
+
+  <div class="card">
+    <div class="form-title">明天几个人吃</div>
+    <div class="form-note">默认带出长期设置，可临时改</div>
+    <div class="frow">
+      <span class="frow-label">成人</span>
+      <span class="stepper">
+        <a class="step-btn" href="#">−</a><span class="step-val">2</span><a class="step-btn" href="#">＋</a>
+      </span>
+    </div>
+    <div class="frow">
+      <span class="frow-label">儿童<span class="frow-note">儿童餐少辣、少刺、软烂</span></span>
+      <span class="stepper">
+        <a class="step-btn" href="#">−</a><span class="step-val">1</span><a class="step-btn" href="#">＋</a>
+      </span>
+    </div>
+  </div>
+
+  <section class="section">
+    <div class="card">
+      <div class="form-title">必消食材</div>
+      <div class="form-note">冰箱里要先用掉的，明天一定排上；没消耗会明说</div>
+      <div class="chips">
+        <a class="chip" href="#">番茄 <span class="x">×</span></a>
+        <a class="chip" href="#">鸡蛋 <span class="x">×</span></a>
+        <a class="chip chip-add" href="#">＋ 加食材</a>
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="card">
+      <div class="form-title">临时忌口　<span class="tag tag-next">仅明天生效</span></div>
+      <div class="form-note">生病、上火等今天不想吃的，不影响长期设置</div>
+      <div class="chips">
+        <a class="chip chip-temp" href="#">牛肉 <span class="x">×</span></a>
+        <a class="chip chip-temp" href="#">虾 <span class="x">×</span></a>
+        <a class="chip chip-add" href="#">＋ 加忌口</a>
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="card">
+      <div class="form-title">想吃的菜（选填）</div>
+      <div class="form-note">想吃就写上；与忌口冲突会如实说明未排入</div>
+      <input class="input" type="text" placeholder="例：可乐鸡翅" aria-label="想吃的菜">
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="card">
+      <div class="form-title">餐次</div>
+      <div class="form-note">默认全选，点一下可去掉</div>
+      <div class="opts">
+        <a class="opt on" href="#">早餐</a>
+        <a class="opt on" href="#">中餐</a>
+        <a class="opt on" href="#">晚餐</a>
+      </div>
+    </div>
+  </section>
+
+  <div class="stickybar">
+    <a class="btn" href="generating.html">推荐菜谱</a>
+  </div>
+</div>
+</body>
+</html>

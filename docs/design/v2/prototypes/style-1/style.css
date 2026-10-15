@@ -1,0 +1,179 @@
+/* ============================================================
+   方向① 暖白极简 · 共享 token 组（本方向 3 屏共用，换 token 即换风格）
+   质感迭代第三轮（2026-10-15）：做「收」——干净、克制、高级（Apple 系清洁感）。
+   · 背景：弃全页暖渐变与顶部光晕，回纯净浅底 #FAFAF8；品牌感只放首页顶部
+     品牌渐变带（--grad-brand，暖橙浅渐变），其余页纯底无装饰面。
+   · 字体：全弃 serif（--ff-display 移除，经真机评估弃用）；层级靠字号字重：
+     页标题 20/700、卡内分区题 15/600、正文 15/400、辅助说明 12.5~13/400 灰。
+   · 卡片：纯白 + 1px 浅边 + 极轻投影；去内高光与多层重影。
+   · 磨砂收敛：只保留底部 Tabbar；sticky 标题条/横幅/弹层头部一律实色。
+   原则：文字对比度 AA 以上，长辈可用（主按钮 48、选项 44 触达不缩）。
+   ============================================================ */
+:root {
+  /* 色板 */
+  --c-bg: #FAFAF8;            /* 页面底（纯净浅暖白，全页纯色无渐变） */
+  --grad-brand: linear-gradient(135deg, #FDF0E3 0%, #FADFCB 100%); /* 品牌渐变带：仅首页顶部「今天·日期/下一餐」容器使用 */
+  --c-card: #FFFFFF;          /* 卡片底（纯白） */
+  --c-ink: #2C2420;           /* 深棕主文字 */
+  --c-ink-2: #6F6156;         /* 次文字 */
+  --c-ink-3: #8A7B6B;         /* 辅助说明灰（白底对比度 ≥4.5:1） */
+  --c-line: #EFE9E0;          /* 卡片 1px 浅边 / hairline 分隔 */
+  --line-fade: linear-gradient(90deg, rgba(239, 233, 224, 0) 0%, rgba(239, 233, 224, 1) 14%, rgba(239, 233, 224, 1) 86%, rgba(239, 233, 224, 0) 100%); /* 两侧渐隐行级分隔线（随 --c-line） */
+  --c-primary: #C8541F;       /* 暖陶橙主色 */
+  --c-primary-hi: #D86A2E;    /* 主色渐变亮端 */
+  --c-primary-lo: #C8521C;    /* 主色渐变暗端 */
+  --grad-primary: linear-gradient(180deg, var(--c-primary-hi) 0%, var(--c-primary-lo) 100%);
+  --c-primary-ink: #FFFFFF;   /* 主色上文字 */
+  --c-primary-soft: #F8E7DA;  /* 主色浅底 */
+  --c-accent: #C8541F;        /* 食欲点缀（时间/小提示） */
+  --c-ok-bg: #EDF3E4;         /* 必消/好评浅绿底 */
+  --c-ok-ink: #476B3C;        /* 必消/好评绿字 */
+  --c-tag-bg: #F1EDE5;        /* 中性标签底 */
+  --c-tag-ink: #8A7B68;       /* 中性标签字 */
+  /* 磨砂浮层：仅底部 Tabbar 保留（75% 半透 + blur 12px） */
+  --c-glass: rgba(255, 255, 255, .75);          /* Tabbar 半透底 */
+  --c-glass-solid: rgba(255, 255, 255, .95);    /* 低版本降级：95% 不透明实色 */
+  --c-glass-line: rgba(60, 40, 20, .08);        /* 磨砂区发际线 */
+  /* 菜品占位色块（暖色系，标注「实拍图位」） */
+  --ph-1: #F2B27E;
+  --ph-2: #E8956B;
+  --ph-3: #A8BE8C;
+  --ph-4: #E9C987;
+  --ph-5: #D9A48F;
+  --ph-6: #B7C4BC;
+  /* 字阶（正文 15px ≥15px，长辈可用；层级靠字号字重，不靠字体） */
+  --fs-display: 24px;   /* 登录门品牌题 */
+  --fs-h1: 20px;        /* 页标题 20/700 */
+  --fs-h2: 15px;        /* 卡内分区题 15/600 */
+  --fs-body: 15px;      /* 正文 15/400 */
+  --fs-small: 13px;     /* 辅助说明/次级控件 13/400 */
+  --fs-mini: 12.5px;    /* 弱化辅助 12.5/400 */
+  --fw-head: 700;
+  --fw-sub: 600;
+  --ls-head: -0.01em;   /* 标题收紧字距 */
+  /* 间距 */
+  --sp-1: 4px; --sp-2: 8px; --sp-3: 12px; --sp-4: 16px; --sp-5: 24px; --sp-6: 32px;
+  /* 圆角 */
+  --r-1: 8px; --r-2: 12px; --r-3: 16px; --r-pill: 999px;
+  /* 阴影（卡片浮感 = 1px 浅边 + 极轻影 + 干净底；无内高光、无多层重影） */
+  --sh-card: 0 1px 3px rgba(60, 40, 20, .05);
+  --sh-pop: 0 8px 24px rgba(60, 40, 20, .12);
+  --sh-primary: 0 6px 18px rgba(200, 84, 31, .26);        /* 主按钮柔和橙影（保持现状） */
+  --sh-primary-press: 0 2px 8px rgba(200, 84, 31, .20);   /* 按压态下沉 */
+}
+
+/* ===== 以下为本方向 3 屏共用的组件规则（3 套方向间结构一致，仅上方 token 不同） ===== */
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+  background: var(--c-bg);   /* 纯净浅底，无渐变无光晕 */
+  color: var(--c-ink);
+  font-size: var(--fs-body); line-height: 1.55;
+  font-variant-numeric: tabular-nums; /* 价格/人数/时长等数字等宽对齐 */
+}
+a { color: inherit; text-decoration: none; }
+.page { max-width: 420px; margin: 0 auto; min-height: 100vh; padding: var(--sp-4) var(--sp-4) var(--sp-6); }
+
+.proto-badge { display: flex; justify-content: center; margin-bottom: var(--sp-3); }
+.proto-badge span { font-size: var(--fs-mini); color: var(--c-ink-3); background: var(--c-tag-bg); border-radius: var(--r-pill); padding: 3px 12px; }
+
+.topbar { margin-bottom: var(--sp-4); }
+.topbar .back { display: inline-block; font-size: var(--fs-small); color: var(--c-ink-2); margin-bottom: var(--sp-2); min-height: 32px; line-height: 32px; }
+/* 页标题：20/700，无衬线，-0.01em 收紧 */
+.topbar h1 { font-size: var(--fs-h1); font-weight: var(--fw-head); letter-spacing: var(--ls-head); }
+.topbar .sub { font-size: var(--fs-small); color: var(--c-ink-2); margin-top: 2px; }
+
+.section { margin-top: 28px; }
+.section-head { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: var(--sp-3); }
+/* 卡内分区题：15/600，无衬线 */
+.section-title { font-size: var(--fs-h2); font-weight: var(--fw-sub); letter-spacing: var(--ls-head); }
+.section-note { font-size: var(--fs-small); color: var(--c-ink-3); }
+
+.card { background: var(--c-card); border: 1px solid var(--c-line); border-radius: var(--r-2); box-shadow: var(--sh-card); padding: var(--sp-4); }
+.card + .card { margin-top: var(--sp-4); }
+
+.meal-head { display: flex; align-items: center; gap: var(--sp-2); margin-bottom: var(--sp-2); }
+.meal-name { font-size: var(--fs-h2); font-weight: var(--fw-sub); letter-spacing: var(--ls-head); }
+.meal-time { font-size: var(--fs-small); color: var(--c-accent); }
+.meal-head .tag { margin-left: auto; }
+
+/* 标签：半透柔彩底 + 1px 同色细边（inset），去实色块塑料感 */
+.tag { display: inline-flex; align-items: center; min-height: 26px; padding: 0 10px; border-radius: var(--r-pill); font-size: var(--fs-mini); font-weight: 600; white-space: nowrap; }
+/* 「下一餐」：主色浅底实色 + 同色细边（磨砂已收敛，不再半透 blur） */
+.tag-next { background: var(--c-primary-soft); color: var(--c-primary); font-weight: 700; box-shadow: inset 0 0 0 1px rgba(200, 84, 31, .18); }
+.tag-ok { background: rgba(71, 107, 60, .10); color: var(--c-ok-ink); box-shadow: inset 0 0 0 1px rgba(71, 107, 60, .26); }
+.tag-mid { background: rgba(138, 123, 104, .10); color: var(--c-tag-ink); box-shadow: inset 0 0 0 1px rgba(138, 123, 104, .26); }
+
+.dish { display: flex; align-items: center; gap: var(--sp-3); padding: var(--sp-3) 0; background: var(--line-fade) no-repeat top / 100% 1px; }
+.dish:first-of-type { background: none; }
+.ph { width: 64px; height: 64px; flex: none; border-radius: var(--r-1); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; color: rgba(66, 44, 22, .78); }
+.ph b { font-size: 12.5px; font-weight: 700; }
+.ph i { font-style: normal; font-size: 9.5px; opacity: .75; }
+.ph-1 { background: var(--ph-1); } .ph-2 { background: var(--ph-2); } .ph-3 { background: var(--ph-3); }
+.ph-4 { background: var(--ph-4); } .ph-5 { background: var(--ph-5); } .ph-6 { background: var(--ph-6); }
+/* 示意菜品图：保留 ph-N 暖色底作加载失败降级，圆角随 token */
+.dish-img { width: 64px; height: 64px; flex: none; border-radius: var(--r-1); object-fit: cover; display: block; }
+.img-note { font-size: 11px; color: var(--c-ink-3); text-align: center; margin-top: var(--sp-4); }
+.dish-info { flex: 1; min-width: 0; }
+/* 菜名：无衬线 15/600，层级靠字重（网格卡内菜名同口径，见 v3.css .fcard-name） */
+.dish-name { font-size: var(--fs-body); font-weight: var(--fw-sub); }
+.dish-meta { font-size: var(--fs-small); color: var(--c-ink-2); }
+.dish-src { font-size: var(--fs-mini); color: var(--c-ink-3); margin-top: 1px; }
+
+/* 主按钮：暖橙纵向微渐变 + 柔和橙影（保持现状，用户已认可）；次按钮幽灵细边 */
+.btn { display: flex; align-items: center; justify-content: center; min-height: 48px; padding: 0 var(--sp-4); border-radius: var(--r-2); border: 1px solid transparent; background: var(--grad-primary); color: var(--c-primary-ink); font-size: var(--fs-body); font-weight: 600; text-align: center; box-shadow: var(--sh-primary); }
+.btn-ghost { background: transparent; color: var(--c-primary); border-color: rgba(200, 84, 31, .45); box-shadow: none; }
+.btn-plain { background: var(--c-tag-bg); color: var(--c-ink-2); box-shadow: none; }
+.btn-sm { min-height: 44px; padding: 0 14px; font-size: var(--fs-small); border-radius: var(--r-1); }
+.btn-row { display: flex; gap: var(--sp-3); margin-top: var(--sp-3); }
+.btn-row .btn { flex: 1; }
+
+/* 必消横幅：浅绿实底一行式（磨砂已收敛，无 blur 无亮边） */
+.banner { display: flex; gap: var(--sp-2); align-items: center; background: var(--c-ok-bg); color: var(--c-ok-ink); border-radius: var(--r-2); padding: var(--sp-3) var(--sp-4); font-size: var(--fs-small); }
+.banner b { font-weight: 700; }
+
+/* 「换成：xx」候选行：弱化成极浅底小圆钮（灰小字，可点有反馈） */
+.cand-row { display: flex; flex-wrap: wrap; gap: var(--sp-2); padding: var(--sp-2) 0 var(--sp-3); }
+.cand { display: inline-flex; align-items: center; min-height: 32px; padding: 0 10px; background: var(--c-tag-bg); color: var(--c-ink-2); border-radius: var(--r-pill); font-size: var(--fs-mini); }
+
+.group-title { display: flex; justify-content: space-between; align-items: baseline; font-size: var(--fs-small); font-weight: 700; color: var(--c-ink-2); padding: var(--sp-3) var(--sp-1) var(--sp-2); }
+.group-title em { font-style: normal; font-weight: 400; color: var(--c-ink-3); }
+.list { background: var(--c-card); border: 1px solid var(--c-line); border-radius: var(--r-2); box-shadow: var(--sh-card); overflow: hidden; }
+.item { display: flex; align-items: center; gap: var(--sp-3); padding: var(--sp-3) var(--sp-4); background: var(--line-fade) no-repeat top / 100% 1px; min-height: 56px; }
+.item:first-child { background: none; }
+.check { width: 26px; height: 26px; flex: none; border-radius: 50%; border: 2px solid var(--c-line); display: flex; align-items: center; justify-content: center; font-size: 14px; color: transparent; }
+.item.done .check { background: var(--c-ok-ink); border-color: var(--c-ok-ink); color: #fff; }
+.item .name { flex: 1; font-size: var(--fs-body); }
+.item .qty { font-size: var(--fs-small); color: var(--c-ink-2); white-space: nowrap; }
+.item .src { font-size: var(--fs-mini); color: var(--c-ink-3); }
+.item.owned .name { color: var(--c-ink-3); } .item.owned .name-text { text-decoration: line-through; }
+.item.owned .qty { color: var(--c-ink-3); }
+
+.prep-card { background: var(--c-card); border: 1px solid var(--c-line); border-radius: var(--r-2); box-shadow: var(--sh-card); padding: var(--sp-4); }
+.prep-card + .prep-card { margin-top: var(--sp-4); }
+.prep-title { font-size: var(--fs-h2); font-weight: var(--fw-sub); letter-spacing: var(--ls-head); margin-bottom: var(--sp-1); }
+.prep-sub { font-size: var(--fs-small); color: var(--c-ink-3); margin-bottom: var(--sp-3); }
+.step { display: flex; gap: var(--sp-3); padding: var(--sp-2) 0; }
+.step .num { width: 28px; height: 28px; flex: none; border-radius: 50%; background: var(--c-primary-soft); color: var(--c-primary); font-size: var(--fs-small); font-weight: 700; display: flex; align-items: center; justify-content: center; }
+.step p { flex: 1; font-size: var(--fs-body); }
+
+/* 底部操作栏：吸底（sticky 底部安全区内），纯白实色 + hairline 顶边，不磨砂 */
+.stickybar { position: sticky; bottom: 0; z-index: 20; margin: var(--sp-5) calc(-1 * var(--sp-4)) calc(-1 * var(--sp-6)); padding: var(--sp-3) var(--sp-4) var(--sp-4); background: var(--c-card); border-top: 1px solid var(--c-line); display: flex; gap: var(--sp-3); }
+.stickybar .btn { flex: 1; }
+
+/* Tabbar：全局唯一保留磨砂处（75% 半透 + blur 12px）；不支持时降级 95% 实色 */
+.tabbar { position: static; width: 100%; max-width: 420px; margin: var(--sp-5) auto 0; background: var(--c-glass-solid); border-top: 1px solid var(--c-glass-line); display: flex; z-index: 10; }
+@supports (backdrop-filter: blur(1px)) {
+  .tabbar { background: var(--c-glass); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); }
+}
+.tab { flex: 1; text-align: center; padding: 12px 0 14px; font-size: var(--fs-small); color: var(--c-ink-3); }
+.tab.active { color: var(--c-primary); font-weight: 700; }
+.tab .dot { width: 4px; height: 4px; border-radius: 50%; background: var(--c-primary); margin: 3px auto 0; }
+.tab:not(.active) .dot { visibility: hidden; }
+
+/* 按压反馈：主按钮下沉收影，其余降透明；均有反馈，禁止静默 */
+.btn:active { transform: translateY(1px); box-shadow: var(--sh-primary-press); }
+.btn-ghost:active, .btn-plain:active { transform: none; box-shadow: none; opacity: .82; }
+.cand:active, .tab:active, .back:active { opacity: .82; }
+.item .src { display: block; }

@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>记一笔弹层 · 全套屏原型 S-10</title>
+<link rel="stylesheet" href="../style.css?v=4">
+<link rel="stylesheet" href="./v3.css?v=5">
+</head>
+<body>
+<div class="page">
+  <div class="proto-badge"><span>全套屏原型 · 方向① v3 网格卡片风 · S-10 记一笔（餐卡弹层演示）</span></div>
+
+  <header class="topbar">
+    <a class="back" href="a.html">‹ 返回首页</a>
+    <h1>记一笔 · 今日晚餐</h1>
+    <p class="sub">做完一餐点「记一笔」，就地三问不跳页　<span class="demo-tag">演示态：弹层已打开</span></p>
+  </header>
+
+  <!-- 底层：首页晚餐餐卡（弹层打开时压暗不可点） -->
+  <div class="dim">
+    <div class="meal-block">
+      <div class="meal-head">
+        <span class="meal-name">晚餐</span>
+        <span class="meal-time">约 18:00 开饭</span>
+        <span class="tag tag-next">下一餐</span>
+      </div>
+      <div class="hscroll">
+        <article class="fcard">
+          <img class="ph-6" src="../../assets/dishes/steamed-seabass.jpg" alt="清蒸鲈鱼（示意图）">
+          <div class="fcard-body">
+            <div class="fcard-name">清蒸鲈鱼</div>
+            <div class="fcard-meta">蒸 12 分钟 · 刺少适合孩子</div>
+          </div>
+        </article>
+        <article class="fcard">
+          <img class="ph-2" src="../../assets/dishes/tomato-eggs.jpg" alt="番茄炒蛋（示意图）">
+          <div class="fcard-body">
+            <div class="fcard-name">番茄炒蛋</div>
+            <div class="fcard-meta">炒 15 分钟 · 孩子爱吃</div>
+          </div>
+        </article>
+      </div>
+    </div>
+  </div>
+
+  <!-- 弹层：只记这一餐，漏评不追 -->
+  <div class="sheet">
+    <div class="sheet-grab"></div>
+    <div class="sheet-title">晚餐吃得怎么样？</div>
+    <div class="sheet-sub">只记这一餐 · 评价可选，漏评不追</div>
+
+    <div class="q">
+      <div class="q-title">做了没？</div>
+      <div class="opts">
+        <a class="opt on" href="#">做了</a>
+        <a class="opt" href="#">没做</a>
+      </div>
+    </div>
+    <div class="q">
+      <div class="q-title">好吃吗？</div>
+      <div class="opts">
+        <a class="opt on" href="#">好吃</a>
+        <a class="opt" href="#">一般</a>
+        <a class="opt" href="#">翻车</a>
+      </div>
+    </div>
+    <div class="q">
+      <div class="q-title">下次还做吗？</div>
+      <div class="opts">
+        <a class="opt on" href="#">还做</a>
+        <a class="opt" href="#">不做了</a>
+      </div>
+    </div>
+    <div class="q">
+      <div class="q-title">实际耗时 <span class="q-note">选填</span></div>
+      <div class="opts">
+        <a class="opt" href="#">15 分钟内</a>
+        <a class="opt" href="#">30 分钟</a>
+        <a class="opt" href="#">50 分钟</a>
+      </div>
+    </div>
+
+    <div class="btn-row">
+      <a class="btn btn-plain" href="a.html">取消</a>
+      <a class="btn" href="a.html">提交</a>
+    </div>
+  </div>
+
+  <section class="section">
+    <div class="card">
+      <div class="demo-head"><span class="demo-tag">演示态：已提交</span></div>
+      <div class="form-title">记好了 ✓</div>
+      <div class="form-note">晚餐 · 做了 · 好吃 · 下次还做——评价进推荐依据，好评的菜以后常安排</div>
+    </div>
+  </section>
+
+  <p class="img-note">示意图·正式版为试做实拍</p>
+</div>
+</body>
+</html>

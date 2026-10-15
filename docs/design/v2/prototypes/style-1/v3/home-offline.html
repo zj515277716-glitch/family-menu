@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>服务未连接 · 全套屏原型 S-13</title>
+<link rel="stylesheet" href="../style.css?v=4">
+<link rel="stylesheet" href="./v3.css?v=5">
+</head>
+<body>
+<div class="page">
+  <div class="proto-badge"><span>全套屏原型 · 方向① v3 网格卡片风 · S-13 服务未连接（首页叠加态）</span></div>
+
+  <header class="topbar topbar-sticky">
+    <a class="back" href="../../index.html">‹ 返回索引</a>
+    <h1>今天 · 10月13日 周二</h1>
+    <p class="sub">2 大 1 小 · 晚餐是今天的下一餐　<span class="demo-tag">演示态：错误（可重试）</span></p>
+  </header>
+
+  <!-- 全局警示横幅：可重试，绝不显示假菜单 -->
+  <div class="banner banner-warn">⚠ <b>服务未连接</b>，暂时拿不到菜单<a class="act" href="a.html">重试</a></div>
+
+  <!-- 上半区：今天三餐（错误态：明说 + 重试，不拿假菜单凑数） -->
+  <section class="section">
+    <div class="section-head">
+      <span class="section-title">今天三餐</span>
+      <span class="section-note">做完一餐点「记一笔」</span>
+    </div>
+    <div class="card">
+      <div class="empty-box">
+        <div class="empty-title">暂时拿不到今天的三餐</div>
+        <p class="empty-text">服务恢复后就显示；已经记过的评价不会丢。</p>
+        <a class="btn" href="a.html">重试</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- 下半区：定明天的餐（表单本地可填，提交待服务恢复） -->
+  <section class="section">
+    <div class="section-head">
+      <span class="section-title">定明天的餐</span>
+      <span class="section-note">10月14日 周三</span>
+    </div>
+    <div class="card">
+      <div class="form-note">人数、必消、忌口可以先填好，服务恢复后一键生成。</div>
+      <div class="btn-row">
+        <a class="btn btn-ghost" href="meal-setup.html">先去填写</a>
+      </div>
+    </div>
+  </section>
+
+  <p class="img-note">示意图·正式版为试做实拍</p>
+</div>
+
+<nav class="tabbar">
+  <a class="tab active" href="a.html">首页<span class="dot"></span></a>
+  <a class="tab" href="history.html">历史<span class="dot"></span></a>
+  <a class="tab" href="settings.html">设置<span class="dot"></span></a>
+</nav>
+</body>
+</html>
