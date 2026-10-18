@@ -6,6 +6,12 @@ import { z } from 'zod';
 /** 菜品角色 */
 export const MealRoleSchema = z.enum(['MAIN', 'SIDE', 'SOUP', 'STAPLE']);
 /**
+ * 餐次（PD-020 一日三餐）：早/中/晚三正餐。
+ * 放本模块而非 plan.ts：与 MealRole 同属菜品域属性（Dish.mealTypes），
+ * 且 plan.ts 需 import 本文件（DayPlanDish 复用 DishSchema），反向依赖会成环。
+ */
+export const MealSlotSchema = z.enum(['breakfast', 'lunch', 'dinner']);
+/**
  * 内容状态三态：DRAFT -> TESTED -> PUBLISHED。
  * 只有 PUBLISHED 进入推荐池（安全底线，DEC-006 运行时零LLM）。
  */
@@ -37,6 +43,11 @@ export const DishSchema = z.object({
     id: z.string(),
     name: z.string(),
     mealRole: MealRoleSchema,
+    /**
+     * 适用餐次（PD-020 餐型维度，v0.12）。缺省 = 未标记：引擎按既有字段
+     * 确定性推断（粥/饼/蛋类轻食进早餐池），兼容迁移前存量数据。
+     */
+    mealTypes: z.array(MealSlotSchema).optional(),
     cuisine: z.string().optional(),
     flavorTags: z.array(z.string()), // 清淡/微辣/酸甜...
     spicyLevel: z.number().int().default(0),

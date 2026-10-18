@@ -2,16 +2,23 @@
 // 引擎编排：调 engine.recommend + list-merger.mergeShoppingList + Prisma 持久化
 // 路由薄、逻辑在 services（AGENTS.md 铁律），planService 是 API 层核心业务逻辑
 
-import { composeMenusByRole, filterSwapCandidates, recommend } from '@family-menu/engine';
+import {
+  composeMenusByRole,
+  filterSwapCandidates,
+  inferMealTypes,
+  recommend,
+} from '@family-menu/engine';
 import type { DishView, EventView, MenuView } from '@family-menu/engine';
 import { mergeShoppingList, type ShoppingList } from '@family-menu/list-merger';
 import type {
   Candidate,
+  DayPlan,
   ExclusionRule,
   FamilyRule,
   FeedbackRequest,
   FeedbackResponse,
   MealRole,
+  MealSlot,
   Plan,
   PlanContext,
   PlanStatus,
@@ -66,15 +73,20 @@ export class SwapRecheckError extends Error {
 
 /** 单家庭版默认 familyId（阶段2多家庭时从登录态获取） */
 const FAMILY_ID = process.env.FAMILY_ID ?? 'seed-family';
+export { FAMILY_ID };
 
 // ───── 内部辅助：Plan 行映射 ─────
 
-interface PlanRow {
+export interface PlanRow {
   id: string;
   familyId: string;
   planDate: Date;
   context: unknown;
+  /** 三餐上下文（PD-020）；存量单餐计划为 null */
+  dayContext: unknown;
   candidates: unknown;
+  /** 三餐计划快照（PD-020）；存量单餐计划为 null */
+  dayPlan: unknown;
   lockedMenuId: string | null;
   shoppingList: unknown;
   status: string;
@@ -86,8 +98,11 @@ function toPlan(row: PlanRow): Plan {
     id: row.id,
     familyId: row.familyId,
     planDate: row.planDate,
-    context: row.context as PlanContext,
-    candidates: row.candidates as Candidate[],
+    // 三餐计划 context 列存空对象 -> 契约 optional 投影 undefined（不伪造单餐上下文）
+    context: (row.context as PlanContext | null) ?? undefined,
+    dayContext: (row.dayContext as Plan['dayContext'] | null) ?? undefined,
+    candidates: (row.candidates as Candidate[] | null) ?? [],
+    dayPlan: (row.dayPlan as Plan['dayPlan'] | null) ?? undefined,
     lockedMenuId: row.lockedMenuId ?? undefined,
     shoppingList: (row.shoppingList as ShoppingList | null) ?? undefined,
     status: row.status as PlanStatus,
@@ -95,9 +110,11 @@ function toPlan(row: PlanRow): Plan {
   };
 }
 
+export { toPlan };
+
 // ───── 内部辅助：查询家庭规则与禁忌 ─────
 
-async function loadFamilyRuleView(familyId: string) {
+export async function loadFamilyRuleView(familyId: string) {
   const rule = await prisma.familyRule.findFirst({ where: { familyId } });
   if (!rule) {
     throw new NotFoundError(`FamilyRule not found for family ${familyId}`);
@@ -105,7 +122,7 @@ async function loadFamilyRuleView(familyId: string) {
   return toFamilyRuleView(rule);
 }
 
-async function loadExclusionViews(familyId: string) {
+export async function loadExclusionViews(familyId: string) {
   const exclusions = await prisma.exclusionRule.findMany({ where: { familyId } });
   // scope=INGREDIENT 时 join Ingredient 获取 name/aliases
   const ingredientIds = exclusions
@@ -146,13 +163,18 @@ export async function loadMenuViews(): Promise<ReturnType<typeof toMenuView>[]> 
  * T-P16/PD-018：加载全角色 PUBLISHED 菜池（槽位组合层输入，含食材关联）。
  * 按 id 升序确定性排序，保证同条件组合可复现（AC6 换一批语义基线）。
  */
-async function loadPublishedDishViews(): Promise<DishView[]> {
+export async function loadPublishedDishViews(): Promise<DishView[]> {
   const dishes = await prisma.dish.findMany({
     where: { status: 'PUBLISHED' },
     orderBy: { id: 'asc' },
     include: { ingredients: { include: { ingredient: true } } },
   });
-  return dishes.map(toDishView);
+  // 单餐路径=晚餐语境：早餐专属菜（mealTypes=['breakfast']）不进晚餐池（T-Q10
+  // 种子加早餐菜后必过滤，否则混进候选组合）。口径与引擎 inferMealTypes 一致：
+  // mealTypes 缺省的存量菜推断为午晚全适用，兼容不破。
+  return dishes
+    .map(toDishView)
+    .filter((d) => inferMealTypes(d).includes('dinner'));
 }
 
 /**
@@ -221,7 +243,7 @@ export async function loadEventViews(familyId: string): Promise<EventView[]> {
  * 先到先得，与既有行为同构）-> 层 2 双向子串（恰好命中 1 个食材才采纳，≥2 个歧义不猜）；
  * 未映射的原文原样透传（引擎按 ingredientId 匹配不到 -> 必然空手，unmetMustUse 回传原文）。
  */
-async function resolveMustUseIds(
+export async function resolveMustUseIds(
   rawNames: string[],
 ): Promise<{ ids: string[]; idToRaw: Map<string, string> }> {
   if (rawNames.length === 0) {
@@ -296,7 +318,10 @@ async function loadDishViews(mealRole: MealRole): Promise<DishView[]> {
     where: { status: 'PUBLISHED', mealRole },
     include: { ingredients: { include: { ingredient: true } } },
   });
-  return dishes.map(toDishView);
+  // 换菜候选同属晚餐语境，与 loadPublishedDishViews 同口径排除早餐专属菜
+  return dishes
+    .map(toDishView)
+    .filter((d) => inferMealTypes(d).includes('dinner'));
 }
 
 /**
@@ -547,6 +572,7 @@ export const planService = {
         familyId: FAMILY_ID,
         planId: plan.id,
         type: 'GENERATE',
+        mealSlot: 'dinner',
       },
     });
 
@@ -572,13 +598,14 @@ export const planService = {
         planId,
         type: 'LOCK',
         payload: { menuId },
+        mealSlot: 'dinner',
       },
     });
 
     return toPlan(updated as PlanRow);
   },
 
-  // ── F3: 换菜 ──
+  // ── F3: 换菜（v0.12：三餐计划分流到 dayPlanService，单餐存量走本方法旧逻辑） ──
 
   async swapPlan(
     planId: string,
@@ -586,10 +613,17 @@ export const planService = {
     dishId?: string,
     newDishId?: string,
     reason?: string,
+    slot?: MealSlot,
   ): Promise<Plan> {
     const plan = await prisma.plan.findUnique({ where: { id: planId } });
     if (!plan) {
       throw new NotFoundError(`Plan ${planId} not found`);
+    }
+
+    // 三餐计划：换一道/换一餐/换一批（C-3a 三语义）走日计划流
+    if (plan.dayPlan) {
+      const { dayPlanService } = await import('./dayPlanService.js');
+      return dayPlanService.swapDayPlan(planId, swapType, dishId, newDishId, slot, reason);
     }
 
     const candidates = plan.candidates as Candidate[];
@@ -695,6 +729,7 @@ export const planService = {
           planId,
           type: 'SWAP_MENU',
           payload: { reason, oldMenuId: plan.lockedMenuId, newMenuId },
+          mealSlot: 'dinner',
         },
       });
 
@@ -770,6 +805,7 @@ export const planService = {
           newDishName: newDish.name,
           regenerated: true,
         },
+        mealSlot: 'dinner',
       },
     });
 
@@ -779,6 +815,16 @@ export const planService = {
   // ── F3: 换菜候选（TP-03/DEC-013） ──
 
   async getSwapOptions(planId: string, dishId: string): Promise<SwapOptionsResponse> {
+    // 三餐计划（lockedMenuId 为 null，不走 requireLockedPlan）：同餐型候选走日计划流
+    const raw = await prisma.plan.findUnique({ where: { id: planId } });
+    if (!raw) {
+      throw new NotFoundError(`Plan ${planId} not found`);
+    }
+    if (raw.dayPlan) {
+      const { dayPlanService } = await import('./dayPlanService.js');
+      return dayPlanService.getDaySwapOptions(planId, dishId);
+    }
+
     const plan = await requireLockedPlan(planId);
     const { menuView } = await hydrateLockedMenu(plan);
     const outgoingDish = menuView.dishes.find((d) => d.id === dishId);
@@ -811,6 +857,11 @@ export const planService = {
     const plan = await prisma.plan.findUnique({ where: { id: planId } });
     if (!plan) {
       throw new NotFoundError(`Plan ${planId} not found`);
+    }
+    // 三餐计划：三餐合并+备菜建议（C-4）走日计划流
+    if (plan.dayPlan) {
+      const { dayPlanService } = await import('./dayPlanService.js');
+      return dayPlanService.getDayShoppingList(planId);
     }
     if (!plan.lockedMenuId) {
       throw new NotFoundError(`Plan ${planId} has no locked menu`);
@@ -871,8 +922,26 @@ export const planService = {
     return updatedList;
   },
 
-  /** 改人数重算清单（TP-04/DEC-014 裁决 3）：同步今晚人数 -> 重算清单（保留勾选）-> Event RESCALE */
-  async rescaleShoppingList(planId: string, people: number): Promise<ShoppingList> {
+  /**
+   * 改人数重算清单（TP-04/DEC-014 裁决 3；v0.12 成人/儿童口径，C-4）。
+   * 三餐计划分流日计划流（dayContext 同步 adults/children）；存量单餐计划把
+   * 成人+儿童合并回旧 people 口径重算（语义连续，不因契约升级断供）。
+   */
+  async rescaleShoppingList(
+    planId: string,
+    adults: number,
+    children: number,
+  ): Promise<ShoppingList> {
+    const raw = await prisma.plan.findUnique({ where: { id: planId } });
+    if (!raw) {
+      throw new NotFoundError(`Plan ${planId} not found`);
+    }
+    if (raw.dayPlan) {
+      const { dayPlanService } = await import('./dayPlanService.js');
+      return dayPlanService.rescaleDayShoppingList(planId, adults, children);
+    }
+
+    const people = adults + children;
     const plan = await requireLockedPlan(planId);
     const context = plan.context as PlanContext;
     const from = context.people;
@@ -902,6 +971,7 @@ export const planService = {
         planId,
         type: 'RESCALE',
         payload: { from, to: people },
+        mealSlot: 'dinner',
       },
     });
 
@@ -924,6 +994,12 @@ export const planService = {
       throw new NotFoundError(`Plan ${planId} not found`);
     }
 
+    // 三餐计划：按餐记录（C-5 评价按餐独立、同日同餐重提覆盖）走日计划流
+    if (plan.dayPlan) {
+      const { dayPlanService } = await import('./dayPlanService.js');
+      return dayPlanService.addDayFeedback(planId, data);
+    }
+
     const { didCook, taste, willRepeat, actualMinutes } = data;
 
     // payload 形状钉死（DEC-015 裁决 2）：taste 仅在做了时存在
@@ -944,6 +1020,9 @@ export const planService = {
         planId,
         type: didCook ? 'COOKED' : 'NOT_COOKED',
         payload,
+        // v0.12：旧单餐路径=晚餐语境（与迁移回填口径一致；保证 mealSlot 恒有值，
+        // a3-reputation 等旧路径测试写入不会产生 mealSlot=null 行击穿回填断言）
+        mealSlot: 'dinner',
       },
     });
 
@@ -960,7 +1039,7 @@ export const planService = {
       // T-A3：虚拟菜单（virt-*）不在 Menu 表，CookLog.menuId FK 不可写（不伪造）；
       // 改为按锁定组合每道菜写一行 dishId CookLog——内容升级通道经菜品恢复（做过的每道菜
       // 都有试做记录），计划关联经既有 COOKED Event.planId（CookLog 无 planId 列，schema 禁改）。
-      // 真实 Menu 反馈保持单行 menuId（既有行为不变）。
+      // 真实 Menu 反馈保持单行 menuId（既有行为不变）。mealSlot 同 Event 口径恒 dinner。
       const isVirtual = lockedMenuId !== null && lockedMenuId.startsWith('virt-');
       if (isVirtual) {
         const { menuView } = await hydrateLockedMenu(
@@ -971,6 +1050,7 @@ export const planService = {
             data: {
               menuId: null,
               dishId: dish.id,
+              mealSlot: 'dinner',
               result,
               failPoints: null, // 三问无失败原因输入，字段留给内容管线
               willRepeat,
@@ -982,6 +1062,7 @@ export const planService = {
         await prisma.cookLog.create({
           data: {
             menuId: lockedMenuId,
+            mealSlot: 'dinner',
             result,
             failPoints: null,
             willRepeat,
@@ -998,17 +1079,22 @@ export const planService = {
    * 读取该 plan 最新一条反馈（GET /api/plans/:id/feedback，DEC-015 裁决 4；v0.9 空态修订 T-P12）。
    * didCook 由事件类型派生（COOKED/NOT_COOKED）；taste/willRepeat/actualMinutes 取事件 payload；
    * submittedAt = 事件创建时间。事件流 append-only：覆盖重提后自然取到最新一条。
-   * taste/willRepeat/actualMinutes 可选 = v0.5 旧事件 payload 无这些字段，如实缺省不编造。
+   * mealSlot（v0.12）：传了按该餐取最新（C-5 各餐独立）；不传=全计划最新（旧行为）。
+   * 存量单餐反馈 mealSlot 恒 'dinner'（迁移回填），按餐查询自然兼容。
    * 无反馈 -> return null（v0.9：路由层 200 + JSON null）；plan 不存在仍 NotFoundError -> 404。
    */
-  async getFeedback(planId: string): Promise<FeedbackResponse | null> {
+  async getFeedback(planId: string, mealSlot?: MealSlot): Promise<FeedbackResponse | null> {
     const plan = await prisma.plan.findUnique({ where: { id: planId } });
     if (!plan) {
       throw new NotFoundError(`Plan ${planId} not found`);
     }
 
     const event = await prisma.event.findFirst({
-      where: { planId, type: { in: ['COOKED', 'NOT_COOKED'] } },
+      where: {
+        planId,
+        type: { in: ['COOKED', 'NOT_COOKED'] },
+        ...(mealSlot ? { mealSlot } : {}),
+      },
       orderBy: { createdAt: 'desc' },
     });
     if (!event) {
@@ -1026,18 +1112,38 @@ export const planService = {
       taste: payload.taste,
       willRepeat: payload.willRepeat,
       actualMinutes: payload.actualMinutes,
+      mealSlot: (event.mealSlot ?? undefined) as MealSlot | undefined,
       submittedAt: event.createdAt,
     };
   },
 
   // ── F7: 历史与复做 ──
 
-  async listPlans(): Promise<Plan[]> {
+  /**
+   * 历史列表（GET /api/plans?date=，v0.12 扩 date 查询，口径见 api.ts 账本 ⑤）。
+   * date='YYYY-MM-DD' -> 本地零点 [start, end) 过滤 planDate，该日全部版本按 createdAt 倒序
+   * （同日重生成 append 新行，取首条即最新，由消费方取首条）。
+   * 不传 date -> 全量历史（旧行为，兼容 h5 历史页）。
+   * dishNames 口径：三餐计划从 dayPlan.meals 回填三餐菜名合集（餐序早/中/晚 + 菜序）；
+   * 单餐计划维持 MenuDish / 候选快照回填（见下）。
+   */
+  async listPlans(date?: string): Promise<Plan[]> {
+    let planDateRange: { gte: Date; lt: Date } | undefined;
+    if (date) {
+      const start = new Date(`${date}T00:00:00`);
+      const end = new Date(start);
+      end.setDate(end.getDate() + 1);
+      planDateRange = { gte: start, lt: end };
+    }
     const plans = await prisma.plan.findMany({
-      where: { familyId: FAMILY_ID },
+      where: {
+        familyId: FAMILY_ID,
+        ...(planDateRange ? { planDate: planDateRange } : {}),
+      },
       orderBy: { createdAt: 'desc' },
     });
     // 真实菜名（e-final 屏⑫ rec-dishes）：按锁定菜单一次查出 全部 菜名，按 menuId 分组
+    // （三餐计划 lockedMenuId=null 不入 menuIds，此查询天然跳过它们）
     const menuIds = [...new Set(plans.map((p) => p.lockedMenuId).filter((id): id is string => !!id))];
     const dishRows = menuIds.length
       ? await prisma.menuDish.findMany({
@@ -1054,6 +1160,12 @@ export const planService = {
     }
     return plans.map((p) => {
       const plan = toPlan(p as PlanRow);
+      // 三餐计划（v0.12）：菜名 = 三餐合集，展示口径与快照一致
+      const dayPlan = p.dayPlan as DayPlan | null;
+      if (dayPlan && Array.isArray(dayPlan.meals)) {
+        plan.dishNames = dayPlan.meals.flatMap((m) => m.dishes.map((d) => d.name));
+        return plan;
+      }
       const names = p.lockedMenuId ? namesByMenu.get(p.lockedMenuId) : undefined;
       if (names && names.length > 0) {
         plan.dishNames = names;
@@ -1098,6 +1210,7 @@ export const planService = {
         planId: newPlanId,
         type: 'REPEAT',
         payload: { originalPlanId: planId },
+        mealSlot: 'dinner',
       },
     });
 

@@ -15,6 +15,7 @@ import {
   SubstitutionSchema,
   DishStepSchema,
   MealRoleSchema,
+  MealSlotSchema,
   ContentStatusSchema,
   ContentOriginSchema,
 } from '../schemas/dish.js';
@@ -37,6 +38,18 @@ import {
   ShoppingListItemSchema,
   ShoppingListGroupSchema,
   EventPayloadSchema,
+  TempAvoidanceSchema,
+  DayPlanContextSchema,
+  FilterTraceSchema,
+  DayPlanDishIngredientSchema,
+  DayPlanDishSchema,
+  DayPlanMealSchema,
+  MustUseAllocationSchema,
+  DesiredDishNoteSchema,
+  MealFailureKindSchema,
+  MealFailureSchema,
+  DayPlanSchema,
+  PrepAdviceSchema,
 } from '../schemas/plan.js';
 import {
   PlanIdParamsSchema,
@@ -57,6 +70,7 @@ import {
   GetExclusionsResponseSchema,
   RecommendResponseSchema,
   PlanResponseSchema,
+  PlanListQuerySchema,
   PlanListResponseSchema,
   ShoppingListResponseSchema,
 } from '../schemas/api.js';
@@ -75,6 +89,7 @@ export type Ingredient = z.infer<typeof IngredientSchema>;
 export type Substitution = z.infer<typeof SubstitutionSchema>;
 export type DishStep = z.infer<typeof DishStepSchema>;
 export type MealRole = z.infer<typeof MealRoleSchema>;
+export type MealSlot = z.infer<typeof MealSlotSchema>;
 export type ContentStatus = z.infer<typeof ContentStatusSchema>;
 export type ContentOrigin = z.infer<typeof ContentOriginSchema>;
 
@@ -97,6 +112,19 @@ export type ShoppingList = z.infer<typeof ShoppingListSchema>;
 export type ShoppingListItem = z.infer<typeof ShoppingListItemSchema>;
 export type ShoppingListGroup = z.infer<typeof ShoppingListGroupSchema>;
 export type EventPayload = z.infer<typeof EventPayloadSchema>;
+// ───── 日计划（PD-020，v0.12） ─────
+export type TempAvoidance = z.infer<typeof TempAvoidanceSchema>;
+export type DayPlanContext = z.infer<typeof DayPlanContextSchema>;
+export type FilterTrace = z.infer<typeof FilterTraceSchema>;
+export type DayPlanDishIngredient = z.infer<typeof DayPlanDishIngredientSchema>;
+export type DayPlanDish = z.infer<typeof DayPlanDishSchema>;
+export type DayPlanMeal = z.infer<typeof DayPlanMealSchema>;
+export type MustUseAllocation = z.infer<typeof MustUseAllocationSchema>;
+export type DesiredDishNote = z.infer<typeof DesiredDishNoteSchema>;
+export type MealFailureKind = z.infer<typeof MealFailureKindSchema>;
+export type MealFailure = z.infer<typeof MealFailureSchema>;
+export type DayPlan = z.infer<typeof DayPlanSchema>;
+export type PrepAdvice = z.infer<typeof PrepAdviceSchema>;
 
 // ───── api ─────
 export type PlanIdParams = z.infer<typeof PlanIdParamsSchema>;
@@ -117,5 +145,6 @@ export type FamilyRulesResponse = z.infer<typeof FamilyRulesResponseSchema>;
 export type GetExclusionsResponse = z.infer<typeof GetExclusionsResponseSchema>;
 export type RecommendResponse = z.infer<typeof RecommendResponseSchema>;
 export type PlanResponse = z.infer<typeof PlanResponseSchema>;
+export type PlanListQuery = z.infer<typeof PlanListQuerySchema>;
 export type PlanListResponse = z.infer<typeof PlanListResponseSchema>;
 export type ShoppingListResponse = z.infer<typeof ShoppingListResponseSchema>;

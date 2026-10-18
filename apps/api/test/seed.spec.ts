@@ -97,8 +97,28 @@ describe('seed data: dishes', () => {
     }
   });
 
-  it('has exactly 13 dishes (T-P16 AC8: 10 seed + 3 FETCHED ribs dishes)', () => {
-    expect(dishes).toHaveLength(13);
+  it('has exactly 19 dishes (T-P16 AC8: 10 seed + 3 FETCHED ribs + T-Q10: 6 breakfast)', () => {
+    expect(dishes).toHaveLength(19);
+  });
+
+  it('T-Q10: 6 breakfast dishes all marked mealTypes=[breakfast] and PUBLISHED', () => {
+    const breakfastIds = [
+      'seed-dish-millet-porridge',
+      'seed-dish-egg-pancake',
+      'seed-dish-steamed-egg-custard',
+      'seed-dish-milk-oatmeal',
+      'seed-dish-tomato-egg-noodle',
+      'seed-dish-boiled-egg',
+    ];
+    expect(dishes.filter((d) => d.mealTypes?.includes('breakfast')).length).toBe(6);
+    for (const id of breakfastIds) {
+      const dish = dishes.find((d) => d.id === id);
+      expect(dish).toBeDefined();
+      expect(dish?.mealTypes).toEqual(['breakfast']);
+      expect(dish?.status).toBe('PUBLISHED');
+      // 儿童约束安全：早餐池全部不辣
+      expect(dish?.spicyLevel).toBe(0);
+    }
   });
 
   it('covers all 4 meal roles', () => {

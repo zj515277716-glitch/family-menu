@@ -464,22 +464,44 @@ describe('plan schemas', () => {
 
 // ───── api ─────
 describe('api schemas', () => {
-  it('RecommendRequestSchema 合法通过', () => {
+  it('RecommendRequestSchema 合法通过（v0.12 DayPlanContext 口径）', () => {
+    const r = RecommendRequestSchema.safeParse({
+      adults: 2,
+      children: 1,
+      timeBudgetMin: 30,
+      mustUseIngredients: ['番茄', '鸡蛋'],
+    });
+    expect(r.success).toBe(true);
+  });
+
+  it('RecommendRequestSchema 旧 people 报文 v0.12 起 400 拒绝（breaking 实证）', () => {
     const r = RecommendRequestSchema.safeParse({
       people: 4,
       timeBudgetMin: 30,
       mustUse: ['番茄', '鸡蛋'],
     });
-    expect(r.success).toBe(true);
+    expect(r.success).toBe(false);
   });
 
-  it('RecommendRequestSchema mustUse 非数组拒绝', () => {
+  it('RecommendRequestSchema mustUseIngredients 非数组拒绝', () => {
     const r = RecommendRequestSchema.safeParse({
-      people: 4,
+      adults: 4,
+      children: 0,
       timeBudgetMin: 30,
-      mustUse: '番茄',
+      mustUseIngredients: '番茄',
     });
     expect(r.success).toBe(false);
+  });
+
+  it('RecommendRequestSchema timeBudgetMin 非 15/30/60 档拒绝（对齐引擎字面量联合）', () => {
+    expect(
+      RecommendRequestSchema.safeParse({
+        adults: 2,
+        children: 0,
+        timeBudgetMin: 45,
+        mustUseIngredients: [],
+      }).success,
+    ).toBe(false);
   });
 
   it('SwapPlanRequestSchema v0.4 全换通过（reason 可选），非法值拒绝', () => {
@@ -646,11 +668,14 @@ describe('api schemas', () => {
     expect(PatchShoppingListRequestSchema.safeParse({ itemId: 'it1' }).success).toBe(false);
   });
 
-  it('RescaleShoppingListRequestSchema people>=1（DEC-014）', () => {
-    expect(RescaleShoppingListRequestSchema.safeParse({ people: 3 }).success).toBe(true);
-    expect(RescaleShoppingListRequestSchema.safeParse({ people: 1 }).success).toBe(true);
-    expect(RescaleShoppingListRequestSchema.safeParse({ people: 0 }).success).toBe(false);
-    expect(RescaleShoppingListRequestSchema.safeParse({ people: 2.5 }).success).toBe(false);
+  it('RescaleShoppingListRequestSchema adults>=1 children>=0（v0.12 三餐口径）', () => {
+    expect(RescaleShoppingListRequestSchema.safeParse({ adults: 3, children: 1 }).success).toBe(true);
+    expect(RescaleShoppingListRequestSchema.safeParse({ adults: 1, children: 0 }).success).toBe(true);
+    expect(RescaleShoppingListRequestSchema.safeParse({ adults: 0, children: 1 }).success).toBe(false);
+    expect(RescaleShoppingListRequestSchema.safeParse({ adults: 2.5, children: 0 }).success).toBe(false);
+    expect(RescaleShoppingListRequestSchema.safeParse({ children: 1 }).success).toBe(false);
+    // 旧 {people} 报文 v0.12 起 400 拒绝（breaking 实证）
+    expect(RescaleShoppingListRequestSchema.safeParse({ people: 3 }).success).toBe(false);
     expect(RescaleShoppingListRequestSchema.safeParse({}).success).toBe(false);
   });
 
@@ -666,87 +691,45 @@ describe('api schemas', () => {
     expect(r.success).toBe(true);
   });
 
-  it('RecommendResponseSchema 候选数组通过', () => {
+  it('RecommendResponseSchema 合法 Plan 通过（v0.12 生成即落库，无三选一）', () => {
     const r = RecommendResponseSchema.safeParse({
-      candidates: [{ menuId: 'm1', score: 0.9, reasons: ['快'] }],
+      id: 'plan-1',
+      familyId: 'seed-family',
+      planDate: new Date(),
+      status: 'LOCKED',
+      createdAt: new Date(),
     });
     expect(r.success).toBe(true);
   });
 
-  it('RecommendResponseSchema 带unmetMustUse通过（v0.3 空手信号）', () => {
+  it('RecommendResponseSchema dayContext 三餐上下文通过，candidates 输出恒空数组（v0.12）', () => {
     const r = RecommendResponseSchema.safeParse({
-      candidates: [],
-      unmetMustUse: ['苦瓜'],
-    });
-    expect(r.success).toBe(true);
-    if (r.success) {
-      expect(r.data.unmetMustUse).toEqual(['苦瓜']);
-    }
-  });
-
-  it('RecommendResponseSchema 缺省unmetMustUse通过（向后兼容 v0.2）', () => {
-    const r = RecommendResponseSchema.safeParse({
-      candidates: [{ menuId: 'm1', score: 0.9, reasons: ['快'] }],
-    });
-    expect(r.success).toBe(true);
-    if (r.success) {
-      expect(r.data.unmetMustUse).toBeUndefined();
-    }
-  });
-
-  it('RecommendResponseSchema 带unmetReasons通过（v0.8 空手原因，两枚举值原样保留）', () => {
-    const r = RecommendResponseSchema.safeParse({
-      candidates: [],
-      unmetMustUse: ['土豆丝', '苦瓜'],
-      unmetReasons: { 土豆丝: 'TIME_BUDGET', 苦瓜: 'NO_DISH' },
+      id: 'plan-1',
+      familyId: 'seed-family',
+      planDate: new Date(),
+      status: 'LOCKED',
+      createdAt: new Date(),
+      dayContext: { adults: 2, children: 1, timeBudgetMin: 30, mustUseIngredients: [] },
     });
     expect(r.success).toBe(true);
     if (r.success) {
-      expect(r.data.unmetReasons).toEqual({ 土豆丝: 'TIME_BUDGET', 苦瓜: 'NO_DISH' });
+      expect(r.data.candidates).toEqual([]);
     }
   });
 
-  it('RecommendResponseSchema 缺省unmetReasons通过（向后兼容 v0.7）', () => {
-    const r = RecommendResponseSchema.safeParse({
-      candidates: [],
-      unmetMustUse: ['苦瓜'],
-    });
-    expect(r.success).toBe(true);
-    if (r.success) {
-      expect(r.data.unmetReasons).toBeUndefined();
-    }
-  });
-
-  it('RecommendResponseSchema 非法原因枚举拒（v0.8）', () => {
+  it('RecommendResponseSchema 旧三候选报文（candidates/unmetMustUse/unmetReasons）v0.12 起拒绝（breaking 实证）', () => {
+    // 旧 {candidates:[...]} 非 Plan 形状：缺 id/familyId/planDate/createdAt 必填，
+    // 且空手侧车字段已随三候选报文整体退役
     expect(
       RecommendResponseSchema.safeParse({
-        candidates: [],
-        unmetMustUse: ['苦瓜'],
-        unmetReasons: { 苦瓜: 'WEEKEND' },
+        candidates: [{ menuId: 'm1', score: 0.9, reasons: ['快'] }],
       }).success,
     ).toBe(false);
     expect(
       RecommendResponseSchema.safeParse({
         candidates: [],
         unmetMustUse: ['苦瓜'],
-        unmetReasons: { 苦瓜: 'no_dish' },
-      }).success,
-    ).toBe(false);
-  });
-
-  it('RecommendResponseSchema 非对象形式的unmetReasons拒（v0.8）', () => {
-    expect(
-      RecommendResponseSchema.safeParse({
-        candidates: [],
-        unmetMustUse: ['苦瓜'],
-        unmetReasons: ['NO_DISH'],
-      }).success,
-    ).toBe(false);
-    expect(
-      RecommendResponseSchema.safeParse({
-        candidates: [],
-        unmetMustUse: ['苦瓜'],
-        unmetReasons: 'NO_DISH',
+        unmetReasons: { 苦瓜: 'NO_DISH' },
       }).success,
     ).toBe(false);
   });

@@ -64,10 +64,26 @@ vi.mock('../src/services/planService.js', () => {
   };
 });
 
+// v0.12：POST /api/recommend 路由直连 dayPlanService（三餐生成），一并 mock 避免 DB 操作
+vi.mock('../src/services/dayPlanService.js', () => {
+  return {
+    dayPlanService: {
+      generateDayPlan: vi.fn(),
+      swapDayPlan: vi.fn(),
+      getDaySwapOptions: vi.fn(),
+      getDayShoppingList: vi.fn(),
+      rescaleDayShoppingList: vi.fn(),
+      addDayFeedback: vi.fn(),
+    },
+    nextLocalMidnight: vi.fn(),
+  };
+});
+
 // ───── 导入被测模块（在 vi.mock 之后，得到 mock 版本） ─────
 
 import { buildApp } from '../src/app.js';
 import { planService, NotFoundError } from '../src/services/planService.js';
+import { dayPlanService } from '../src/services/dayPlanService.js';
 
 // ───── mock 数据 ─────
 
@@ -133,11 +149,6 @@ const mockShoppingList = {
       ],
     },
   ],
-};
-
-const mockRecommendResult = {
-  candidates: mockCandidates,
-  planId: 'test-plan-id',
 };
 
 // ───── 辅助：解析 JSON 响应（将 ISO 日期字符串恢复为 Date 对象，z.date() 需要） ─────
@@ -308,60 +319,87 @@ describe('API contract tests', () => {
     });
   });
 
-  // ── F2/F3: POST /api/recommend（AC3） ──
+  // ── F2/F3: POST /api/recommend（AC3；v0.12 三餐化：DayPlanContext 入参，Plan 出参） ──
 
   describe('POST /api/recommend (AC3)', () => {
-    it('returns 200 with valid RecommendResponse', async () => {
-      vi.mocked(planService.generateRecommendation).mockResolvedValue(mockRecommendResult);
+    it('returns 200 with valid RecommendResponse (DayPlanContext -> Plan)', async () => {
+      vi.mocked(dayPlanService.generateDayPlan).mockResolvedValue(mockPlan);
+      const response = await app.inject({
+        method: 'POST',
+        url: '/api/recommend',
+        cookies: { access_token: 'test-token' },
+        body: { adults: 2, children: 1, timeBudgetMin: 30, mustUseIngredients: [] },
+      });
+      expect(response.statusCode).toBe(200);
+      const body = parseResponse(response.body);
+      expect(() => RecommendResponseSchema.parse(body)).not.toThrow();
+      expect(dayPlanService.generateDayPlan).toHaveBeenCalledWith({
+        adults: 2,
+        children: 1,
+        timeBudgetMin: 30,
+        mustUseIngredients: [],
+      });
+    });
+
+    it('returns 200 with optional fields (tempAvoidances/desiredDishIds/meals/avoidRecentDays)', async () => {
+      vi.mocked(dayPlanService.generateDayPlan).mockResolvedValue(mockPlan);
+      const response = await app.inject({
+        method: 'POST',
+        url: '/api/recommend',
+        cookies: { access_token: 'test-token' },
+        body: {
+          adults: 2,
+          children: 0,
+          timeBudgetMin: 60,
+          mustUseIngredients: ['seed-ing-tomato'],
+          tempAvoidances: [{ ingredientName: '香菜' }],
+          desiredDishIds: ['seed-dish-tomato-egg'],
+          meals: ['breakfast', 'dinner'],
+          avoidRecentDays: 3,
+        },
+      });
+      expect(response.statusCode).toBe(200);
+      expect(dayPlanService.generateDayPlan).toHaveBeenCalled();
+    });
+
+    it('returns 400 with invalid body (adults not int)', async () => {
+      const response = await app.inject({
+        method: 'POST',
+        url: '/api/recommend',
+        cookies: { access_token: 'test-token' },
+        body: { adults: 'two', children: 1, timeBudgetMin: 30, mustUseIngredients: [] },
+      });
+      expect(response.statusCode).toBe(400);
+    });
+
+    it('returns 400 with timeBudgetMin not in 15|30|60 (v0.12 对齐引擎时长档)', async () => {
+      const response = await app.inject({
+        method: 'POST',
+        url: '/api/recommend',
+        cookies: { access_token: 'test-token' },
+        body: { adults: 2, children: 1, timeBudgetMin: 45, mustUseIngredients: [] },
+      });
+      expect(response.statusCode).toBe(400);
+    });
+
+    it('returns 400 with invalid body (missing mustUseIngredients)', async () => {
+      const response = await app.inject({
+        method: 'POST',
+        url: '/api/recommend',
+        cookies: { access_token: 'test-token' },
+        body: { adults: 2, children: 1, timeBudgetMin: 30 },
+      });
+      expect(response.statusCode).toBe(400);
+    });
+
+    it('returns 400 with v0.11 legacy shape (people/mustUse 单餐报文，v0.12 breaking)', async () => {
       const response = await app.inject({
         method: 'POST',
         url: '/api/recommend',
         cookies: { access_token: 'test-token' },
         body: { people: 4, timeBudgetMin: 30, mustUse: [] },
       });
-      expect(response.statusCode).toBe(200);
-      const body = parseResponse(response.body);
-      expect(() => RecommendResponseSchema.parse(body)).not.toThrow();
-    });
-
-    it('returns 400 with invalid body (people not int)', async () => {
-      const response = await app.inject({
-        method: 'POST',
-        url: '/api/recommend',
-        cookies: { access_token: 'test-token' },
-        body: { people: 'four', timeBudgetMin: 30, mustUse: [] },
-      });
       expect(response.statusCode).toBe(400);
-    });
-
-    it('returns 400 with invalid body (missing mustUse)', async () => {
-      const response = await app.inject({
-        method: 'POST',
-        url: '/api/recommend',
-        cookies: { access_token: 'test-token' },
-        body: { people: 4, timeBudgetMin: 30 },
-      });
-      expect(response.statusCode).toBe(400);
-    });
-
-    it('returns 200 with empty-hand response (candidates=[] + unmetMustUse, no planId)', async () => {
-      // TP-02 空手（PD-001/C-7）：无方案能消耗全部必消 -> 不建 Plan，返回 unmetMustUse
-      vi.mocked(planService.generateRecommendation).mockResolvedValue({
-        candidates: [],
-        unmetMustUse: ['苦瓜'],
-      });
-      const response = await app.inject({
-        method: 'POST',
-        url: '/api/recommend',
-        cookies: { access_token: 'test-token' },
-        body: { people: 4, timeBudgetMin: 30, mustUse: ['苦瓜'] },
-      });
-      expect(response.statusCode).toBe(200);
-      const body = parseResponse(response.body) as Record<string, unknown>;
-      expect(() => RecommendResponseSchema.parse(body)).not.toThrow();
-      expect(body.candidates).toEqual([]);
-      expect(body.unmetMustUse).toEqual(['苦瓜']);
-      expect(body.planId).toBeUndefined();
     });
   });
 
@@ -428,14 +466,54 @@ describe('API contract tests', () => {
         body: { reason: '不吃辣', swapType: '单菜换', dishId: 'dish-1', newDishId: 'dish-2' },
       });
       expect(response.statusCode).toBe(200);
-      // 透传校验：newDishId 须传给 service（DEC-013 服务端复检）
+      // 透传校验：newDishId 须传给 service（DEC-013 服务端复检）；slot 第 6 参缺省 undefined
       expect(vi.mocked(planService.swapPlan)).toHaveBeenCalledWith(
         'test-plan-id',
         '单菜换',
         'dish-1',
         'dish-2',
         '不吃辣',
+        undefined,
       );
+    });
+
+    it('returns 200 with 换一餐 (v0.12：slot 透传给 service)', async () => {
+      vi.mocked(planService.swapPlan).mockResolvedValue(mockPlan);
+      const response = await app.inject({
+        method: 'POST',
+        url: '/api/plans/test-plan-id/swap',
+        cookies: { access_token: 'test-token' },
+        body: { reason: '早餐想换口味', swapType: '换一餐', slot: 'breakfast' },
+      });
+      expect(response.statusCode).toBe(200);
+      expect(vi.mocked(planService.swapPlan)).toHaveBeenCalledWith(
+        'test-plan-id',
+        '换一餐',
+        undefined,
+        undefined,
+        '早餐想换口味',
+        'breakfast',
+      );
+    });
+
+    it('returns 400 with 换一餐 missing slot (v0.12 条件必填)', async () => {
+      const response = await app.inject({
+        method: 'POST',
+        url: '/api/plans/test-plan-id/swap',
+        cookies: { access_token: 'test-token' },
+        body: { swapType: '换一餐' },
+      });
+      expect(response.statusCode).toBe(400);
+    });
+
+    it('returns 400 with 换一餐 invalid slot value', async () => {
+      const response = await app.inject({
+        method: 'POST',
+        url: '/api/plans/test-plan-id/swap',
+        cookies: { access_token: 'test-token' },
+        body: { swapType: '换一餐', slot: 'snack' },
+      });
+      expect(response.statusCode).toBe(400);
     });
 
     it('returns 200 without reason (v0.4：reason 可选)', async () => {
@@ -614,49 +692,59 @@ describe('API contract tests', () => {
     });
   });
 
-  // ── F4: POST /api/plans/:id/shopping-list/rescale（TP-04/DEC-014） ──
+  // ── F4: POST /api/plans/:id/shopping-list/rescale（TP-04/DEC-014；v0.12 改成人/儿童口径 C-4） ──
 
   describe('POST /api/plans/:id/shopping-list/rescale (TP-04)', () => {
-    it('returns 200 with rescaled ShoppingListResponse', async () => {
+    it('returns 200 with rescaled ShoppingListResponse (adults/children)', async () => {
       vi.mocked(planService.rescaleShoppingList).mockResolvedValue(mockShoppingList);
+      const response = await app.inject({
+        method: 'POST',
+        url: '/api/plans/test-plan-id/shopping-list/rescale',
+        cookies: { access_token: 'test-token' },
+        body: { adults: 3, children: 2 },
+      });
+      expect(response.statusCode).toBe(200);
+      const body = parseResponse(response.body);
+      expect(() => ShoppingListResponseSchema.parse(body)).not.toThrow();
+      expect(planService.rescaleShoppingList).toHaveBeenCalledWith('test-plan-id', 3, 2);
+    });
+
+    it('returns 400 with adults=0', async () => {
+      const response = await app.inject({
+        method: 'POST',
+        url: '/api/plans/test-plan-id/shopping-list/rescale',
+        cookies: { access_token: 'test-token' },
+        body: { adults: 0, children: 2 },
+      });
+      expect(response.statusCode).toBe(400);
+    });
+
+    it('returns 400 with non-integer children', async () => {
+      const response = await app.inject({
+        method: 'POST',
+        url: '/api/plans/test-plan-id/shopping-list/rescale',
+        cookies: { access_token: 'test-token' },
+        body: { adults: 2, children: 1.5 },
+      });
+      expect(response.statusCode).toBe(400);
+    });
+
+    it('returns 400 with v0.11 legacy shape (people 单口径，v0.12 breaking)', async () => {
       const response = await app.inject({
         method: 'POST',
         url: '/api/plans/test-plan-id/shopping-list/rescale',
         cookies: { access_token: 'test-token' },
         body: { people: 6 },
       });
-      expect(response.statusCode).toBe(200);
-      const body = parseResponse(response.body);
-      expect(() => ShoppingListResponseSchema.parse(body)).not.toThrow();
-      expect(planService.rescaleShoppingList).toHaveBeenCalledWith('test-plan-id', 6);
-    });
-
-    it('returns 400 with people=0', async () => {
-      const response = await app.inject({
-        method: 'POST',
-        url: '/api/plans/test-plan-id/shopping-list/rescale',
-        cookies: { access_token: 'test-token' },
-        body: { people: 0 },
-      });
       expect(response.statusCode).toBe(400);
     });
 
-    it('returns 400 with non-integer people', async () => {
+    it('returns 400 with missing children', async () => {
       const response = await app.inject({
         method: 'POST',
         url: '/api/plans/test-plan-id/shopping-list/rescale',
         cookies: { access_token: 'test-token' },
-        body: { people: 2.5 },
-      });
-      expect(response.statusCode).toBe(400);
-    });
-
-    it('returns 400 with missing people', async () => {
-      const response = await app.inject({
-        method: 'POST',
-        url: '/api/plans/test-plan-id/shopping-list/rescale',
-        cookies: { access_token: 'test-token' },
-        body: {},
+        body: { adults: 2 },
       });
       expect(response.statusCode).toBe(400);
     });
@@ -679,6 +767,30 @@ describe('API contract tests', () => {
       expect(planService.addFeedback).toHaveBeenCalledWith('test-plan-id', {
         didCook: true, taste: 'good', willRepeat: true, actualMinutes: 35,
       });
+    });
+
+    it('returns 200 with mealSlot (v0.12 按餐记录，C-5)', async () => {
+      vi.mocked(planService.addFeedback).mockResolvedValue(mockPlan);
+      const response = await app.inject({
+        method: 'POST',
+        url: '/api/plans/test-plan-id/feedback',
+        cookies: { access_token: 'test-token' },
+        body: { didCook: true, taste: 'good', willRepeat: true, mealSlot: 'breakfast' },
+      });
+      expect(response.statusCode).toBe(200);
+      expect(planService.addFeedback).toHaveBeenCalledWith('test-plan-id', {
+        didCook: true, taste: 'good', willRepeat: true, mealSlot: 'breakfast',
+      });
+    });
+
+    it('returns 400 with invalid mealSlot value', async () => {
+      const response = await app.inject({
+        method: 'POST',
+        url: '/api/plans/test-plan-id/feedback',
+        cookies: { access_token: 'test-token' },
+        body: { didCook: false, willRepeat: false, mealSlot: 'brunch' },
+      });
+      expect(response.statusCode).toBe(400);
     });
 
     it('returns 200 with 没做+不做了（无 taste）', async () => {
@@ -760,7 +872,8 @@ describe('API contract tests', () => {
       expect(response.statusCode).toBe(200);
       const body = parseResponse(response.body);
       expect(() => FeedbackResponseSchema.parse(body)).not.toThrow();
-      expect(planService.getFeedback).toHaveBeenCalledWith('test-plan-id');
+      // v0.12：路由恒传两参（无 mealSlot query 时第二参 undefined）
+      expect(planService.getFeedback).toHaveBeenCalledWith('test-plan-id', undefined);
     });
 
     it('returns 200 with 旧事件宽松解析（缺 taste/willRepeat 如实缺省）', async () => {
@@ -799,6 +912,31 @@ describe('API contract tests', () => {
       });
       expect(response.statusCode).toBe(404);
     });
+
+    it('returns 200 with mealSlot query (v0.12 按餐取最新，C-5 各餐独立)', async () => {
+      vi.mocked(planService.getFeedback).mockResolvedValue({
+        didCook: true, taste: 'ok', willRepeat: false, mealSlot: 'lunch',
+        submittedAt: new Date('2026-10-18T12:00:00'),
+      });
+      const response = await app.inject({
+        method: 'GET',
+        url: '/api/plans/test-plan-id/feedback?mealSlot=lunch',
+        cookies: { access_token: 'test-token' },
+      });
+      expect(response.statusCode).toBe(200);
+      const body = parseResponse(response.body);
+      expect(() => FeedbackResponseSchema.parse(body)).not.toThrow();
+      expect(planService.getFeedback).toHaveBeenCalledWith('test-plan-id', 'lunch');
+    });
+
+    it('returns 400 with invalid mealSlot query value', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: '/api/plans/test-plan-id/feedback?mealSlot=snack',
+        cookies: { access_token: 'test-token' },
+      });
+      expect(response.statusCode).toBe(400);
+    });
   });
 
   // ── F7: GET /api/plans（AC7） ──
@@ -825,6 +963,28 @@ describe('API contract tests', () => {
       });
       expect(response.statusCode).toBe(200);
       expect(JSON.parse(response.body)).toEqual([]);
+    });
+
+    it('returns 200 with date query (v0.12 按日查三餐计划)', async () => {
+      vi.mocked(planService.listPlans).mockResolvedValue([mockPlan]);
+      const response = await app.inject({
+        method: 'GET',
+        url: '/api/plans?date=2026-10-19',
+        cookies: { access_token: 'test-token' },
+      });
+      expect(response.statusCode).toBe(200);
+      const body = parseResponse(response.body);
+      expect(() => PlanListResponseSchema.parse(body)).not.toThrow();
+      expect(planService.listPlans).toHaveBeenCalledWith('2026-10-19');
+    });
+
+    it('returns 400 with invalid date format', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: '/api/plans?date=2026/10/19',
+        cookies: { access_token: 'test-token' },
+      });
+      expect(response.statusCode).toBe(400);
     });
   });
 

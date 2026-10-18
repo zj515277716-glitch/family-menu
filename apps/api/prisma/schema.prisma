@@ -90,6 +90,7 @@ model Dish {
   id            String           @id @default(cuid())
   name          String
   mealRole      MealRole         // MAIN | SIDE | SOUP | STAPLE
+  mealTypes     String[]         @default([]) // 适用餐次 breakfast/lunch/dinner；空=引擎按既有字段推断（PD-020，兼容存量）
   cuisine       String?
   flavorTags    String[]         // 清淡/微辣/酸甜...
   spicyLevel    Int              @default(0)
@@ -175,6 +176,7 @@ model CookLog {
   id            String   @id @default(cuid())
   menuId        String?
   dishId        String?
+  mealSlot      String?   // 反馈所属餐次 breakfast/lunch/dinner（PD-020 按餐记录；存量行迁移回填 dinner）
   cookedAt      DateTime @default(now()) @db.Timestamptz
   actualMinutes Int?
   result        String   // success | partial | fail
@@ -191,8 +193,10 @@ model Plan {
   familyId     String
   family       Family     @relation(fields: [familyId], references: [id])
   planDate     DateTime   @db.Timestamptz
-  context      Json       // {people, timeBudgetMin, mustUse: string[]}
-  candidates   Json       // 3套候选快照：[{menuId, score, reasons, breakdown}]
+  context      Json       // 存量单餐上下文 {people, timeBudgetMin, mustUse}；三餐计划写 dayContext
+  dayContext   Json?      // 日计划上下文 {adults, children, timeBudgetMin, mustUseIngredients, ...}（PD-020）
+  candidates   Json       // 3套候选快照：[{menuId, score, reasons, breakdown}]；三餐计划写 dayPlan
+  dayPlan      Json?      // 三餐计划快照（engine DayPlanResult 全量投影，PD-020）
   lockedMenuId String?
   shoppingList Json?      // 合并后清单快照 + 勾选状态
   status       PlanStatus @default(PROPOSED)
@@ -214,6 +218,7 @@ model Event {
   planId    String?
   type      EventType
   payload   Json?     // swap时记 {reason: "太麻烦"}
+  mealSlot  String?   // 反馈所属餐次 breakfast/lunch/dinner（PD-020 按餐关联；存量行迁移回填 dinner）
   createdAt DateTime  @default(now()) @db.Timestamptz
   family    Family    @relation(fields: [familyId], references: [id])
   plan      Plan?     @relation(fields: [planId], references: [id])

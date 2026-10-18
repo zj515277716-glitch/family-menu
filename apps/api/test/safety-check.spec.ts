@@ -27,7 +27,7 @@ function dish(
   ings: SafetyCheckIngredientRow[],
   flavorTags: string[] = [],
 ): SafetyCheckDishRow {
-  return { id, name, status, flavorTags, ingredients: ings.map((i) => ({ ingredient: i })) };
+  return { id, name, status, flavorTags, mealTypes: [], ingredients: ings.map((i) => ({ ingredient: i })) };
 }
 
 const PEANUT = ing('seed-ing-peanut', '花生米', ['熟花生米', '油炸花生米']);
