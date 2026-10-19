@@ -10,6 +10,18 @@
 - .trae/rules/project_rules.md 第 6 节固定设计规则 7 条（每张卡默认生效，审查必查）
 - apps/h5 现状（Taro 4 + React + NutUI 4 beta 的依赖与页面骨架）、apps/api 的 auth 口令校验与 settings 路由现状
 
+## 主控裁决（2026-10-18，开发前阻断冲突）
+
+fm-dev 事实核查发现：需求 5 的「成人/儿童分列步进」与「已吃菜避开窗口」在现有契约无处真实存取（FamilyRule 仅 defaultPeople 单值，无分列、无避开窗口字段）。**裁决：方案 A——授权本卡契约+DB 最小扩展**。依据：确认书 C-1 明文「改默认成人/儿童人数」「已吃菜避开窗口（3/5/7 天，默认 7 天）」，是 PD-024 已确认需求；T-Q12 定餐页本就需长期默认带出，一次到位。
+
+**契约+DB 扩展授权（按 L2 影响清单执行）**：
+- `FamilyRule` 增 `defaultAdults`、`defaultChildren`、`avoidRecentDays` 三列；迁移**保生产数据回填**：`defaultAdults = 原 defaultPeople`（原总人数视为成人）、`defaultChildren = 0`、`avoidRecentDays = 7`。`defaultPeople` 列保留不删（兼容期，删除留给后续清理卡）。
+- packages/shared 的 family schema/type 同步增量（zod + 类型）；版本兼容策略写进提交说明。
+- apps/api 的 family/rules 路由 GET/PUT 同步三字段；**不动三餐业务语义**。
+- 写迁移说明（上行/下行）+ 真实库集成测试（回填验证）。
+- 已确认口径：分支起点 **main @ 0ab2cfa**；时长档数值按契约 15/30/60（文案沿用「快手 15 分钟/标准 30 分钟/从容 60 分钟」），存储 `timeBudgets=[选中档]`；锅/菜系选项以原型为准、**已存值动态并入选项集**（设计规则 5 不丢已填），存储自由字符串。
+- apps/api auth 三件套已齐备（login HttpOnly cookie + me 恒 200，dev same-site 链路已实战验证），**auth 无需补强**；冷启动判定用 `GET /api/family/rules` 404=无设置。
+
 ## 需求
 
 1. **登录门（S-01，T-A2 口径）**：口令输入 → API 校验 → 会话 token（不做多人账号/微信登录，单家庭口令即可）。未登录一律挡在门外；会话失效/401 由请求封装统一处理（跳回门页）。
@@ -21,22 +33,24 @@
 
 ## 影响清单
 
-- **引擎/契约/DB**：零改动（只消费 T-Q10 的 API）。
+- **引擎**：零改动。
+- **契约**：packages/shared family schema/type 增量扩展（裁决授权，见上节）；其余不动。
+- **DB**：prisma 迁移 1 个（FamilyRule 三列+回填），含上行/下行说明。
 - **apps/h5**：请求封装、auth 会话、路由与 Tabbar、设置页、全局 token 主题、S-01/S-02/S-12 三屏 + 占位路由。
-- **apps/api**：只读对接；若 auth/settings 路由缺能力（如设置按家庭存取）可最小补强，但**不动三餐业务语义**。
+- **apps/api**：family/rules 路由同步三字段；auth 无需补强；**不动三餐业务语义**。
 - **UI**：本卡范围内三屏 + 地基；主流程屏留给 T-Q12/T-Q13。
 - **部署**：不动（生产冻结）。
-- **测试**：apps/h5 单测（请求封装错误分支、设置页保存与刷新还原、冷启动判定分支）+ 现有测试全量适配。
-- **文档**：token 主题与请求封装用法写入代码注释或 brief README（若必须）；本卡终态主控补。
+- **测试**：apps/h5 单测（请求封装错误分支、设置页保存与刷新还原、冷启动判定分支）+ 迁移回填集成测试 + 现有测试全量适配。
+- **文档**：契约扩展与迁移说明写进提交说明；本卡终态主控补。
 
 ## 约束与验收
 
 - 固定设计规则 7 条全过（审查必查）：禁输入系统编号（本卡无表单编号，仅确认）、按钮全有反馈、枚举全中文+时间本地格式、列表三态（设置页无列表但保存三态要全）、表单任何操作顺序不丢已填（设置页刷新还原）、请求统一封装、NutUI+主题变量不手写样式。
 - 真实数据原则：设置真实存取、不造假兜底；连不上服务提示「服务未连接」。
-- 门禁：pnpm lint、pnpm -r exec tsc --noEmit、pnpm test、pnpm test:taboo 全绿（不碰引擎但统一跑）；a3-reputation B3/B4 已知本地真实库击穿（T-Q09/Q10 审查均证实 main 同败）不阻断，但不得新增失败。
+- 门禁：pnpm lint、pnpm -r exec tsc --noEmit、pnpm test、pnpm test:taboo 全绿；已知失败（a3 B3/B4 + migration-backfill「存量回填」，系本地真实库击穿 spec 干净前提，候选挂账）不阻断，但不得新增失败。
 - **UI 截图**：S-01/S-02/S-12 三屏 375×812 截图证据（evidence/T-Q11/），与原型对版。
-- 回退：git revert 分支提交即回退（无 DB 迁移）。
-- 分支 t-q11-ui-foundation-settings，从 **main @ f1b10e5** 切（T-Q09 引擎 + T-Q10 契约DB 已于 2026-10-18 无快进合并入 main 并推送，三餐契约已在 main 上，本卡 UI 直接基于最新事实）；推送走代理（故障则记录待推送）。
+- 回退：prisma migrate 下行 + git revert；回退步骤写进提交说明并实测。
+- 分支 t-q11-ui-foundation-settings，从 **main @ 0ab2cfa** 切（T-Q09 引擎 + T-Q10 契约DB 已合并入 main 并推送，三餐契约已在 main 上；0ab2cfa 含本卡文档）；推送走代理（故障则记录待推送）。
 - L2 流程：完成后主控派 fm-reviewer 独立审查（审查须实跑门禁+逐项对设计规则+截图对版）。
 
-完成后回报：三屏实现要点、请求封装与 token 主题落法、路由/Tabbar 骨架结构、冷启动判定逻辑、设置页存取与三态、门禁输出、截图清单、apps/api 是否有最小补强（默认应为无）、回退验证、提交号、推送状态。
+完成后回报：契约扩展点与迁移说明（上行/下行/回填）、三屏实现要点、请求封装与 token 主题落法、路由/Tabbar 骨架结构、冷启动判定逻辑、设置页存取与三态、门禁输出、截图清单、回退实测、提交号、推送状态。
