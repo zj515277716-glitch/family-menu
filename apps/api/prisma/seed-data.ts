@@ -24,6 +24,10 @@ export const familyRule = {
   id: 'seed-family-rule',
   familyId: 'seed-family',
   defaultPeople: 4,
+  // T-Q11 契约扩展：成人/儿童分列 + 已吃菜避开窗口（默认 7 天）
+  defaultAdults: 2,
+  defaultChildren: 0,
+  avoidRecentDays: 7,
   timeBudgets: [30, 60],
   equipment: ['wok', 'rice_cooker', 'steamer', 'air_fryer'],
   cuisines: ['家常', '湘菜'],

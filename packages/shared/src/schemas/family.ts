@@ -33,6 +33,13 @@ export const FamilyRuleSchema = z.object({
   id: z.string(),
   familyId: z.string(),
   defaultPeople: z.number().int().default(4),
+  // T-Q11 契约最小扩展（主控裁决方案 A）：成人/儿童分列人数 + 已吃菜避开窗口天数，
+  // 落入长期设置（C-1/S-12），供 S-04 定餐默认带出（T-Q12 铺路）。
+  // 加列式扩展：存量行迁移回填 defaultAdults=原 defaultPeople（原总人数视为成人）、
+  // 儿童 0、窗口 7；下方 default 值仅对新行生效。
+  defaultAdults: z.number().int().default(2),
+  defaultChildren: z.number().int().default(0),
+  avoidRecentDays: z.number().int().default(7),
   timeBudgets: z.array(z.number().int()), // 常用时长档，如 [30, 60]
   equipment: z.array(z.string()), // wok/rice_cooker/steamer/air_fryer
   cuisines: z.array(z.string()), // 如 湘菜/家常

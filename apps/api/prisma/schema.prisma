@@ -30,14 +30,19 @@ model Family {
 }
 
 model FamilyRule {
-  id            String   @id @default(cuid())
-  familyId      String   @unique
-  family        Family   @relation(fields: [familyId], references: [id])
-  defaultPeople Int      @default(4)
-  timeBudgets   Int[]    // 常用时长档，如 [30, 60]
-  equipment     String[] // wok/rice_cooker/steamer/air_fryer
-  cuisines      String[] // 如 湘菜/家常
-  updatedAt     DateTime @updatedAt @db.Timestamptz
+  id              String   @id @default(cuid())
+  familyId        String   @unique
+  family          Family   @relation(fields: [familyId], references: [id])
+  defaultPeople   Int      @default(4)
+  // T-Q11 契约最小扩展（主控裁决方案 A）：成人/儿童分列 + 已吃菜避开窗口；
+  // 存量行迁移回填 defaultAdults=原 defaultPeople、儿童 0、窗口 7（default 仅对新行生效）
+  defaultAdults   Int      @default(2)
+  defaultChildren Int      @default(0)
+  avoidRecentDays Int      @default(7)
+  timeBudgets     Int[]    // 常用时长档，如 [30, 60]
+  equipment       String[] // wok/rice_cooker/steamer/air_fryer
+  cuisines        String[] // 如 湘菜/家常
+  updatedAt       DateTime @updatedAt @db.Timestamptz
 }
 
 // 硬软分离（文件③7.4 核心修正）：HARD=过敏/绝对禁忌(过滤)，SOFT=不喜欢(降权)

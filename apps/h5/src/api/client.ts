@@ -1,26 +1,13 @@
 // apps/h5/src/api/client.ts
-// API client：由 shared 契约约束的 Taro.request 封装（H5 模式下底层用 XHR/fetch）
-// 统一封装（项目规则第 6 节）：超时 / 网络错误 / 401 只在这里处理一次——
+// 统一请求封装（项目规则第 6 节）：超时 / 网络错误 / 401 只在这里处理一次——
 //   401 → 导回登录页重新输家庭口令（UnauthorizedError，业务页 catch 到时人已在登录页）；
 //   网络错误 / 超时 → 收敛为一句人话，页面只负责展示与重试。
 // 登录态（T-A2）：口令只经服务端 POST /api/auth/login 校验，成功后服务端下发 HttpOnly
-// cookie，同源请求 credentials:'include' 自动携带；前端不存、不读任何口令。
-// 未配置 TARO_APP_API_BASE_URL 时所有请求明确失败「服务未连接」——绝不使用假数据（C-13）
+// cookie，同源/跨源请求 credentials:'include' 自动携带；前端不存、不读任何口令。
+// 未配置 TARO_APP_API_BASE_URL 时所有请求明确失败「服务未连接」——绝不使用假数据。
+// 覆盖范围：本卡（T-Q11）只搭封装 + auth/settings 调用；主流程接口由 T-Q12/T-Q13 追加。
 import Taro from '@tarojs/taro'
-import type {
-  ExclusionRule,
-  FamilyRule,
-  FeedbackRequest,
-  FeedbackResponse,
-  Plan,
-  PlanContext,
-  SwapOptionsResponse,
-  SwapPlanRequest,
-} from '@family-menu/shared'
-import type {
-  RecommendResult,
-  ShoppingListData,
-} from '../types'
+import type { ExclusionRule, FamilyRule } from '@family-menu/shared'
 
 // ───── 配置 ─────
 
@@ -142,111 +129,26 @@ export const auth = {
   },
 }
 
-// ───── 13 条 API 路由方法 ─────
+// ───── 设置相关（S-12 长期设置 + 冷启动判定）─────
 
 export const api = {
-  // 1. GET /api/family/rules -> FamilyRule（404 表示未设置，返回 null）
+  // GET /api/family/rules -> FamilyRule（404 表示未设置，返回 null；冷启动判定依据）
   getFamilyRules(): Promise<FamilyRule | null> {
     return request<FamilyRule | null>('/api/family/rules', { method: 'GET' }, true)
   },
 
-  // 2. PUT /api/family/rules <- FamilyRule -> FamilyRule
+  // PUT /api/family/rules <- FamilyRule -> FamilyRule（无行时服务端 upsert 建行，C-8）
   putFamilyRules(rule: FamilyRule): Promise<FamilyRule> {
     return request<FamilyRule>('/api/family/rules', { method: 'PUT', data: rule })
   },
 
-  // 3. GET /api/family/exclusions -> ExclusionRule[]（v0.2 新增，禁忌持久化）
+  // GET /api/family/exclusions -> ExclusionRule[]（禁忌持久化）
   getExclusions(): Promise<ExclusionRule[]> {
     return request<ExclusionRule[]>('/api/family/exclusions', { method: 'GET' })
   },
 
-  // 4. PUT /api/family/exclusions <- ExclusionRule[] -> ExclusionRule[]（全量替换）
+  // PUT /api/family/exclusions <- ExclusionRule[] -> ExclusionRule[]（全量替换）
   putExclusions(rules: ExclusionRule[]): Promise<ExclusionRule[]> {
     return request<ExclusionRule[]>('/api/family/exclusions', { method: 'PUT', data: rules })
-  },
-
-  // 5. POST /api/recommend <- PlanContext -> { candidates, planId }
-  recommend(context: PlanContext): Promise<RecommendResult> {
-    return request<RecommendResult>('/api/recommend', {
-      method: 'POST',
-      data: context,
-    })
-  },
-
-  // 6. POST /api/plans/:id/lock <- { menuId } -> Plan
-  lockPlan(planId: string, menuId: string): Promise<Plan> {
-    return request<Plan>(`/api/plans/${planId}/lock`, {
-      method: 'POST',
-      data: { menuId },
-    })
-  },
-
-  // 7. POST /api/plans/:id/swap <- SwapPlanRequest（v0.4：单菜换 dishId+newDishId 必填，reason 选填） -> Plan
-  swapPlan(planId: string, body: SwapPlanRequest): Promise<Plan> {
-    return request<Plan>(`/api/plans/${planId}/swap`, {
-      method: 'POST',
-      data: body,
-    })
-  },
-
-  // 13. GET /api/plans/:id/swap-options?dishId=xxx（TP-03/DEC-013；空候选=200+空数组，C-6 如实态）
-  getSwapOptions(planId: string, dishId: string): Promise<SwapOptionsResponse> {
-    return request<SwapOptionsResponse>(
-      `/api/plans/${planId}/swap-options?dishId=${encodeURIComponent(dishId)}`,
-      { method: 'GET' },
-    )
-  },
-
-  // 8. GET /api/plans/:id/shopping-list -> ShoppingListData
-  getShoppingList(planId: string): Promise<ShoppingListData> {
-    return request<ShoppingListData>(`/api/plans/${planId}/shopping-list`, {
-      method: 'GET',
-    })
-  },
-
-  // 9. PATCH /api/plans/:id/shopping-list <- { itemId, checked } -> ShoppingListData
-  patchShoppingList(
-    planId: string,
-    itemId: string,
-    checked: boolean,
-  ): Promise<ShoppingListData> {
-    return request<ShoppingListData>(`/api/plans/${planId}/shopping-list`, {
-      method: 'PATCH',
-      data: { itemId, checked },
-    })
-  },
-
-  // 14. POST /api/plans/:id/shopping-list/rescale <- { people } -> ShoppingListData（TP-04/DEC-014）
-  rescaleShoppingList(planId: string, people: number): Promise<ShoppingListData> {
-    return request<ShoppingListData>(`/api/plans/${planId}/shopping-list/rescale`, {
-      method: 'POST',
-      data: { people },
-    })
-  },
-
-  // 10a. POST /api/plans/:id/feedback <- FeedbackRequest（v0.6 三问，DEC-015） -> Plan
-  addFeedback(planId: string, body: FeedbackRequest): Promise<Plan> {
-    return request<Plan>(`/api/plans/${planId}/feedback`, {
-      method: 'POST',
-      data: body,
-    })
-  },
-
-  // 10b. GET /api/plans/:id/feedback -> FeedbackResponse | null
-  // （v0.9/T-P12：plan 存在但无反馈时响应体即 JSON null；plan 不存在仍 404，notFoundAsNull 兜底转 null 防崩溃）
-  getFeedback(planId: string): Promise<FeedbackResponse | null> {
-    return request<FeedbackResponse | null>(`/api/plans/${planId}/feedback`, { method: 'GET' }, true)
-  },
-
-  // 11. GET /api/plans -> Plan[]
-  listPlans(): Promise<Plan[]> {
-    return request<Plan[]>('/api/plans', { method: 'GET' })
-  },
-
-  // 12. POST /api/plans/:id/repeat -> Plan
-  repeatPlan(planId: string): Promise<Plan> {
-    return request<Plan>(`/api/plans/${planId}/repeat`, {
-      method: 'POST',
-    })
   },
 }

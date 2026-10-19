@@ -1,0 +1,16 @@
+s01-login.png
+s01-login-wrong.png
+login http=200
+s02-onboarding.png
+s12-settings.png
+s12-settings-viewport.png（视口截图）
+s12-settings-saved.png（视口截图）
+
+== 浏览器错误（console.error / pageerror）==
+[console.error] Failed to load resource: the server responded with a status of 401 (Unauthorized)
+[console.error] [Login] 进入失败 Error: 口令不正确，再试一次
+    at http://localhost:10086/js/407.a239748d.js:1:30916
+    at Generator.<anonymous> (http://localhost:10086/js/app.55ff3464.js:2:209091)
+    at Generator.next (http://localhost:10086/js/app.55ff3464.js:2:207788)
+    at asyncGeneratorStep (http://localhost:10086/js/app.55ff3464.js:2:204347)
+    at _next (http://localhost:10086/js/app.55ff3464.js:2:204569)

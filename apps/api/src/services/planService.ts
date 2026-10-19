@@ -412,14 +412,22 @@ export const planService = {
   },
 
   async updateFamilyRules(data: FamilyRule): Promise<FamilyRule> {
-    const updated = await prisma.familyRule.update({
-      where: { familyId: data.familyId },
-      data: {
-        defaultPeople: data.defaultPeople,
-        timeBudgets: data.timeBudgets,
-        equipment: data.equipment,
-        cuisines: data.cuisines,
-      },
+    // T-Q11 最小补强（冷启动 C-8）：首次保存时规则行尚不存在，update 会抛 RecordNotFound
+    // 使冷启动引导「填好设置才能进主流程」永远存不上——改 upsert（有则更新，无则建行）。
+    // 行锁只认 familyId（本系统单家庭）；请求体其余服务端字段以库内行/默认值为准。
+    const fields = {
+      defaultPeople: data.defaultPeople,
+      defaultAdults: data.defaultAdults,
+      defaultChildren: data.defaultChildren,
+      avoidRecentDays: data.avoidRecentDays,
+      timeBudgets: data.timeBudgets,
+      equipment: data.equipment,
+      cuisines: data.cuisines,
+    };
+    const updated = await prisma.familyRule.upsert({
+      where: { familyId: FAMILY_ID },
+      update: fields,
+      create: { familyId: FAMILY_ID, ...fields },
     });
     return updated as unknown as FamilyRule;
   },
