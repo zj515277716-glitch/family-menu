@@ -1,26 +1,24 @@
 // apps/h5/src/app.config.ts
-// 全局配置：6 页面路由 + window 主题
-// 入口页为 pages/login（T-A2 访问控制：进门先输一次家庭口令，服务端校验通过才进首页）；
-// 已登录设备由登录页探测（GET /api/auth/me）后自动 reLaunch 进首页。
-// TabBar 3 常驻入口（今晚/历史/设置）由 NutUI Tabbar 组件实现（对齐 wireframes.md 第139行），
-// 不使用 Taro 原生 tabBar（H5 端图标需图片文件，assets-spec 指定功能图标用图标库）。
-// tab 间跳转用 Taro.reLaunch（清栈切 tab）；candidates/plan 为流式页用 navigateTo/navigateBack。
+// 全局配置：路由骨架（T-Q11）+ window 主题（design-spec-v2 §1 暖白极简）。
+// 入口页 = pages/login（T-A2 登录门：进门先输一次家庭口令，服务端校验通过才放行）；
+// 已登录设备由登录页探测（GET /api/auth/me）后按冷启动判定（C-8）reLaunch：
+//   无家庭设置 → pages/onboarding（S-02 引导）；已填过 → pages/home（S-03 首页）。
+// Tab 3 常驻入口（首页/历史/设置）由 NutUI Tabbar 实现（磨砂全局唯一保留处），
+// tab 间跳转用 Taro.reLaunch（清栈切 tab）；主流程子页与弹层路由由 T-Q12/T-Q13 追加。
 
 export default defineAppConfig({
   pages: [
     'pages/login/index',
-    'pages/tonight/index',
+    'pages/onboarding/index',
+    'pages/home/index',
     'pages/history/index',
-    'pages/setup/index',
-    'pages/candidates/index',
-    'pages/plan/index',
-    'pages/dish/index',
-    'pages/feedback/index',
+    'pages/settings/index',
   ],
   window: {
     backgroundTextStyle: 'light',
-    navigationBarBackgroundColor: '#FBF6EC',
+    navigationBarBackgroundColor: '#FAFAF8',
     navigationBarTitleText: '家庭菜谱',
     navigationBarTextStyle: 'black',
+    backgroundColor: '#FAFAF8',
   },
 })

@@ -29,6 +29,9 @@ export declare const PutFamilyRulesRequestSchema: z.ZodObject<{
     id: z.ZodString;
     familyId: z.ZodString;
     defaultPeople: z.ZodDefault<z.ZodNumber>;
+    defaultAdults: z.ZodDefault<z.ZodNumber>;
+    defaultChildren: z.ZodDefault<z.ZodNumber>;
+    avoidRecentDays: z.ZodDefault<z.ZodNumber>;
     timeBudgets: z.ZodArray<z.ZodNumber>;
     equipment: z.ZodArray<z.ZodString>;
     cuisines: z.ZodArray<z.ZodString>;
@@ -228,6 +231,9 @@ export declare const FamilyRulesResponseSchema: z.ZodObject<{
     id: z.ZodString;
     familyId: z.ZodString;
     defaultPeople: z.ZodDefault<z.ZodNumber>;
+    defaultAdults: z.ZodDefault<z.ZodNumber>;
+    defaultChildren: z.ZodDefault<z.ZodNumber>;
+    avoidRecentDays: z.ZodDefault<z.ZodNumber>;
     timeBudgets: z.ZodArray<z.ZodNumber>;
     equipment: z.ZodArray<z.ZodString>;
     cuisines: z.ZodArray<z.ZodString>;

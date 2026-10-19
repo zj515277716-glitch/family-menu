@@ -91,6 +91,10 @@ const mockFamilyRule = {
   id: 'test-rule-id',
   familyId: 'seed-family',
   defaultPeople: 4,
+  // T-Q11 契约扩展字段
+  defaultAdults: 2,
+  defaultChildren: 1,
+  avoidRecentDays: 7,
   timeBudgets: [30, 60],
   equipment: ['wok', 'rice_cooker'],
   cuisines: ['家常'],
@@ -254,6 +258,29 @@ describe('API contract tests', () => {
         body: { id: 'x', familyId: 'x', equipment: [], cuisines: [], updatedAt: '2026-08-06T00:00:00.000Z' },
       });
       expect(response.statusCode).toBe(400);
+    });
+
+    // T-Q11：3 个契约扩展字段（defaultAdults/defaultChildren/avoidRecentDays）路由透传
+    it('passes T-Q11 extension fields through to planService.updateFamilyRules', async () => {
+      const updateSpy = vi.mocked(planService.updateFamilyRules).mockResolvedValue(mockFamilyRule);
+      const response = await app.inject({
+        method: 'PUT',
+        url: '/api/family/rules',
+        cookies: { access_token: 'test-token' },
+        body: {
+          ...mockFamilyRule,
+          defaultAdults: 3,
+          defaultChildren: 2,
+          avoidRecentDays: 5,
+          updatedAt: mockFamilyRule.updatedAt.toISOString(),
+        },
+      });
+      expect(response.statusCode).toBe(200);
+      expect(updateSpy).toHaveBeenCalledWith(
+        expect.objectContaining({ defaultAdults: 3, defaultChildren: 2, avoidRecentDays: 5 }),
+      );
+      const body = parseResponse(response.body);
+      expect(() => FamilyRulesResponseSchema.parse(body)).not.toThrow();
     });
   });
 
