@@ -172,17 +172,21 @@ async function main(): Promise<void> {
   // T-P16 AC8：update 分支同步 status + mealRole——方案1 两个纠偏维度（4 道排骨菜 PUBLISHED 升格、
   // 2 道排骨汤 mealRole 纠偏 MAIN→SOUP）在重放时生效；其余内容字段（steps/时长/图片等）不回滚，
   // 避免覆盖线上人工微调；teardown 重建库走 create 分支全量写入
+  // T-Q10：mealTypes 一并同步（早餐菜显式标 breakfast 在重放时生效；旧菜不带该字段=
+  // undefined -> Prisma 跳过不更新，线上人工标记不回滚；create 分支缺省走 DB default []）
   for (const dish of dishes) {
     await prisma.dish.upsert({
       where: { id: dish.id },
       update: {
         status: dish.status,
         mealRole: dish.mealRole,
+        mealTypes: dish.mealTypes,
       },
       create: {
         id: dish.id,
         name: dish.name,
         mealRole: dish.mealRole,
+        mealTypes: dish.mealTypes,
         cuisine: dish.cuisine,
         flavorTags: dish.flavorTags,
         spicyLevel: dish.spicyLevel,
@@ -199,14 +203,29 @@ async function main(): Promise<void> {
   }
 
   // 菜品-食材关联
+  // T-Q10：ingredientId 同样「id 优先、名称回退」解析——老库可能已有同名食材行但
+  // id 是 cuid（内容管线建过面粉/面条等），食材 upsert 按 name 命中不建 seed id 行，
+  // 直接引用 seed id 会外键悬空（本地库实测 P2003）。回退按 name 解析到真实行 id；
+  // 全新库 seed id 直接命中，解析零开销。
   for (const di of dishIngredients) {
+    let ingredientId = di.ingredientId;
+    const byId = await prisma.ingredient.findUnique({ where: { id: di.ingredientId } });
+    if (!byId) {
+      const seedIngredient = ingredients.find((i) => i.id === di.ingredientId);
+      const byName = seedIngredient
+        ? await prisma.ingredient.findUnique({ where: { name: seedIngredient.name } })
+        : null;
+      if (byName) {
+        ingredientId = byName.id;
+      }
+    }
     await prisma.dishIngredient.upsert({
       where: { id: di.id },
       update: {},
       create: {
         id: di.id,
         dishId: di.dishId,
-        ingredientId: di.ingredientId,
+        ingredientId,
         qty: di.qty,
         unit: di.unit,
         optional: di.optional,
@@ -245,7 +264,7 @@ async function main(): Promise<void> {
   }
 
   console.log(
-    'Seed completed: 1 family + 1 rule + 3 exclusions + 29 ingredients + 13 dishes + 53 dish-ingredients + 7 menus + 23 menu-dishes.'
+    'Seed completed: 1 family + 1 rule + 3 exclusions + 34 ingredients + 19 dishes + 74 dish-ingredients + 7 menus + 23 menu-dishes.'
   );
 }
 

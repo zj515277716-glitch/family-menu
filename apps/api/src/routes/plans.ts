@@ -13,8 +13,10 @@ import {
   FeedbackRequestSchema,
   FeedbackResponseSchema,
   PlanResponseSchema,
+  PlanListQuerySchema,
   PlanListResponseSchema,
   ShoppingListResponseSchema,
+  MealSlotSchema,
 } from '@family-menu/shared';
 import { planService } from '../services/planService.js';
 
@@ -53,6 +55,7 @@ export const planRoutes: FastifyPluginAsync = async (app) => {
       parsed.data.dishId,
       parsed.data.newDishId,
       parsed.data.reason,
+      parsed.data.slot,
     );
     return PlanResponseSchema.parse(plan);
   });
@@ -104,8 +107,8 @@ export const planRoutes: FastifyPluginAsync = async (app) => {
     return ShoppingListResponseSchema.parse(shoppingList);
   });
 
-  // ── F4: 改人数重算清单（TP-04/DEC-014 裁决 3） ──
-  // POST /api/plans/:id/shopping-list/rescale { people }
+  // ── F4: 改人数重算清单（TP-04/DEC-014 裁决 3；v0.12 改成人/儿童口径，C-4） ──
+  // POST /api/plans/:id/shopping-list/rescale { adults, children }
   app.post('/plans/:id/shopping-list/rescale', async (request, reply) => {
     const params = PlanIdParamsSchema.safeParse(request.params);
     if (!params.success) {
@@ -117,7 +120,8 @@ export const planRoutes: FastifyPluginAsync = async (app) => {
     }
     const shoppingList = await planService.rescaleShoppingList(
       params.data.id,
-      parsed.data.people,
+      parsed.data.adults,
+      parsed.data.children,
     );
     return ShoppingListResponseSchema.parse(shoppingList);
   });
@@ -139,15 +143,27 @@ export const planRoutes: FastifyPluginAsync = async (app) => {
     return PlanResponseSchema.parse(plan);
   });
 
-  // GET /api/plans/:id/feedback —— 该 plan 最新一条反馈
+  // GET /api/plans/:id/feedback?mealSlot=xxx —— 该 plan 最新一条反馈（v0.12 可按餐取）
   // v0.9（T-P12）：plan 存在但无反馈 -> 200 + JSON null（service 返回 null 原样透传，响应体即 null 字面量）；
   // plan 不存在 -> 404（service NotFoundError，语义收敛为「资源不存在」）；有反馈 -> FeedbackResponse 校验后 200。
+  // mealSlot（C-5）：传了按该餐取最新；不传=全计划最新（旧行为）。
   app.get('/plans/:id/feedback', async (request, reply) => {
     const params = PlanIdParamsSchema.safeParse(request.params);
     if (!params.success) {
       return reply.code(400).send({ error: 'Invalid plan id' });
     }
-    const feedback = await planService.getFeedback(params.data.id);
+    const query = request.query as Record<string, unknown> | null;
+    const mealSlot = query?.mealSlot;
+    if (mealSlot !== undefined) {
+      const slotParsed = MealSlotSchema.safeParse(mealSlot);
+      if (!slotParsed.success) {
+        return reply.code(400).send({ error: 'Validation error', details: slotParsed.error.issues });
+      }
+    }
+    const feedback = await planService.getFeedback(
+      params.data.id,
+      mealSlot === undefined ? undefined : (mealSlot as 'breakfast' | 'lunch' | 'dinner'),
+    );
     if (feedback === null) {
       return reply.code(200).send(null);
     }
@@ -155,9 +171,14 @@ export const planRoutes: FastifyPluginAsync = async (app) => {
   });
 
   // ── F7: 历史列表 ──
-  // GET /api/plans
-  app.get('/plans', async () => {
-    const plans = await planService.listPlans();
+  // GET /api/plans?date=YYYY-MM-DD（v0.12：按日查三餐计划，该日全部版本按 createdAt 倒序，
+  // 取首条即最新；缺省=全量历史，旧行为不变）
+  app.get('/plans', async (request, reply) => {
+    const query = PlanListQuerySchema.safeParse(request.query);
+    if (!query.success) {
+      return reply.code(400).send({ error: 'Validation error', details: query.error.issues });
+    }
+    const plans = await planService.listPlans(query.data.date);
     return PlanListResponseSchema.parse(plans);
   });
 

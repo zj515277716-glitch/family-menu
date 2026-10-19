@@ -28,10 +28,24 @@
 // v0.11（2026-09-16，菜谱池整改，用户已批准）：DishStepSchema 新增 optional image（步骤做法配图）——
 //   仅站内相对路径 /images/dishes/<id>/N.(webp|jpg|png|gif)，口径对齐 imageUrl 站内分支（R-10）；
 //   向后兼容（老数据无此字段）；dish 页做法卡「有图嵌图无图纯文字」（下厨房参考样式）。
+// v0.12（2026-10-18，T-Q10/PD-020，三餐计划结构，L2）：
+//   ① RecommendRequestSchema 由 PlanContext（people 口径）替换为 DayPlanContext（成人/儿童分列、
+//      临时忌口/想吃的菜/餐次勾选/避开窗口），RecommendResponseSchema 由三候选报文替换为 PlanSchema
+//      （三餐计划生成即落库，无三选一）——请求/响应均为 breaking（生产冻结 + UI 全量下一卡重写，
+//      旧 h5 报文对新 API 400，属计划内演进，非静默不兼容）；
+//   ② SwapTypeSchema 扩「换一餐」（全换=换一批三餐重推；单菜换=换一道，语义不变），SwapPlanRequestSchema
+//      新增 optional slot（换一餐必填，superRefine）；旧「全换/单菜换」字面量仍合法（枚举增量非破坏）；
+//   ③ FeedbackRequestSchema/FeedbackResponseSchema 新增 optional mealSlot（按餐记录，同日同餐重提覆盖；
+//      存量单餐反馈不传 mealSlot，服务端按晚餐口径兼容）；
+//   ④ RescaleShoppingListRequestSchema 由 {people} 替换为 {adults, children}（C-4 换算口径，breaking）；
+//   ⑤ GET /api/plans 新增 optional date 查询参数（按日查三餐计划，响应仍是数组：该日计划按 createdAt
+//      倒序，取首条即最新；缺省行为不变=全量历史列表）；
+//   ⑥ DishSchema 新增 optional mealTypes、PlanSchema 新增 optional dayContext/dayPlan、EventSchema 新增
+//      optional mealSlot、ShoppingListSchema 新增 optional prepAdvice（结构定义见各 schema，均增量）。
 import { z } from 'zod';
-import { MealRoleSchema } from './dish.js';
+import { MealRoleSchema, MealSlotSchema } from './dish.js';
 import { FamilyRuleSchema, ExclusionRuleSchema } from './family.js';
-import { CandidateSchema, PlanContextSchema, PlanSchema, ShoppingListSchema } from './plan.js';
+import { DayPlanContextSchema, PlanSchema, ShoppingListSchema } from './plan.js';
 // ───── 路径参数 ─────
 /** 计划相关路由的 :id 参数 */
 export const PlanIdParamsSchema = z.object({
@@ -40,11 +54,11 @@ export const PlanIdParamsSchema = z.object({
 // ───── 请求体枚举 ─────
 /**
  * 换菜类型（POST /api/plans/:id/swap）。
- * 全换 = 整套换（对应 EventType.SWAP_MENU）；
- * 单菜换 = 单道菜换（对应 EventType.SWAP_DISH）。
- * 取值依据任务卡 5.1 路由清单 "swapType: string(全换/单菜换)"。
+ * 全换 = 换一批：三餐整体重推（对应 EventType.SWAP_MENU，当前全天已用菜不回池）；
+ * 换一餐 = 某餐整体重推，其他两餐不动（v0.12，PD-020/C-3a）；
+ * 单菜换 = 单道菜换（对应 EventType.SWAP_DISH，语义不变）。
  */
-export const SwapTypeSchema = z.enum(['全换', '单菜换']);
+export const SwapTypeSchema = z.enum(['全换', '单菜换', '换一餐']);
 /**
  * 第②问：味道怎么样（v0.6，DEC-015）。
  * good = 好吃 / ok = 一般 / fail = 翻车。
@@ -60,14 +74,18 @@ export const PutFamilyRulesRequestSchema = FamilyRuleSchema;
  * v0.2 新增（STEP-06 契约缺口修复：禁忌不持久化）。
  */
 export const PutExclusionsRequestSchema = z.array(ExclusionRuleSchema);
-/** POST /api/recommend 请求体（今晚情境） */
-export const RecommendRequestSchema = PlanContextSchema;
 /**
- * POST /api/plans/:id/swap 请求体（v0.4，DEC-013）。
- * reason 改为可选（PD-003：换菜原因可不填，服务端未填存 null）；
+ * POST /api/recommend 请求体（v0.12：日计划上下文，PD-020）。
+ * 旧 PlanContext（people 口径）报文 v0.12 起 400 拒绝——成人/儿童分列是三餐计划
+ * 的硬输入（儿童触发少辣/少刺/软烂约束），无可靠默认值可代填（不静默猜测）。
+ */
+export const RecommendRequestSchema = DayPlanContextSchema;
+/**
+ * POST /api/plans/:id/swap 请求体（v0.4，DEC-013；v0.12 扩「换一餐」）。
+ * reason 可选（PD-003：换菜原因可不填，服务端未填存 null）；
  * 单菜换：dishId = 被换下的菜（语义钉死），newDishId = 换入的新菜，两者必填且不得相等；
- * 全换：忽略 dishId/newDishId（v0.3 形态保留，「整套换」功能已推迟但契约枚举不动）。
- * 行为收紧：v0.3 可过校验的畸形报文（单菜换缺双 id）v0.4 起 400 拒绝（杜绝假成功，非破坏性变更）。
+ * 换一餐：slot = 要整体重推的餐次（必填），忽略 dishId/newDishId；
+ * 全换：忽略 slot/dishId/newDishId（三餐整体重推，当前已用菜不回池）。
  */
 export const SwapPlanRequestSchema = z
     .object({
@@ -75,6 +93,7 @@ export const SwapPlanRequestSchema = z
     swapType: SwapTypeSchema,
     dishId: z.string().optional(), // 单菜换时必填（superRefine 校验）
     newDishId: z.string().optional(), // 单菜换时必填（superRefine 校验）
+    slot: MealSlotSchema.optional(), // 换一餐时必填（superRefine 校验）
 })
     .superRefine((data, ctx) => {
     if (data.swapType === '单菜换') {
@@ -87,6 +106,9 @@ export const SwapPlanRequestSchema = z
         if (data.dishId && data.newDishId && data.dishId === data.newDishId) {
             ctx.addIssue({ code: 'custom', path: ['newDishId'], message: 'newDishId 不能与 dishId 相同（换给自己无意义）' });
         }
+    }
+    if (data.swapType === '换一餐' && !data.slot) {
+        ctx.addIssue({ code: 'custom', path: ['slot'], message: '换一餐必须携带要重推的餐次 slot' });
     }
 });
 /**
@@ -123,23 +145,26 @@ export const PatchShoppingListRequestSchema = z.object({
     checked: z.boolean(),
 });
 /**
- * POST /api/plans/:id/shopping-list/rescale 请求体（v0.5，DEC-014）。
- * people = 改后的今晚人数（>=1）；服务端按新人数重算清单并持久化，
- * 同步更新 plan.context.people，按 ingredientId 保留勾选状态，写 Event RESCALE。
+ * POST /api/plans/:id/shopping-list/rescale 请求体（v0.5 DEC-014 {people}；v0.12 三餐口径替换）。
+ * adults/children = 改后的成人/儿童人数；服务端按（成人+儿童）人数重算清单并持久化，
+ * 同步更新 plan.dayContext，按 ingredientId 保留勾选状态，写 Event RESCALE。
+ * 旧 {people} 报文 v0.12 起 400 拒绝（成人/儿童分列口径，无法从合并人数反推）。
  */
 export const RescaleShoppingListRequestSchema = z.object({
-    people: z.number().int().min(1),
+    adults: z.number().int().min(1),
+    children: z.number().int().min(0),
 });
 /**
- * POST /api/plans/:id/feedback 请求体（v0.6 三问模型，DEC-015，对应 C-10/PD-006）。
+ * POST /api/plans/:id/feedback 请求体（v0.6 三问模型，DEC-015；v0.12 按餐关联，PD-020/C-5）。
  * didCook = 第①问「做了吗」（必填）；
  * taste = 第②问「味道怎么样」（didCook=true 必填、false 禁传，superRefine 校验）；
  * willRepeat = 第③问「下次还做吗」（必填——没做也可答不做了，C-11 灰标签规则）；
- * actualMinutes = 实际耗时选填（PD-006）。
+ * actualMinutes = 实际耗时选填（PD-006）；
+ * mealSlot = 反馈所属餐次（v0.12：三餐计划必填——评价按餐独立；不传视为晚餐，
+ * 兼容存量单餐计划与旧客户端）。同日同餐重提覆盖（C-5 失败恢复口径）。
  * 写入映射（裁决 2/3，DEC-015）：didCook=true -> Event COOKED（payload 含三问+耗时）+ CookLog
  * （taste 映射 result：good->success / ok->partial / fail->fail）；didCook=false -> Event
  * NOT_COOKED（payload 无 taste），不写 CookLog。
- * breaking：旧 result/cookResult/failPoints 报文 v0.6 起 400 拒绝（消费面仅自家 h5，同 PR 升级）。
  */
 export const FeedbackRequestSchema = z
     .object({
@@ -147,6 +172,7 @@ export const FeedbackRequestSchema = z
     taste: TasteSchema.optional(),
     willRepeat: z.boolean(),
     actualMinutes: z.number().int().optional(),
+    mealSlot: MealSlotSchema.optional(),
 })
     .superRefine((data, ctx) => {
     if (data.didCook && !data.taste) {
@@ -160,8 +186,9 @@ export const FeedbackRequestSchema = z
  * GET /api/plans/:id/feedback 响应（v0.6，DEC-015 裁决 4；v0.9 空态语义修订，T-P12）。
  * 返回该 plan 事件流最新一条反馈（didCook 由事件类型派生：COOKED/NOT_COOKED）；
  * taste/willRepeat/actualMinutes 取事件 payload；submittedAt = 事件创建时间。
- * 响应侧 taste/willRepeat/actualMinutes optional：v0.5 旧事件 payload 无这些字段，如实缺省不编造。
- * v0.9（T-P12，挂账⑤）：本 schema 描述「有反馈」报文形状（零变化）；plan 存在但无反馈时
+ * mealSlot = 该条反馈所属餐次（v0.12；存量事件无此字段如实缺省）。
+ * 查询参数 mealSlot 可选：传了按该餐过滤最新一条，不传=全计划最新一条（旧行为）。
+ * v0.9（T-P12，挂账⑤）：本 schema 描述「有反馈」报文形状；plan 存在但无反馈时
  * 路由层直接返回 200 + JSON null（响应体即 null 字面量）；plan 不存在时仍 404。
  */
 export const FeedbackResponseSchema = z.object({
@@ -169,6 +196,7 @@ export const FeedbackResponseSchema = z.object({
     taste: TasteSchema.optional(),
     willRepeat: z.boolean().optional(),
     actualMinutes: z.number().int().optional(),
+    mealSlot: MealSlotSchema.optional(),
     submittedAt: z.date(),
 });
 // ───── 响应体 schemas ─────
@@ -180,26 +208,26 @@ export const FamilyRulesResponseSchema = FamilyRuleSchema;
  */
 export const GetExclusionsResponseSchema = z.array(ExclusionRuleSchema);
 /**
- * POST /api/recommend 响应（3 套候选+理由）。
- * v0.3（TP-02/PD-012）：新增 optional unmetMustUse —— 必消食材硬过滤空手信号：
- * 非空 = 这些必消食材无法被任何菜单消耗，本次空手（candidates 为空数组、不建 Plan）；
- * 正常推荐时字段缺省或为空数组。向后兼容：optional 缺省不影响 v0.2 调用方（先例同 FeedbackRequestSchema.cookResult）。
+ * POST /api/recommend 响应（v0.12：三餐计划本体，生成即落库）。
+ * plan.dayPlan 携带三餐菜单/必消落位/想吃的菜标注；空手归因在 plan.dayPlan.failures
+ * （PD-017 两型+PD-014 组合口径）。仍会建 Plan 行（含空手归因快照，供当日重进与调整出路）。
+ * 旧三候选报文（candidates/unmetMustUse/unmetReasons 顶层字段）v0.12 起移除。
  */
-export const RecommendResponseSchema = z.object({
-    candidates: z.array(CandidateSchema),
-    unmetMustUse: z.array(z.string()).optional(), // v0.3，语义不变
-    /**
-     * v0.8（T-P10/PD-017）：空手原因分类。
-     * key = 用户原文（与 unmetMustUse 元素一一对应）；value = TIME_BUDGET（有菜但时长档排不下）
-     * 或 NO_DISH（没有菜能消耗）。空手时由服务端携带：存在不可消耗必消时为非空分类对象
-     * （与 unmetMustUse 同键集）；C-7a 组合必消空手时为空对象 `{}`；正常推荐时缺省。
-     * 向后兼容：optional 增量（先例同 v0.3 unmetMustUse）。
-     */
-    unmetReasons: z.record(z.string(), z.enum(['TIME_BUDGET', 'NO_DISH'])).optional(),
-});
+export const RecommendResponseSchema = PlanSchema;
 /** 单个计划响应（lock/swap/feedback/repeat） */
 export const PlanResponseSchema = PlanSchema;
-/** GET /api/plans 响应（历史列表） */
+/**
+ * GET /api/plans 查询参数（v0.12）：date 可选（YYYY-MM-DD，本地日界）。
+ * 缺省 = 全量历史列表（旧行为不变）；传了 = 只返回该日期的计划（同日多行按 createdAt 倒序，
+ * 首条即最新——append 模型下重进取最新一份，对齐 C-3「同一天重进看到同一份三餐」）。
+ */
+export const PlanListQuerySchema = z.object({
+    date: z
+        .string()
+        .regex(/^\d{4}-\d{2}-\d{2}$/, 'date 必须是 YYYY-MM-DD')
+        .optional(),
+});
+/** GET /api/plans 响应（历史列表；date 过滤后仍是数组语义） */
 export const PlanListResponseSchema = z.array(PlanSchema);
 /** GET|PATCH /api/plans/:id/shopping-list 响应 */
 export const ShoppingListResponseSchema = ShoppingListSchema;

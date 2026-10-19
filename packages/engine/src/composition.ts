@@ -14,13 +14,72 @@
 // - mustUse 定向套（AC3/PD-001）：必消非空时贪心选覆盖菜同桌生成定向组合，
 //   槽位冲突（如同角色代表菜超过槽位数）则放弃定向套——此时任何合法槽位组合都无法
 //   同桌覆盖全部必消，空手是真实口径，不伪造可行解。
-import type { DishView, ExclusionView, MenuView } from './types.js';
+import type { DishView, ExclusionView, MealSlot, MenuView } from './types.js';
+import { MEAL_SLOTS } from './types.js';
 import type { MealRole, PrepSequenceItem } from '@family-menu/shared';
 import { filterSafeDishes } from './safety.js';
 
 /** 槽位映射（PD-018）：主菜槽 = ⌈people/2⌉（向下防御：至少 1） */
 export function mainSlotCount(people: number): number {
   return Math.max(1, Math.ceil(people / 2));
+}
+
+// ───── 餐型菜品池（PD-020 餐型维度） ─────
+
+/** 早餐轻食判定的食材品类（粥/饼/蛋/豆制品类） */
+export const BREAKFAST_INGREDIENT_CATEGORIES = ['蛋奶', '豆制品', '主食'] as const;
+
+/** 早餐轻食判定的菜名关键词（粥/饼/蛋/豆浆/奶类） */
+export const BREAKFAST_NAME_KEYWORDS = [
+  '粥',
+  '饼',
+  '豆浆',
+  '豆腐',
+  '牛奶',
+  '燕麦',
+  '蛋',
+  '包',
+  '馒',
+] as const;
+
+/** 早餐道数（沿用 PD-018 人数伸缩口径 ⌈people/2⌉，轻食从简上限 3） */
+export function breakfastDishCount(people: number): number {
+  return Math.min(3, Math.max(1, Math.ceil(people / 2)));
+}
+
+/**
+ * 推断菜品适用餐型（确定性，无随机）：
+ * - dish.mealTypes 显式存在时以其为准（按 MEAL_SLOTS 规范序返回）；
+ * - 缺省按既有字段兼容现数据：午/晚正餐全适用；满足轻食特征
+ *   （STAPLE 主食 / 含蛋奶·豆制品·主食类食材 / 菜名含粥饼蛋奶关键词）
+ *   且非重辣（spicyLevel ≤ 1）追加早餐。
+ */
+export function inferMealTypes(dish: DishView): MealSlot[] {
+  if (dish.mealTypes && dish.mealTypes.length > 0) {
+    const explicit = new Set(dish.mealTypes);
+    return MEAL_SLOTS.filter((s) => explicit.has(s));
+  }
+  const slots: MealSlot[] = ['lunch', 'dinner'];
+  const isLight =
+    dish.mealRole === 'STAPLE' ||
+    dish.ingredients.some((ing) =>
+      (BREAKFAST_INGREDIENT_CATEGORIES as readonly string[]).includes(ing.category),
+    ) ||
+    BREAKFAST_NAME_KEYWORDS.some((kw) => dish.name.includes(kw));
+  if (isLight && dish.spicyLevel <= 1) {
+    slots.unshift('breakfast');
+  }
+  return slots;
+}
+
+/** 是否早餐轻食池成员 */
+export function isBreakfastDish(dish: DishView): boolean {
+  return inferMealTypes(dish).includes('breakfast');
+}
+
+/** 按餐型取菜品池（早餐=轻食池；午/晚=适用该餐型的全部菜，走 MealRole 槽位） */
+export function poolForSlot(dishes: DishView[], slot: MealSlot): DishView[] {
+  return dishes.filter((d) => inferMealTypes(d).includes(slot));
 }
 
 /** 组合输入（全部来自调用方装载，组合层零 IO；菜池由第一参数 dishes 传入，不在此重复） */
@@ -71,8 +130,9 @@ export function stableContentHash(dishIds: string[]): string {
 /**
  * 备菜顺序确定性串行展开（与 apps/api planService.buildPrepSequence v1 同构，
  * engine 内独立实现，不跨包引用 API 层）。
+ * 导出供日规划层（day-plan）早餐合成菜单复用同一展开口径。
  */
-function buildPrepSequence(dishes: DishView[]): PrepSequenceItem[] {
+export function buildPrepSequence(dishes: DishView[]): PrepSequenceItem[] {
   const sequence: PrepSequenceItem[] = [];
   let cursor = 0;
   for (const dish of dishes) {

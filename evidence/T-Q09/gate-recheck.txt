@@ -1,0 +1,25 @@
+T-Q09 门禁独立复核（第二次会话，2026-10-15 15:41–15:51，分支 t-q09-engine-dayplan @ c8188e6）
+
+一、四门门禁亲跑结果
+- pnpm lint                     exit 0（eslint . 无输出）
+- pnpm -r exec tsc --noEmit     exit 0（全包，含 apps/api 现行调用兼容实证）
+- pnpm test:taboo               exit 0（engine 全量 10 文件 161/161，含 taboo 21=18 原有+3 跨餐新增、day-plan 28）
+- vitest run packages/engine    exit 0（161/161，单独输出同上）
+
+二、pnpm test（全量）环境说明（不重跑蒙混，如实记录）
+- 本提交内 gate-test.txt 记录时本机 PG(:54329) 离线：534 passed + 20 skipped（DB 集成用例按 spec 设计显式 skip），exit 0。
+- 复核时 PG 在线：552 passed + 2 failed，exit 1。失败均在 apps/api/test/a3-reputation.spec.ts B3/B4
+  （断言「无反馈菜组合 historyAcceptance 保持中性 0.7」，实得 1.0）。
+- 取证①（同库对照）：切 main(28adb64) 跑同一 spec，同样 2 failed | 2 passed，逐字同因 → 预存在，非本卡引入。
+- 取证②（只读 SQL）：本地库存在真实 CookLog（2026-10-07：杭椒牛柳/清蒸鲈鱼/紫菜蛋花汤 success+willRepeat=true，
+  落在 30 天历史窗内，0.9+0.1=1.0），击穿该 spec「库内无其他正面历史」的环境前提；本地库另有 22 道 PUBLISHED 菜。
+- 与 T-Q09 diff 无关的三重证据：apps/** 零改动（git diff main...HEAD 仅 packages/engine+证据）；
+  calcHistoryAcceptance 未在 diff 内（score.ts 仅 recentWindowDays 参数化，缺省行为逐位一致，有回归单测）；
+  main 复现同败。
+- 处置：不动家人真实数据（红线）；a3 spec 数据耐受性问题记卡外发现，交主控派卡（建议断言改为
+  「相对基线增量」或隔离 schema 运行）。
+
+三、结论
+- 本卡范围（packages/engine 与其测试 + taboo 扩展）门禁全绿； TonightContext 兼容保留，apps/api 零改动 tsc 实证。
+- pnpm test 全量绿的前提是本机 PG 离线（DB 用例 skip）——与提交内首份证据条件一致；PG 在线时的 2 条失败
+  为预存在环境问题（main 同败），需主控决策后另行处理。

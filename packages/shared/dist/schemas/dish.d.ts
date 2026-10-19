@@ -7,6 +7,16 @@ export declare const MealRoleSchema: z.ZodEnum<{
     STAPLE: "STAPLE";
 }>;
 /**
+ * 餐次（PD-020 一日三餐）：早/中/晚三正餐。
+ * 放本模块而非 plan.ts：与 MealRole 同属菜品域属性（Dish.mealTypes），
+ * 且 plan.ts 需 import 本文件（DayPlanDish 复用 DishSchema），反向依赖会成环。
+ */
+export declare const MealSlotSchema: z.ZodEnum<{
+    breakfast: "breakfast";
+    lunch: "lunch";
+    dinner: "dinner";
+}>;
+/**
  * 内容状态三态：DRAFT -> TESTED -> PUBLISHED。
  * 只有 PUBLISHED 进入推荐池（安全底线，DEC-006 运行时零LLM）。
  */
@@ -44,6 +54,11 @@ export declare const DishSchema: z.ZodObject<{
         SOUP: "SOUP";
         STAPLE: "STAPLE";
     }>;
+    mealTypes: z.ZodOptional<z.ZodArray<z.ZodEnum<{
+        breakfast: "breakfast";
+        lunch: "lunch";
+        dinner: "dinner";
+    }>>>;
     cuisine: z.ZodOptional<z.ZodString>;
     flavorTags: z.ZodArray<z.ZodString>;
     spicyLevel: z.ZodDefault<z.ZodNumber>;

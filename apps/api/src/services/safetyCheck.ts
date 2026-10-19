@@ -24,6 +24,8 @@ export interface SafetyCheckDishRow {
   id: string;
   name: string;
   mealRole: string;
+  /** 适用餐次（PD-020）：空数组=未标记（引擎按既有字段推断） */
+  mealTypes: string[];
   cuisine: string | null;
   flavorTags: string[];
   spicyLevel: number;
@@ -117,6 +119,7 @@ function toDishViews(dishes: SafetyCheckDishRow[]): DishView[] {
       id: d.id,
       name: d.name,
       mealRole: d.mealRole,
+      mealTypes: d.mealTypes,
       cuisine: d.cuisine,
       flavorTags: d.flavorTags,
       spicyLevel: d.spicyLevel,

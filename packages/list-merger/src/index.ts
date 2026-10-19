@@ -1,5 +1,5 @@
 // packages/list-merger - 采购清单合并（纯函数）
-// 统一导出 mergeShoppingList + 公开类型（4.4）
+// 统一导出 mergeShoppingList（单餐存量口径）+ mergeDayShoppingList（三餐，T-Q10）+ 公开类型
 export const PACKAGE_NAME = '@family-menu/list-merger';
 
 export {
@@ -15,6 +15,14 @@ export {
   type ShoppingListGroup,
   type ShoppingList,
 } from './merge.js';
+export {
+  mergeDayShoppingList,
+  type DayShoppingDish,
+  type DayShoppingMenu,
+  type DayMergeOptions,
+  type DayShoppingList,
+  type PrepAdvice,
+} from './day-merge.js';
 export { normalize, type NormalizedGroup } from './normalize.js';
 export {
   canConvert,

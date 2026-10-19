@@ -7,6 +7,7 @@ import type {
   EventType,
   ExclusionScope,
   MealRole,
+  MealSlot,
   ContentStatus,
   ContentOrigin,
   MenuScene,
@@ -43,6 +44,8 @@ interface DishRow {
   id: string;
   name: string;
   mealRole: string;
+  /** 适用餐次（PD-020）：空数组=未标记（引擎按既有字段推断），投影为 undefined */
+  mealTypes: string[];
   cuisine: string | null;
   flavorTags: string[];
   spicyLevel: number;
@@ -172,10 +175,15 @@ export type DishMediaView = DishView & {
 };
 
 export function toDishView(row: DishRow): DishMediaView {
+  // 空数组=未标记（DB default []，迁移前存量）——投影 undefined 让引擎走 inferMealTypes 推断
+  const mealTypes: MealSlot[] = row.mealTypes.filter((s): s is MealSlot =>
+    s === 'breakfast' || s === 'lunch' || s === 'dinner',
+  );
   return {
     id: row.id,
     name: row.name,
     mealRole: row.mealRole as MealRole,
+    mealTypes: mealTypes.length > 0 ? mealTypes : undefined,
     cuisine: row.cuisine ?? undefined,
     flavorTags: row.flavorTags,
     spicyLevel: row.spicyLevel,

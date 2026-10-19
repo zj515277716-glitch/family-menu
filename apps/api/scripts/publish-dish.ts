@@ -107,6 +107,7 @@ export async function publishDish(prisma: {
     id: target.id,
     name: target.name,
     mealRole: target.mealRole,
+    mealTypes: target.mealTypes,
     cuisine: target.cuisine,
     flavorTags: target.flavorTags,
     spicyLevel: target.spicyLevel,

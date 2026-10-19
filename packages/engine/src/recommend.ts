@@ -72,3 +72,7 @@ export function recommend(input: RecommendInput): RecommendResult {
     unsatisfiableMustUseReasons: feasibilityResult.unsatisfiableReasons,
   };
 }
+
+// PD-020：三餐联合规划主入口（本模块承载推荐主入口口径，实现见 day-plan.ts）。
+// recommend() 单餐入口保留不动，apps/api 现行调用零改动。
+export { planDay } from './day-plan.js';

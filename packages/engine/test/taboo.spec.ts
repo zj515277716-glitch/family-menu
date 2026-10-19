@@ -3,8 +3,9 @@
 // fixtures：每条 HARD 规则 × 库内每套含该成分的菜单 = 一条必须被过滤的用例
 // 变形用例：别名（番茄/西红柿）、隐含成分（腊味合蒸含腊肉）、可选食材含禁忌
 // 断言：filtered 包含之且 candidates（passed）不含之
+// T-Q09/PD-020 扩展：跨餐硬禁忌（三餐联合规划下安全层仍 100% 阻断）+ 临时忌口 + 儿童约束
 import { describe, it, expect } from 'vitest';
-import { safetyFilter, recommend } from '../src/index.js';
+import { safetyFilter, recommend, planDay, filterSafeDishes } from '../src/index.js';
 import * as F from './fixtures/index.js';
 
 describe('safetyFilter 禁忌测试集（4.3 M2 发布门槛）', () => {
@@ -239,5 +240,118 @@ describe('recommend 集成禁忌测试（全量 HARD × 全库，100% 阻断）'
     // menu-tomato-egg 被 safety 过滤，不会进入 candidates
     expect(result.candidates.map((c) => c.menuId)).not.toContain('menu-tomato-egg');
     expect(result.filtered.find((f) => f.menuId === 'menu-tomato-egg')?.stage).toBe('safety');
+  });
+});
+
+// ───── T-Q09/PD-020：跨餐硬禁忌（三餐联合规划下 100% 阻断） ─────
+
+describe('跨餐硬禁忌：planDay 三餐联合规划安全层 100% 阻断', () => {
+  // 共享 fixtures 的全部菜（从禁忌测试集菜单拆出，作为三餐规划菜池）
+  const DAY_DISHES = [
+    F.DISH_TOMATO_EGG,
+    F.DISH_XIHONGSHI_EGG,
+    F.DISH_LAWEI_HEZHENG,
+    F.DISH_STEAMED_FISH,
+    F.DISH_MAPOTOFU,
+    F.DISH_PLAIN_RICE,
+    F.DISH_OFFAL,
+    F.DISH_UNKNOWN,
+  ];
+  // 命中长期 HARD 禁忌（含变形：别名/隐含/可选/TAG/DISH/成分未确认）的菜
+  const FORBIDDEN_DISH_IDS = [
+    'dish-tomato-egg',
+    'dish-xihongshi-egg',
+    'dish-lawei-hezheng',
+    'dish-steamed-fish',
+    'dish-mapotofu',
+    'dish-offal',
+    'dish-unknown',
+  ];
+
+  function makeDayInput(exclusions: typeof F.ALL_HARD_EXCLUSIONS, children = 0) {
+    return {
+      rules: F.FAMILY_RULE,
+      exclusions,
+      context: {
+        adults: 2,
+        children,
+        timeBudgetMin: 60 as const,
+        mustUseIngredients: [],
+      },
+      dishes: DAY_DISHES,
+      history: [],
+    };
+  }
+
+  it('全量 HARD × 三餐：任何一餐都不出禁忌菜（早/中/晚逐餐断言）', () => {
+    const result = planDay(makeDayInput(F.ALL_HARD_EXCLUSIONS));
+    const plannedIds = new Set(
+      result.meals.flatMap((m) => m.dishes.map((d) => d.id)),
+    );
+    for (const id of FORBIDDEN_DISH_IDS) {
+      expect(plannedIds.has(id)).toBe(false);
+    }
+    // 安全菜（白米饭，STAPLE 轻食）进早餐；禁忌菜全部只出现在 filtered
+    const breakfast = result.meals.find((m) => m.slot === 'breakfast');
+    expect(breakfast?.dishes.map((d) => d.id)).toEqual(['dish-plain-rice']);
+    const filteredIds = new Set(result.filtered.map((f) => f.menuId));
+    for (const id of FORBIDDEN_DISH_IDS) {
+      expect(filteredIds.has(id)).toBe(true);
+    }
+    // 每餐产出均通过 dish 级安全复核（不变量：安全层永远先于评分）
+    const recheck = filterSafeDishes(
+      result.meals.flatMap((m) => m.dishes),
+      F.ALL_HARD_EXCLUSIONS,
+    );
+    expect(recheck.excluded).toHaveLength(0);
+  });
+
+  it('临时忌口与长期 HARD 同效且独立标注：三餐不出牛肉，轨迹写「临时忌口」', () => {
+    const beefDish = {
+      ...F.DISH_TOMATO_EGG,
+      id: 'dish-beef-stew',
+      name: '土豆炖牛肉',
+      ingredients: [
+        {
+          ingredientId: 'ing-beef',
+          ingredientName: '牛肉',
+          aliases: [],
+          category: '肉类',
+          defaultUnit: 'g',
+          qty: 200,
+          unit: 'g',
+          optional: false,
+        },
+      ],
+    };
+    const result = planDay({
+      rules: F.FAMILY_RULE,
+      exclusions: [],
+      context: {
+        adults: 2,
+        children: 0,
+        timeBudgetMin: 60,
+        mustUseIngredients: [],
+        tempAvoidances: [{ ingredientId: 'ing-beef', ingredientName: '牛肉' }],
+      },
+      dishes: [...DAY_DISHES, beefDish],
+      history: [],
+    });
+    const plannedIds = new Set(result.meals.flatMap((m) => m.dishes.map((d) => d.id)));
+    expect(plannedIds.has('dish-beef-stew')).toBe(false);
+    const rules = result.filtered.map((f) => f.rule);
+    expect(rules.some((r) => r.includes('临时忌口「牛肉」（当日生效）'))).toBe(true);
+    expect(rules.every((r) => !r.includes('#temp-avoid-'))).toBe(true);
+  });
+
+  it('儿童>0：辣菜（spicyLevel≥2）三餐零出现，无需配置任何禁忌规则', () => {
+    // DISH_MAPOTOFU spicyLevel=3、DISH_OFFAL spicyLevel=2，无任何禁忌规则也应被儿童约束拦下
+    const result = planDay(makeDayInput([], 1));
+    const plannedIds = new Set(result.meals.flatMap((m) => m.dishes.map((d) => d.id)));
+    expect(plannedIds.has('dish-mapotofu')).toBe(false);
+    expect(plannedIds.has('dish-offal')).toBe(false);
+    expect(
+      result.filtered.some((f) => f.rule.includes('儿童餐避辣')),
+    ).toBe(true);
   });
 });

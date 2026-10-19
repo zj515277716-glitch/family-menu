@@ -3,6 +3,7 @@
 // 权重 0.35/0.20/0.15/0.10/0.10/0.10，无随机性（固定输入回归一致）
 import type {
   DishIngredientView,
+  DishView,
   EventView,
   ExclusionView,
   FamilyRuleView,
@@ -22,7 +23,9 @@ export const SCORE_WEIGHTS: Record<ScoreDim, number> = {
   categoryDiversity: 0.1,
 };
 
-const SEVEN_DAYS_MS = 7 * 24 * 60 * 60 * 1000;
+const DAY_MS = 24 * 60 * 60 * 1000;
+/** 已吃菜避开窗口默认值（PD-020：可调，默认 7 天） */
+const DEFAULT_RECENT_WINDOW_DAYS = 7;
 
 /** 单个评分维度的计算结果 */
 interface ScoreDimResult {
@@ -233,18 +236,21 @@ function calcPreferenceCoverage(
   return { value, reasons };
 }
 
-/** 5. 近期多样性 (权重 0.10)：7 天内做过的菜降权；同时输出 recentDishRoles 供维度6复用
+/** 5. 近期多样性 (权重 0.10)：窗口内做过的菜降权；同时输出 recentDishRoles 供维度6复用
  * T-A3：按 dishId 聚合（COOKED/LOCK/SWAP_MENU 的菜级事件；SWAP_DISH 的 dishId 是换出的旧菜，
- * 不是做过/安排信号，不取）；不再按 menuId 字面匹配（虚拟菜单 id 每次重编号会跨组合错降权）。 */
+ * 不是做过/安排信号，不取）；不再按 menuId 字面匹配（虚拟菜单 id 每次重编号会跨组合错降权）。
+ * PD-020：窗口天数可调（默认 7 天），由调用方经 recentWindowDays 传入。 */
 function calcRecentDiversity(
   menu: MenuView,
   history: EventView[],
   referenceTime: number,
+  recentWindowDays: number,
 ): RecentDiversityResult {
   const reasons: string[] = [];
   const recentDishIds = new Set<string>();
   const recentDishRoles = new Set<string>();
   const ARRANGED_TYPES = new Set(['COOKED', 'LOCK', 'SWAP_MENU']);
+  const windowMs = recentWindowDays * DAY_MS;
 
   if (referenceTime > 0) {
     for (const e of history) {
@@ -252,7 +258,7 @@ function calcRecentDiversity(
         ARRANGED_TYPES.has(e.type) &&
         e.dishId !== undefined &&
         e.createdAt.getTime() <= referenceTime &&
-        referenceTime - e.createdAt.getTime() <= SEVEN_DAYS_MS
+        referenceTime - e.createdAt.getTime() <= windowMs
       ) {
         recentDishIds.add(e.dishId);
         if (e.dishRole) recentDishRoles.add(e.dishRole);
@@ -265,7 +271,7 @@ function calcRecentDiversity(
   let value: number;
   if (doneRecently) {
     value = 0.2;
-    reasons.push('7天内已做过');
+    reasons.push(`${recentWindowDays}天内已做过`);
   } else {
     value = 0.8;
     if (referenceTime > 0) {
@@ -347,8 +353,14 @@ export function score(menu: MenuView, input: RecommendInput): ScoredMenu {
   breakdown.preferenceCoverage = prefResult.value;
   reasons.push(...prefResult.reasons);
 
-  // 5. 近期多样性 (0.10)
-  const recentResult = calcRecentDiversity(menu, input.history, referenceTime);
+  // 5. 近期多样性 (0.10)——PD-020 窗口可调，缺省 7 天（老调用方行为逐位一致）
+  const recentWindowDays = input.recentWindowDays ?? DEFAULT_RECENT_WINDOW_DAYS;
+  const recentResult = calcRecentDiversity(
+    menu,
+    input.history,
+    referenceTime,
+    recentWindowDays,
+  );
   breakdown.recentDiversity = recentResult.value;
   reasons.push(...recentResult.reasons);
 
@@ -374,4 +386,115 @@ export function score(menu: MenuView, input: RecommendInput): ScoredMenu {
     reasons: [...new Set(reasons)],
     breakdown,
   };
+}
+
+// ───── 跨餐多样性计分（PD-020：主蛋白不重复 + 菜系/烹饪方式/主食材三餐不撞） ─────
+
+/**
+ * 器具 → 烹饪方式映射（DishView 无烹饪方式字段，按可得字段确定性推断；
+ * 未登记的器具原样保留其名，缺字段不硬拦）。
+ */
+export const COOKING_METHOD_BY_EQUIPMENT: Record<string, string> = {
+  wok: '炒',
+  pan: '煎',
+  steamer: '蒸',
+  pot: '煮',
+  rice_cooker: '煮',
+  oven: '烤',
+  air_fryer: '炸',
+};
+
+/** 单菜主蛋白集合（食材 category='肉类' 的 ingredientId，沿用 diversify 口径） */
+export function dishProteinIds(dish: DishView): Set<string> {
+  const proteins = new Set<string>();
+  for (const ing of dish.ingredients) {
+    if (ing.category === '肉类') proteins.add(ing.ingredientId);
+  }
+  return proteins;
+}
+
+/** 单菜烹饪方式集合（按器具映射推断，未登记器具保留原名） */
+export function dishCookingMethods(dish: DishView): Set<string> {
+  const methods = new Set<string>();
+  for (const eq of dish.equipment) {
+    methods.add(COOKING_METHOD_BY_EQUIPMENT[eq] ?? eq);
+  }
+  return methods;
+}
+
+/** 单菜主食材（第一道非调料食材；无则 undefined，缺字段不硬拦） */
+export function dishMainIngredientId(dish: DishView): string | undefined {
+  return dish.ingredients.find((ing) => ing.category !== '调料')?.ingredientId;
+}
+
+/** 跨餐撞车统计（同一值出现在 ≥2 餐即计一次撞车，值按字典序输出保确定性） */
+export interface CrossMealClashes {
+  /** 主蛋白跨餐重复（ingredientId 列表） */
+  proteinRepeats: string[];
+  /** 菜系跨餐撞车（cuisine 列表） */
+  cuisineClashes: string[];
+  /** 烹饪方式跨餐撞车（方式列表） */
+  methodClashes: string[];
+  /** 主食材跨餐撞车（ingredientId 列表） */
+  mainIngredientClashes: string[];
+}
+
+/** 统计一组值里出现在 ≥2 餐的值（确定性：按首次出现餐序、同值去重后字典序） */
+function collectRepeated(mealValues: Array<Iterable<string>>): string[] {
+  const count = new Map<string, number>();
+  for (const values of mealValues) {
+    for (const v of new Set(values)) {
+      count.set(v, (count.get(v) ?? 0) + 1);
+    }
+  }
+  return [...count.entries()]
+    .filter(([, n]) => n >= 2)
+    .map(([v]) => v)
+    .sort((a, b) => a.localeCompare(b));
+}
+
+/**
+ * 跨餐撞车检测：输入各餐菜品数组（按餐分组），输出四类撞车清单。
+ * 纯函数确定性；菜数为 0/1 餐时恒无撞车。
+ */
+export function crossMealClashes(mealsDishes: DishView[][]): CrossMealClashes {
+  const proteins: Set<string>[] = [];
+  const cuisines: Set<string>[] = [];
+  const methods: Set<string>[] = [];
+  const mainIngredients: Set<string>[] = [];
+
+  for (const dishes of mealsDishes) {
+    const mealProteins = new Set<string>();
+    const mealCuisines = new Set<string>();
+    const mealMethods = new Set<string>();
+    const mealMainIngredients = new Set<string>();
+    for (const dish of dishes) {
+      for (const p of dishProteinIds(dish)) mealProteins.add(p);
+      if (dish.cuisine) mealCuisines.add(dish.cuisine);
+      for (const m of dishCookingMethods(dish)) mealMethods.add(m);
+      const mainIng = dishMainIngredientId(dish);
+      if (mainIng) mealMainIngredients.add(mainIng);
+    }
+    proteins.push(mealProteins);
+    cuisines.push(mealCuisines);
+    methods.push(mealMethods);
+    mainIngredients.push(mealMainIngredients);
+  }
+
+  return {
+    proteinRepeats: collectRepeated(proteins),
+    cuisineClashes: collectRepeated(cuisines),
+    methodClashes: collectRepeated(methods),
+    mainIngredientClashes: collectRepeated(mainIngredients),
+  };
+}
+
+/** 撞车总数（组合排序键用：0 = 三餐不撞完全成立） */
+export function crossMealClashCount(clashes: CrossMealClashes): number {
+  return (
+    clashes.proteinRepeats.length +
+    clashes.cuisineClashes.length +
+    clashes.methodClashes.length +
+    clashes.mainIngredientClashes.length
+  );
 }

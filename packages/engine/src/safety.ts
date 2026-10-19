@@ -7,6 +7,7 @@ import type {
   ExclusionView,
   FilterTrace,
   MenuView,
+  TempAvoidanceView,
 } from './types.js';
 
 /** 构建 HARD+INGREDIENT 禁忌的匹配名称集合（含 targetName + targetAliases + targetId） */
@@ -313,6 +314,103 @@ export function filterSafeDishes(
     } else {
       passed.push(dish);
     }
+  }
+
+  return { passed, excluded };
+}
+
+// ───── 临时忌口（PD-020 ③，当日生效） ─────
+
+/** 临时忌口合成禁忌 id 前缀（供上层把 trace 独立标注为「临时忌口」而非长期禁忌） */
+export const TEMP_EXCLUSION_ID_PREFIX = 'temp-avoid-';
+
+/**
+ * 临时忌口 → 合成 HARD+INGREDIENT 禁忌。
+ * 过滤效力与长期硬禁忌完全一致（复用别名归一等全部匹配机器）；
+ * id 带 TEMP_EXCLUSION_ID_PREFIX 前缀，供 relabelTempExclusionRule 独立标注。
+ */
+export function tempAvoidanceToExclusions(
+  tempAvoidances: TempAvoidanceView[],
+): ExclusionView[] {
+  return tempAvoidances.map((t, i) => ({
+    id: `${TEMP_EXCLUSION_ID_PREFIX}${i}`,
+    scope: 'INGREDIENT' as const,
+    targetId: t.ingredientId,
+    targetName: t.ingredientName,
+    targetAliases: t.aliases ?? [],
+    severity: 'HARD' as const,
+    note: '临时忌口（当日生效）',
+  }));
+}
+
+/** 判断禁忌 id 是否临时忌口合成 */
+export function isTempExclusionId(id: string): boolean {
+  return id.startsWith(TEMP_EXCLUSION_ID_PREFIX);
+}
+
+/**
+ * 把 trace 文案中的临时忌口合成禁忌改写为「临时忌口」独立标注
+ * （与长期硬禁忌分层，确认书 C-2：临时忌口独立区，仅当日生效）。
+ */
+export function relabelTempExclusionRule(
+  rule: string,
+  tempExclusions: ExclusionView[],
+): string {
+  for (const t of tempExclusions) {
+    if (rule.includes(`#${t.id}`)) {
+      const name = t.targetName ?? t.targetId ?? t.id;
+      return rule.replace(
+        `命中 HARD 食材禁忌#${t.id}`,
+        `命中临时忌口「${name}」（当日生效）`,
+      );
+    }
+  }
+  return rule;
+}
+
+// ───── 儿童餐约束（PD-020：儿童>0 时避辣/避刺多/避过硬） ─────
+
+/** 儿童餐可接受的最高辣度（spicyLevel 超过即拦） */
+export const CHILD_MAX_SPICY_LEVEL = 1;
+
+/** 儿童餐避开的口味标签（刺多/过硬按 flavorTags 正向命中判定） */
+export const CHILD_AVOID_FLAVOR_TAGS = ['刺多', '多刺', '过硬'] as const;
+
+export interface ChildSafeResult {
+  passed: DishView[];
+  excluded: Array<{ dish: DishView; reason: string }>;
+}
+
+/**
+ * 儿童餐约束过滤（儿童人数 >0 时由日规划层调用，安全层扩展属性过滤）。
+ * 判定只按现 DishView 可得字段的正向证据：
+ * - 避辣：spicyLevel 数值字段（恒存在）> CHILD_MAX_SPICY_LEVEL -> 拦；
+ * - 避刺多/避过硬：flavorTags 命中 CHILD_AVOID_FLAVOR_TAGS -> 拦。
+ * 属性缺失（无对应标签）的菜视为未知，不误杀不硬拦（任务卡口径）。
+ */
+export function filterChildSafeDishes(dishes: DishView[]): ChildSafeResult {
+  const passed: DishView[] = [];
+  const excluded: Array<{ dish: DishView; reason: string }> = [];
+
+  for (const dish of dishes) {
+    if (dish.spicyLevel > CHILD_MAX_SPICY_LEVEL) {
+      excluded.push({
+        dish,
+        reason: `「${dish.name}」辣度${dish.spicyLevel}级，儿童餐避辣`,
+      });
+      continue;
+    }
+    const hitTag = dish.flavorTags.find((tag) =>
+      (CHILD_AVOID_FLAVOR_TAGS as readonly string[]).includes(tag),
+    );
+    if (hitTag) {
+      excluded.push({
+        dish,
+        reason: `「${dish.name}」标签含「${hitTag}」，儿童餐避刺多/避过硬`,
+      });
+      continue;
+    }
+    passed.push(dish);
   }
 
   return { passed, excluded };

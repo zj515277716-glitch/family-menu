@@ -146,7 +146,7 @@ describe('T-P07 projection & orderBy (AC1/AC2/AC3)', () => {
       id, name, mealRole: 'MAIN', cuisine: null, flavorTags: [], spicyLevel: 0,
       splitFlavor: false, activeMinutes: 10, totalMinutes: 10, equipment: [],
       steps: [], status: 'PUBLISHED', imageUrl: null, sourceUrl: null, sourceSite: null,
-      ingredients: [],
+      ingredients: [], mealTypes: [] as string[],
     });
     const menuRow = {
       id: 'row-menu', name: '行菜单', scene: 'WEEKDAY_FAST', serves: 4,
@@ -168,7 +168,7 @@ describe('T-P07 projection & orderBy (AC1/AC2/AC3)', () => {
     const baseRow = {
       flavorTags: [], spicyLevel: 0, splitFlavor: false, activeMinutes: 10,
       totalMinutes: 10, equipment: [], steps: [], status: 'PUBLISHED',
-      ingredients: [] as never[],
+      ingredients: [] as never[], mealTypes: [] as string[],
     };
     const withMedia = toDishView({
       id: 'd1', name: '有图', mealRole: 'MAIN', cuisine: null, ...baseRow,
