@@ -7,7 +7,18 @@
 // 未配置 TARO_APP_API_BASE_URL 时所有请求明确失败「服务未连接」——绝不使用假数据。
 // 覆盖范围：本卡（T-Q11）只搭封装 + auth/settings 调用；主流程接口由 T-Q12/T-Q13 追加。
 import Taro from '@tarojs/taro'
-import type { ExclusionRule, FamilyRule } from '@family-menu/shared'
+import type {
+  DayPlanContext,
+  Dish,
+  ExclusionRule,
+  FamilyRule,
+  FeedbackResponse,
+  MealSlot,
+  Plan,
+  ShoppingList,
+  SwapOptionsResponse,
+  SwapPlanRequest,
+} from '@family-menu/shared'
 
 // ───── 配置 ─────
 
@@ -19,6 +30,20 @@ const REQUEST_TIMEOUT_MS = 15000
 
 /** 登录页路由：401 统一导回这里重新输家庭口令 */
 const LOGIN_PAGE_URL = '/pages/login/index'
+
+/**
+ * 菜品图地址解析（S-03/S-06 卡片图）：
+ * http(s) 绝对地址原样返回；DB 快照里的 /images/... 站内相对路径拼 API 基址；
+ * 无图或未配置基址返回 undefined——页面降级为暖色占位块，绝不使用外链假图。
+ */
+export function resolveAssetUrl(p?: string): string | undefined {
+  if (!p) return undefined
+  if (/^https?:\/\//i.test(p)) return p
+  if (p.startsWith('/images/')) {
+    return BASE_URL ? `${BASE_URL}${p}` : undefined
+  }
+  return undefined
+}
 
 // ───── 请求封装 ─────
 
@@ -150,5 +175,67 @@ export const api = {
   // PUT /api/family/exclusions <- ExclusionRule[] -> ExclusionRule[]（全量替换）
   putExclusions(rules: ExclusionRule[]): Promise<ExclusionRule[]> {
     return request<ExclusionRule[]>('/api/family/exclusions', { method: 'PUT', data: rules })
+  },
+}
+
+// ───── 主流程（T-Q12：定明天的餐 → 三餐菜单 → 采购清单）─────
+// 契约见 packages/shared schemas/api.ts v0.12（T-Q10）；本层只做报文搬运，不加工语义。
+
+export const planApi = {
+  // POST /api/recommend <- DayPlanContext -> Plan（生成即落库 LOCKED；空手也建行，failures 归因）
+  recommend(context: DayPlanContext): Promise<Plan> {
+    return request<Plan>('/api/recommend', { method: 'POST', data: context })
+  },
+
+  // GET /api/plans?date=YYYY-MM-DD -> Plan[]（该日全部版本 createdAt 倒序，首条=最新；
+  // 「同一天重进看到同一份三餐」= 取首条，不重新生成）
+  listPlansByDate(date: string): Promise<Plan[]> {
+    return request<Plan[]>(`/api/plans?date=${encodeURIComponent(date)}`, { method: 'GET' })
+  },
+
+  // POST /api/plans/:id/swap（C-3a 三语义：单菜换=换一道 / 换一餐 / 全换=换一批）
+  swapPlan(planId: string, body: SwapPlanRequest): Promise<Plan> {
+    return request<Plan>(`/api/plans/${encodeURIComponent(planId)}/swap`, {
+      method: 'POST',
+      data: body,
+    })
+  },
+
+  // GET /api/plans/:id/swap-options?dishId=（同餐型候选；空数组=如实 0 候选，非错误）
+  getSwapOptions(planId: string, dishId: string): Promise<SwapOptionsResponse> {
+    return request<SwapOptionsResponse>(
+      `/api/plans/${encodeURIComponent(planId)}/swap-options?dishId=${encodeURIComponent(dishId)}`,
+      { method: 'GET' },
+    )
+  },
+
+  // GET /api/plans/:id/shopping-list（三餐合并去重+按人数换算+备菜建议）
+  getShoppingList(planId: string): Promise<ShoppingList> {
+    return request<ShoppingList>(`/api/plans/${encodeURIComponent(planId)}/shopping-list`, {
+      method: 'GET',
+    })
+  },
+
+  // PATCH /api/plans/:id/shopping-list {itemId=ingredientId, checked}（勾选随计划保存）
+  patchShoppingList(planId: string, itemId: string, checked: boolean): Promise<ShoppingList> {
+    return request<ShoppingList>(`/api/plans/${encodeURIComponent(planId)}/shopping-list`, {
+      method: 'PATCH',
+      data: { itemId, checked },
+    })
+  },
+
+  // GET /api/plans/:id/feedback?mealSlot=（按餐取最新评价；无反馈=200 null）
+  getFeedback(planId: string, mealSlot: MealSlot): Promise<FeedbackResponse | null> {
+    return request<FeedbackResponse | null>(
+      `/api/plans/${encodeURIComponent(planId)}/feedback?mealSlot=${encodeURIComponent(mealSlot)}`,
+      { method: 'GET' },
+    )
+  },
+}
+
+export const dishApi = {
+  // GET /api/dishes?status=PUBLISHED（「想吃的菜」点选池：用户只见菜名，id 由列表带入）
+  listPublished(): Promise<Dish[]> {
+    return request<Dish[]>('/api/dishes?status=PUBLISHED', { method: 'GET' })
   },
 }
