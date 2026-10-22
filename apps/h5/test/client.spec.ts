@@ -96,6 +96,35 @@ describe('请求封装：状态码分支', () => {
   })
 })
 
+describe('菜品图地址解析（resolveAssetUrl）', () => {
+  it('http(s) 绝对地址原样返回', async () => {
+    const { resolveAssetUrl } = await importClient()
+    expect(resolveAssetUrl('https://cdn.example.com/a.jpg')).toBe('https://cdn.example.com/a.jpg')
+    expect(resolveAssetUrl('http://cdn.example.com/b.png')).toBe('http://cdn.example.com/b.png')
+  })
+
+  it('站内 /images/... 相对路径拼 BASE_URL', async () => {
+    const { resolveAssetUrl } = await importClient('http://api.test')
+    expect(resolveAssetUrl('/images/dishes/d1/1.webp')).toBe('http://api.test/images/dishes/d1/1.webp')
+  })
+
+  it('BASE_URL 未配置 → 站内相对路径返回 undefined（页面降级占位）', async () => {
+    const { resolveAssetUrl } = await importClient('')
+    expect(resolveAssetUrl('/images/dishes/d1/1.webp')).toBeUndefined()
+  })
+
+  it('有 BASE_URL 但无图 → undefined', async () => {
+    const { resolveAssetUrl } = await importClient('http://api.test')
+    expect(resolveAssetUrl()).toBeUndefined()
+    expect(resolveAssetUrl('')).toBeUndefined()
+  })
+
+  it('非站内相对路径 → undefined', async () => {
+    const { resolveAssetUrl } = await importClient('http://api.test')
+    expect(resolveAssetUrl('foo/bar.jpg')).toBeUndefined()
+  })
+})
+
 describe('auth：登录语义', () => {
   it('口令错误 401 → 「口令不正确，再试一次」；限速 429 → 稍候再试', async () => {
     const { auth } = await importClient()

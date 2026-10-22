@@ -477,3 +477,113 @@ page {
 .sheet-note { font-size: var(--fs-mini); color: var(--c-ink-3); font-weight: 400; }
 .sheet-opts { display: flex; flex-wrap: wrap; gap: var(--sp-2); margin-top: var(--sp-3); }
 .sheet-opts .opt { flex: none; }
+
+/* ============================================================
+   T-Q12 主流程七屏版式（事实源 prototypes/style-1/style.css + v3/v3.css，×2）
+   ============================================================ */
+
+/* --- 首页品牌渐变带（全页唯一装饰面：日期大标题 + 下一餐摘要） --- */
+.brand-hero { margin-top: var(--sp-2); padding: var(--sp-4); border-radius: var(--r-2); background: var(--grad-brand); }
+.brand-hero .h1 { font-size: var(--fs-h1); font-weight: 700; letter-spacing: var(--ls-head); color: var(--c-ink); }
+.brand-hero .sub { font-size: var(--fs-small); color: var(--c-ink-2); margin-top: 6px; }
+
+/* --- 分区头（题 15/600 + 右侧说明） --- */
+.section-head { display: flex; justify-content: space-between; align-items: baseline; gap: var(--sp-2); margin-bottom: var(--sp-3); }
+.section-title { font-size: var(--fs-h2); font-weight: 600; letter-spacing: var(--ls-head); }
+.section-note { font-size: var(--fs-small); color: var(--c-ink-3); text-align: right; }
+
+/* --- 餐块（首页今天三餐 / 三餐菜单分区） --- */
+.meal-block + .meal-block { margin-top: 56px; }
+.meal-head { display: flex; align-items: center; gap: var(--sp-2); margin-bottom: var(--sp-2); }
+.meal-name { font-size: var(--fs-h2); font-weight: 600; letter-spacing: var(--ls-head); }
+.meal-time { font-size: var(--fs-small); color: var(--c-primary); }
+.meal-head .tag { margin-left: auto; }
+
+/* --- 状态/评价标签（半透柔彩底 + inset 同色细边；四色评价 + 下一餐） --- */
+.tag { display: inline-flex; align-items: center; min-height: 52px; padding: 0 20px; border-radius: var(--r-pill); font-size: var(--fs-mini); font-weight: 600; white-space: nowrap; }
+.tag-next { background: var(--c-primary-soft); color: var(--c-primary); font-weight: 700; box-shadow: inset 0 0 0 2px rgba(200, 84, 31, .18); }
+.tag-ok { background: rgba(71, 107, 60, .10); color: var(--c-ok-ink); box-shadow: inset 0 0 0 2px rgba(71, 107, 60, .26); }
+.tag-mid { background: rgba(138, 123, 104, .10); color: var(--c-tag-ink); box-shadow: inset 0 0 0 2px rgba(138, 123, 104, .26); }
+.tag-bad { background: rgba(166, 58, 34, .10); color: var(--c-bad-ink); box-shadow: inset 0 0 0 2px rgba(166, 58, 34, .26); }
+.tag-none { background: rgba(138, 133, 120, .10); color: var(--c-none-ink); box-shadow: inset 0 0 0 2px rgba(138, 133, 120, .26); }
+
+/* --- 横滑卡片流（首页每餐区真实横滑，卡宽 158/196；scroll-snap 对齐，隐藏滚动条） --- */
+.hscroll { display: flex; gap: 28px; overflow-x: auto; padding: 4px 4px var(--sp-2); scroll-snap-type: x proximity; -webkit-overflow-scrolling: touch; }
+.hscroll .fcard { flex: 0 0 316px; scroll-snap-align: start; }
+.hscroll::-webkit-scrollbar { height: 0; }
+.hscroll-wide .fcard { flex-basis: 392px; }
+
+/* --- 双列网格（三餐菜单） --- */
+.grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 28px; }
+
+/* --- 菜品卡底操作（「换一道」= 品牌色文本小按钮，40px 触达） --- */
+.fcard-act { margin-top: auto; padding-top: var(--sp-2); }
+.fcard-act .mini { display: flex; align-items: center; justify-content: center; min-height: 80px; border-radius: var(--r-1); color: var(--c-primary); font-size: var(--fs-small); font-weight: 600; }
+.fcard-act .mini:active { opacity: .82; }
+
+/* --- 菜品图占位（加载失败/无图降级暖色底，ph-1~6，菜名在卡内始终可读） --- */
+.fcard-ph { display: block; width: 100%; aspect-ratio: 4 / 3; }
+.ph-1 { background: #F2B27E; } .ph-2 { background: #E8956B; } .ph-3 { background: #A8BE8C; }
+.ph-4 { background: #E9C987; } .ph-5 { background: #D9A48F; } .ph-6 { background: #B7C4BC; }
+
+/* --- chips 换行容器（S-04 必消/临时忌口） + 临时忌口警示色 --- */
+.chips { display: flex; flex-wrap: wrap; gap: var(--sp-2); margin-top: var(--sp-3); }
+.chip-temp { background: rgba(154, 103, 28, .10); border-color: rgba(154, 103, 28, .30); color: var(--c-warn-ink); }
+
+/* --- opts 容器（S-04 餐次勾选） --- */
+.opts { display: flex; flex-wrap: wrap; gap: var(--sp-2); margin-top: var(--sp-3); }
+
+/* --- S-04 表单行（步进器行：label 左 / 步进器右） --- */
+.frow { display: flex; align-items: center; justify-content: space-between; gap: var(--sp-3); padding: var(--sp-3) 0 0; }
+.frow-label { font-size: var(--fs-body); font-weight: 600; }
+.frow-note { display: block; font-size: var(--fs-mini); color: var(--c-ink-3); font-weight: 400; }
+/* 大步进器（主按钮级 44px 触达） */
+.stepper-lg { gap: var(--sp-3); }
+.stepper-lg .step-btn { width: 88px; height: 88px; font-size: 40px; }
+.stepper-lg .step-val { min-width: 60px; font-size: var(--fs-h2); font-weight: 700; }
+
+/* --- 骨架屏（S-05 生成中：形状照抄网格卡片与横幅） --- */
+.sk-card { background: var(--c-card); border: 1px solid var(--c-line); border-radius: var(--r-2); box-shadow: var(--sh-card); overflow: hidden; }
+.sk-img { width: 100%; aspect-ratio: 4 / 3; border-radius: 0; }
+.sk-body { padding: 20px var(--sp-3) var(--sp-3); display: flex; flex-direction: column; gap: 16px; }
+.sk-line { height: 28px; }
+.sk-line.w70 { width: 70%; }
+.sk-line.w45 { width: 45%; }
+.sk-banner { height: 88px; border-radius: var(--r-2); }
+
+/* --- 清单屏（分组题 + 勾选行 56px；已有=划线不删） --- */
+.group-title { display: flex; justify-content: space-between; align-items: baseline; font-size: var(--fs-small); font-weight: 700; color: var(--c-ink-2); padding: var(--sp-3) var(--sp-1) var(--sp-2); }
+.group-title em { font-style: normal; font-weight: 400; color: var(--c-ink-3); }
+.group-title .group-count { font-weight: 400; color: var(--c-ink-3); }
+.list { background: var(--c-card); border: 1px solid var(--c-line); border-radius: var(--r-2); box-shadow: var(--sh-card); overflow: hidden; }
+.list .item { display: flex; align-items: center; gap: var(--sp-3); padding: var(--sp-3) var(--sp-4); background: var(--line-fade) no-repeat top / 100% 2px; min-height: 112px; }
+.list .item:first-child { background: none; }
+.list .item:active { opacity: .82; }
+.list .check { width: 52px; height: 52px; flex: none; border-radius: 50%; border: 4px solid var(--c-line); display: flex; align-items: center; justify-content: center; font-size: 28px; color: transparent; box-sizing: border-box; }
+.list .item.done .check { background: var(--c-ok-ink); border-color: var(--c-ok-ink); color: #fff; }
+.list .item .name { flex: 1; min-width: 0; font-size: var(--fs-body); }
+.list .item .qty { font-size: var(--fs-small); color: var(--c-ink-2); white-space: nowrap; }
+.list .item .src { display: block; font-size: var(--fs-mini); color: var(--c-ink-3); }
+.list .item.owned .name { color: var(--c-ink-3); }
+.list .item.owned .name-text { text-decoration: line-through; }
+.list .item.owned .qty { color: var(--c-ink-3); }
+
+/* --- 换一道候选弹层：候选行（名称 + 关键信息一行，选中高亮） --- */
+.cand-list { margin-top: var(--sp-3); }
+.cand-item { display: flex; align-items: center; gap: var(--sp-3); min-height: 96px; padding: var(--sp-2) var(--sp-3); border-radius: var(--r-1); border: 1px solid #E5DED4; box-sizing: border-box; }
+.cand-item + .cand-item { margin-top: var(--sp-2); }
+.cand-item.on { background: rgba(200, 84, 31, .09); border-color: var(--c-primary); }
+.cand-item:active { opacity: .82; }
+.cand-name { font-size: var(--fs-body); font-weight: 600; }
+.cand-meta { font-size: var(--fs-small); color: var(--c-ink-2); margin-top: 2px; }
+
+/* --- 缺槽卡（PD-018：留空如实标注不凑数） --- */
+.slot-empty {
+  background: var(--c-card);
+  border: 1px dashed var(--c-line);
+  border-radius: var(--r-2);
+  padding: var(--sp-4);
+  text-align: center;
+  color: var(--c-ink-3);
+  font-size: var(--fs-small);
+}
