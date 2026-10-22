@@ -4,9 +4,9 @@
 > 整改依据：docs/复盘报告_V2_2026-09-29.md（阶段 A + T-Q04 全部完成）。
 
 ## 代码版本
-- main：`1019bba`（T-Q12 合并 `311c905` + 状态同步；origin/main 仍 `311c905`，`1019bba` 待推送）。
+- main：`82a445d`（T-Q13 立卡；含 T-Q12 合并 `311c905`；origin/main 仍 `311c905`，`1019bba`/`82a445d` 待推送）。
 - 分支 `t-q12-ui-main-flow`：`7712df1`（保留；已合并 main 并推送 origin）。
-- 分支 `t-q13-execution-history`：已从 main 切出，T-Q13 立卡待开发。
+- 分支 `t-q13-execution-history`：已从 main 切出，T-Q13 待开发。
 - 门禁：lint/tsc/test:taboo 全绿；全量 test 675 passed / 3 failed（均为本地真实库脏数据击穿的既有挂账：a3 B3/B4 + migration-backfill，候选一并修）；h5 生产构建通过。
 - T-Q04（第 2-3 层）：CI 全分支生效；/health 返回 `1.1.0+<短哈希>`；`pnpm deploy:api` 一条命令（ACR 拉镜像），生产机不再构建。
 - T-Q05 设计包（进行中）：PD-019 视觉基准 + PD-020 一日三餐**均已批准生效**；旧视觉基准已归档；导航图 v2 已重写待确认。
