@@ -304,4 +304,21 @@ describe('失败归因文案脱敏（内部 ingredientId 不上屏）', () => {
     const text = '符合要求的菜最少要 50 分钟'
     expect(humanizeFailureDetail(text, dayPlan)).toBe(text)
   })
+
+  it('真实种子 id（seed-ing-*）整段替换，不残留 seed-/ing- 前缀', () => {
+    const seedPlan: DayPlan = {
+      meals: [meal('dinner', [dish('d1', '番茄炒蛋', [['seed-ing-tomato', '番茄']])])],
+      mustUseAllocation: [],
+      desiredNotes: [],
+      failures: [],
+      crossMealNotes: [],
+      filtered: [],
+    }
+    expect(humanizeFailureDetail('必消食材seed-ing-tomato没有任何一餐能用上', seedPlan)).toBe(
+      '必消食材番茄没有任何一餐能用上',
+    )
+    const unknown = humanizeFailureDetail('必消食材seed-ing-peanut没有任何一餐能用上', seedPlan)
+    expect(unknown).toBe('必消食材该食材没有任何一餐能用上')
+    expect(unknown).not.toMatch(/seed-|ing-/)
+  })
 })

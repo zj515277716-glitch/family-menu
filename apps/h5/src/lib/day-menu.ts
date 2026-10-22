@@ -53,7 +53,8 @@ export function humanizeFailureDetail(detail: string, dayPlan: DayPlan): string 
       }
     }
   }
-  return detail.replace(/ing-[A-Za-z0-9_-]+/g, (id) => names.get(id) ?? '该食材')
+  // 种子库真实 id 是 seed-ing-*：先整段匹配，避免只替换后半截留下 seed- 前缀
+  return detail.replace(/seed-ing-[A-Za-z0-9_-]+|\bing-[A-Za-z0-9_-]+/g, (id) => names.get(id) ?? '该食材')
 }
 
 // ───── 必消横幅（C-3：✓ 必消食材已用上 / 没排上如实标注） ─────

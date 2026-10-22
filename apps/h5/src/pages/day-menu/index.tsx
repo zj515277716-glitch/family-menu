@@ -637,18 +637,16 @@ export default function DayMenuPage() {
                 </View>
               )}
 
-              {/* 该餐无 meal（引擎失败餐不产 menuId）时不提供「换一餐」，避免服务端无从承接 */}
-              {meal && (
-                <View className="btn-row">
-                  <Button
-                    className="btn-plain"
-                    loading={mealSubmitting}
-                    onClick={() => startMealSwap(slot)}
-                  >
-                    {MEAL_SLOT_LABELS[slot]}换一餐
-                  </Button>
-                </View>
-              )}
+              {/* 失败餐也可重推；重推失败服务端保持原餐并返回原因 */}
+              <View className="btn-row">
+                <Button
+                  className="btn-plain"
+                  loading={mealSubmitting}
+                  onClick={() => startMealSwap(slot)}
+                >
+                  {MEAL_SLOT_LABELS[slot]}换一餐
+                </Button>
+              </View>
             </View>
           )
         })}
