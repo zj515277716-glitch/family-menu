@@ -53,8 +53,9 @@ function HistoryDayCard({
         ) : (
           day.meals.map((m) => {
             const fb = feedbacks[feedbackKey(day.plan.id, m.slot)] ?? null
+            // 缺餐优先展示「没排上」，即使该餐残留旧反馈也不显示评价 tag
             const tag =
-              m.dishes.length === 0 && !fb
+              m.dishes.length === 0
                 ? { label: '没排上', cls: 'tag-none' }
                 : feedbackTag(fb, true)
             return (

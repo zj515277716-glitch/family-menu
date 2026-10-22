@@ -183,9 +183,10 @@ export default function DishPage() {
 
   async function loadFeedback() {
     if (!plan || !slot) return
-    setFeedbackError(null)
     try {
-      setFeedback(await planApi.getFeedback(plan.id, slot))
+      const fb = await planApi.getFeedback(plan.id, slot)
+      setFeedback(fb)
+      setFeedbackError(null)
     } catch (e) {
       if (e instanceof UnauthorizedError) return
       console.error('[Dish] 评价回读失败', e)
@@ -418,7 +419,8 @@ export default function DishPage() {
         )}
       </View>
 
-      {plan && (
+      {/* 评价未读成功时不挂载弹层：重读成功后才带服务端值首次挂载，避免空表单覆盖已有评价 */}
+      {plan && !feedbackError && (
         <FeedbackSheet
           visible={sheetVisible}
           planId={plan.id}
