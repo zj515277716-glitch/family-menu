@@ -1,0 +1,120 @@
+FIXTURE reset: {"deletedPlans":3,"ids":["cmvj38bf300087spg3e0cioox","cmvj38dlj000a7spgmz3be5g6","cmvj38s1n000e7spgdfiy8s6e"]}
+PASS 0.1 验收前清理本机今天/明天的计划（仅本机 PG） | {"deletedPlans":3,"ids":["cmvj38bf300087spg3e0cioox","cmvj38dlj000a7spgmz3be5g6","cmvj38s1n000e7spgdfiy8s6e"]}
+(node:35852) [DEP0190] DeprecationWarning: Passing args to a child process with shell option true can lead to security vulnerabilities, as the arguments are not escaped, only concatenated.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+LOGIN attempt=1 typed=true
+PASS 0.2 登录页口令输入并进入
+PASS 0.2 真实登录并进入首页
+PASS S-03 空态：今天还没定菜单（真实无计划）
+PASS S-03 空态：明天还没定餐入口
+PASS S-03 空态：Tabbar 三入口
+SHOT S-03-home-empty.png
+PASS S-13 断网：明说连不上服务 + 重试（实际文案见 detail） | 今天 · 10月22日 周四 | 暂时拿不到菜单 | ⚠ 网络不稳定，连不上服务，请检查网络后重试 | 重试 | 今天三餐 | 服务恢复后就显示 | 暂时拿不到今天的三餐 | 已经记过的评价不会丢。 | 重试 | 定明天的餐 | 10月23
+PASS S-13 断网：绝不显示假菜单
+SHOT S-13-offline.png
+PASS S-13 点重试恢复：首页重新拿到真实状态
+SHOT S-13-recovered.png
+SHOT S-04-loading.png
+PASS S-04 人数步进：成人 4→5、儿童 0→1
+PASS S-04 必消/临时忌口标签已添加
+PASS S-04 想吃的菜点选加入（用户只输入菜名，id 由列表带入）
+PASS S-04 想吃的菜可连续点选（清蒸鲈鱼/紫菜蛋花汤）
+PASS S-04 餐次可取消（默认全选 → 只剩晚餐）
+PASS S-04 最后一餐不可清空且有 toast 反馈（至少保留一餐）
+PASS S-04 三餐恢复全选
+SHOT S-04-filled-top.png
+SHOT S-04-filled.png
+SHOT S-04-sticky.png
+PASS S-04 最后操作按钮「推荐菜谱」完全可见 | box={"x":16,"y":748,"width":343,"height":48}
+PASS S-04 离开再进：人数/必消/忌口/想吃的菜/餐次均未丢 | adults=5 children=1 chips=番茄×|＋ 加食材|牛肉×|＋ 加忌口|番茄炒蛋×|清蒸鲈鱼×|紫菜蛋花汤× mealsOn=3
+SHOT S-04-reenter-top.png
+SHOT S-04-reenter-persist.png
+SHOT S-05-skeleton.png
+SHOT S-05-skeleton-full.png
+PASS S-07 全天空手页：明说哪一餐+原因 | ‹ 返回 | 明天三餐出不来？ | 如实说明是哪一餐、因为什么，绝不拿假菜单凑数 | 早餐 · 组合冲突 | 必消食材鸵鸟肉没有任何一餐能用上，全天凑不齐 | 放宽临时忌口 | 删减必消食材 | 调整想吃的菜 | 补充菜库后再试 | 去调整 | 中餐 · 组合冲突 | 必消食材鸵鸟肉没有任何一餐能用上，全天凑不齐 | 放宽临时忌口 | 删减必消食材 | 调整想吃的菜 | 补充菜库后再试 | 去调整 | 晚餐 · 组合冲突 | 必消食材鸵
+PASS S-07 给出调整建议（删减必消/调整想吃的菜/放宽临时忌口）
+PASS S-07 底部「调好重新生成」按钮存在
+SHOT S-07-empty-hand.png
+PASS S-07 最后操作按钮「调好重新生成」完全可见 | box={"x":16,"y":748,"width":343,"height":48}
+PASS S-07 点调整建议回到 S-04 且已填内容仍在
+SHOT S-07-back-to-setup.png
+PASS S-07 删除异常必消后标签消失
+PASS S-05 骨架屏文案「正在为明天搭配三餐…」
+PASS S-05 骨架块与餐次标题同时出现 | titles=今天三餐、定明天的餐、早餐、中餐、晚餐
+SHOT S-05-skeleton.png
+PASS S-05 → S-06 生成完成（generate 参数已清除） | url=http://127.0.0.1:10086/#/pages/day-menu/index?date=2026-10-23
+PASS S-05 真实 POST /api/recommend 已落库（捕获计划 id） | ids=2
+SHOT S-06-menu.png
+SHOT S-06-menu-top.png
+SHOT S-06-menu-mid.png
+SHOT S-06-menu-bottom.png
+PASS S-06 三餐分区齐全（早/中/晚）
+PASS S-06 必消横幅如实展示（含「番茄」）
+PASS S-06 合计动火时长可见
+PASS S-06 最后操作按钮「确认三餐，查看采购清单」完全可见 | box={"x":194.5,"y":748,"width":164.5,"height":48}
+SHOT S-06-swap-zero.png
+SHOT S-06-swap-candidates.png
+SHOT S-06-swap-selected.png
+PASS S-06 换一道：真替换且同餐分区同步 | before=家常蒸蛋羹 incoming=蛋炒饭 after=番茄炒蛋、蛋炒饭、紫菜蛋花汤
+SHOT S-06-swap-result.png
+PASS S-06 刷新重进：同一份三餐不重新生成 | url=http://127.0.0.1:10086/#/pages/day-menu/index?date=2026-10-23 cards=番茄炒蛋、蛋炒饭、紫菜蛋花汤、清蒸鲈鱼、番茄炒蛋、清蒸鲈鱼、番茄炒蛋
+SHOT S-06-reload-same.png
+SHOT S-08-loading.png
+PASS S-08 分组清单与合并去重说明存在
+PASS S-08 清单条目非空 | items=5
+PASS S-08 必消「已有」条目划线并标「必消已有」（若有） | owned=1
+PASS S-08 备菜建议分段展示（今晚预处理/明早先做） | prepTitles=今晚预处理、明早先做
+PASS S-08 备菜建议两段齐全 | prepTitles=今晚预处理、明早先做
+SHOT S-08-list.png
+SHOT S-08-prep-tonight.png
+SHOT S-08-prep-morning.png
+PASS S-08 最后操作按钮「就按这个买」完全可见 | box={"x":16,"y":748,"width":343,"height":48}
+PASS S-08 必消已有不可勾选但有 toast 反馈 | 番茄 必消已有
+SHOT S-08-owned-toast.png
+PASS S-08 勾选后本页立即显示已完成
+SHOT S-08-checked.png
+PASS S-08 刷新重进：勾选状态仍在（服务端真实保存） | item=紫菜
+SHOT S-08-reload-checked.png
+PASS S-08 错误态：明说连不上服务且给重试
+SHOT S-08-error.png
+PASS S-08 点重试恢复清单
+SHOT S-08-recovered.png
+SHOT S-06-meal-swap-loading.png
+PASS S-06 换一餐：该餐真替换、其他餐不动 | meal=早餐 before=番茄炒蛋、蛋炒饭、紫菜蛋花汤 after=家常蒸蛋羹、葱烧嫩豆腐
+SHOT S-06-meal-swap-result.png
+PASS S-03 夹具：UI 真实生成第二份明天计划 | ids=3
+FIXTURE move-to-today: {"moved":"cmvj3dc3t000m7spgmdqsaulh","planDate":"2026-10-21T16:00:00.000Z"}
+FIXTURE seed-feedback: {"seeded":"cmvj3dc3t000m7spgmdqsaulh","slots":["breakfast","lunch","dinner"]}
+PASS S-03 夹具：计划日改为今天本地零点
+PASS S-03 夹具：三餐评价 Event 已写入（好吃/翻车/没做）
+PASS S-03 正常态：今天三餐显示 | meals=中餐、晚餐、早餐
+PASS S-03 下一餐置顶（当前时间应 中餐 在前） | order=中餐、晚餐、早餐
+PASS S-03 「下一餐」标签存在
+PASS S-03 评价标签至少两种文案/颜色（读真实 Event） | labels=好吃、没做
+PASS S-03 明天摘要大卡存在（三餐 + 查看菜单/看采购清单） | wideCards=3
+PASS S-03 Tabbar 存在
+SHOT S-03-home-normal.png
+SHOT S-03-home-normal-mid.png
+SHOT S-03-home-normal-bottom.png
+PASS 通用：占位按钮「记一笔」点击有反馈
+SHOT S-03-placeholder-toast.png
+PASS S-03 加载态可达（骨架+正在读取今天的菜单）
+SHOT S-03-loading.png
+PASS S-13 断网：明说连不上服务 + 重试（实际文案见 detail） | 今天 · 10月22日 周四 | 暂时拿不到菜单 | ⚠ 网络不稳定，连不上服务，请检查网络后重试 | 重试 | 今天三餐 | 服务恢复后就显示 | 暂时拿不到今天的三餐 | 已经记过的评价不会丢。 | 重试 | 定明天的餐 | 10月23
+PASS S-13 断网：绝不显示假菜单
+SHOT S-13-offline.png
+PASS S-13 点重试恢复：今天三餐重新出现
+SHOT S-13-recovered.png
+PASS S-06 全部换一批前菜单可用 | cards=6
+PASS S-06 全部换一批池耗尽：提示「没换成…已保持原餐」且原菜单菜名不变 | attempt=1 msg=没换成：这次没换出可用的三餐，已保持原餐  kept=true
+SHOT S-06-all-swap-failure.png
+PASS S-06 全部换一批失败后刷新重进仍是原菜单 | before=家常蒸蛋羹|葱烧嫩豆腐|清蒸鲈鱼|番茄炒蛋|清蒸鲈鱼|番茄炒蛋 reload=家常蒸蛋羹|葱烧嫩豆腐|清蒸鲈鱼|番茄炒蛋|清蒸鲈鱼|番茄炒蛋
+SHOT S-06-all-swap-reload.png
+PASS 通用：控制台 0 error（断网/换批失败模拟除外）
+PASS 通用：0 失败请求（模拟断网两步除外）
+PASS 通用：按钮反馈可观察到（toast/状态变化） | 换一道、换一餐
+CONSOLE_ERRORS [{"step":"S-13","text":"Failed to load resource: net::ERR_FAILED"},{"step":"S-13","text":"Failed to load resource: net::ERR_FAILED"},{"step":"S-13","text":"Failed to load resource: net::ERR_FAILED"},{"step":"S-13","text":"[Home] 家庭规则加载失败 Error: 网络不稳定，连不上服务，请检查网络后重试\n    at friendlyNetworkError (webpack-internal:///./src/api/client.ts:95:10)\n    at eval (webpack-internal:///./src/api/client.ts:135:17)\n    at Generator.eval (webpack-internal:///../../node_modules/.pnpm/@babel+runtime@7.29.7/node_modules/@babel/runtime/helpers/esm/regenerator.js:57:51)\n    at Generator.eval [as throw] (webpack-internal:///../../node_modules/.pnpm/@babel+runtime@7.29.7/node_modules/@babel/runtime/helpers/esm/regeneratorDefine.js:15:21)\n    at asyncGeneratorStep (webpack-internal:///../../node_modules/.pnpm/@babel+runtime@7.29.7/node_modules/@babel/runtime/helpers/esm/asyncToGenerator.js:7:17)\n    at _throw (webpack-internal:///../../node_modules/.pnpm/@babel+runtime@7.29.7/node_modules/@babel/runtime/helpers/esm/asyncToGenerator.js:24:9)"},{"step":"S-08-error","text":"Failed to load resource: net::ERR_FAILED"},{"step":"S-08-error","text":"[ShoppingList] 清单加载失败 Error: 网络不稳定，连不上服务，请检查网络后重试\n    at friendlyNetworkError (webpack-internal:///./src/api/client.ts:95:10)\n    at eval (webpack-internal:///./src/api/client.ts:135:17)\n    at Generator.eval (webpack-internal:///../../node_modules/.pnpm/@babel+runtime@7.29.7/node_modules/@babel/runtime/helpers/esm/regenerator.js:57:51)\n    at Generator.eval [as throw] (webpack-internal:///../../node_modules/.pnpm/@babel+runtime@7.29.7/node_modules/@babel/runtime/helpers/esm/regeneratorDefine.js:15:21)\n    at asyncGeneratorStep (webpack-internal:///../../node_modules/.pnpm/@babel+runtime@7.29.7/node_modules/@babel/runtime/helpers/esm/asyncToGenerator.js:7:17)\n    at _throw (webpack-internal:///../../node_modules/.pnpm/@babel+runtime@7.29.7/node_modules/@babel/runtime/helpers/esm/asyncToGenerator.js:24:9)"},{"step":"S-13","text":"Failed to load resource: net::ERR_FAILED"},{"step":"S-13","text":"Failed to load resource: net::ERR_FAILED"},{"step":"S-13","text":"Failed to load resource: net::ERR_FAILED"},{"step":"S-13","text":"[Home] 家庭规则加载失败 Error: 网络不稳定，连不上服务，请检查网络后重试\n    at friendlyNetworkError (webpack-internal:///./src/api/client.ts:95:10)\n    at eval (webpack-internal:///./src/api/client.ts:135:17)\n    at Generator.eval (webpack-internal:///../../node_modules/.pnpm/@babel+runtime@7.29.7/node_modules/@babel/runtime/helpers/esm/regenerator.js:57:51)\n    at Generator.eval [as throw] (webpack-internal:///../../node_modules/.pnpm/@babel+runtime@7.29.7/node_modules/@babel/runtime/helpers/esm/regeneratorDefine.js:15:21)\n    at asyncGeneratorStep (webpack-internal:///../../node_modules/.pnpm/@babel+runtime@7.29.7/node_modules/@babel/runtime/helpers/esm/asyncToGenerator.js:7:17)\n    at _throw (webpack-internal:///../../node_modules/.pnpm/@babel+runtime@7.29.7/node_modules/@babel/runtime/helpers/esm/asyncToGenerator.js:24:9)"}]
+FAILED_REQUESTS [{"step":"S-13","text":"GET http://127.0.0.1:3000/api/family/rules :: net::ERR_FAILED"},{"step":"S-13","text":"GET http://127.0.0.1:3000/api/plans?date=2026-10-22 :: net::ERR_FAILED"},{"step":"S-13","text":"GET http://127.0.0.1:3000/api/plans?date=2026-10-23 :: net::ERR_FAILED"},{"step":"S-08-error","text":"GET http://127.0.0.1:3000/api/plans/cmvj3cxdw000i7spg4eomdmih/shopping-list :: net::ERR_FAILED"},{"step":"S-13","text":"GET http://127.0.0.1:3000/api/family/rules :: net::ERR_FAILED"},{"step":"S-13","text":"GET http://127.0.0.1:3000/api/plans?date=2026-10-22 :: net::ERR_FAILED"},{"step":"S-13","text":"GET http://127.0.0.1:3000/api/plans?date=2026-10-23 :: net::ERR_FAILED"}]
+
+=== 汇总：66/66 通过 ===
+截图目录: D:\codex\family-menu\evidence\T-Q12
