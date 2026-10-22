@@ -12,7 +12,10 @@ import { MEAL_SLOT_LABELS } from '@family-menu/shared'
 import { api, planApi, UnauthorizedError } from '../../api/client'
 import CustomTabBar from '../../components/CustomTabBar'
 import DishImage from '../../components/DishImage'
+import FeedbackSheet from '../../components/FeedbackSheet'
+import { buildDishPageUrl } from '../../lib/dish-detail'
 import { pageUrl } from '../../lib/entry'
+import { feedbackTag } from '../../lib/feedback'
 import {
   formatDateCN,
   mealTimeHint,
@@ -34,16 +37,6 @@ function errorText(e: unknown, fallback: string): string {
   return e instanceof Error && e.message ? e.message : fallback
 }
 
-/** 评价标签（四色 + 未评价灰）：好吃/一般/翻车/没做/还没评价 */
-function feedbackTag(fb: FeedbackResponse | null | undefined): { label: string; cls: string } {
-  if (!fb) return { label: '还没评价', cls: 'tag-none' }
-  if (!fb.didCook) return { label: '没做', cls: 'tag-none' }
-  if (fb.taste === 'good') return { label: '好吃', cls: 'tag-ok' }
-  if (fb.taste === 'ok') return { label: '一般', cls: 'tag-mid' }
-  if (fb.taste === 'fail') return { label: '翻车', cls: 'tag-bad' }
-  return { label: '还没评价', cls: 'tag-none' }
-}
-
 export default function HomePage() {
   const [phase, setPhase] = useState<Phase>('loading')
   const [error, setError] = useState<string | null>(null)
@@ -51,6 +44,7 @@ export default function HomePage() {
   const [todayPlan, setTodayPlan] = useState<Plan | null>(null)
   const [tomorrowPlan, setTomorrowPlan] = useState<Plan | null>(null)
   const [feedbacks, setFeedbacks] = useState<FeedbackMap>({})
+  const [sheetSlot, setSheetSlot] = useState<MealSlot | null>(null)
 
   const today = todayDateStr()
   const tomorrow = tomorrowDateStr()
@@ -127,12 +121,28 @@ export default function HomePage() {
   // 从定餐/三餐菜单返回首页时重新拉取（Taro 页面展示钩子；首挂载即触发）
   useDidShow(load)
 
-  function placeholder(label: string) {
-    Taro.showToast({ title: `${label}在下一版上线`, icon: 'none' })
-  }
-
   function goMealSetup() {
     Taro.navigateTo({ url: '/pages/meal-setup/index' })
+  }
+
+  function goDish(slot: MealSlot, dishId: string) {
+    if (!todayPlan) {
+      Taro.showToast({ title: '今天还没有计划', icon: 'none' })
+      return
+    }
+    Taro.navigateTo({
+      url: buildDishPageUrl({ date: today, planId: todayPlan.id, slot, dishId }),
+    }).catch(() => {
+      Taro.showToast({ title: '跳转失败，请重试', icon: 'none' })
+    })
+  }
+
+  function openFeedback(slot: MealSlot) {
+    if (!todayPlan) {
+      Taro.showToast({ title: '今天还没有计划', icon: 'none' })
+      return
+    }
+    setSheetSlot(slot)
   }
 
   // ───── 加载中 ─────
@@ -310,10 +320,13 @@ export default function HomePage() {
               )
             }
 
-            const tag =
-              view.next === slot
+            // 已记录优先显示评价标签（C-5：刷新/重进已记录的餐显示评价）；未记录才标下一餐
+            const stored = feedbacks[slot]
+            const tag = stored
+              ? feedbackTag(stored)
+              : view.next === slot
                 ? { label: '下一餐', cls: 'tag-next' }
-                : feedbackTag(feedbacks[slot])
+                : feedbackTag(null)
             return (
               <View className="meal-block" key={slot}>
                 <View className="meal-head">
@@ -324,7 +337,7 @@ export default function HomePage() {
 
                 <View className="hscroll">
                   {meal.dishes.map((d) => (
-                    <View className="fcard" key={d.id}>
+                    <View className="fcard" key={d.id} onClick={() => goDish(slot, d.id)}>
                       <DishImage imageUrl={d.imageUrl} seed={d.id} alt={d.name} />
                       <View className="fcard-body">
                         <View className="fcard-name">{d.name}</View>
@@ -334,12 +347,12 @@ export default function HomePage() {
                   ))}
                 </View>
 
-                {/* T-Q13 入口占位：点击必须说明，不静默 */}
+                {/* 看做法=该餐第一道；记一笔=该餐弹层；空手/无菜餐不渲染这两个入口 */}
                 <View className="btn-row">
-                  <Button className="btn-ghost" onClick={() => placeholder('看做法')}>
+                  <Button className="btn-ghost" onClick={() => goDish(slot, meal.dishes[0].id)}>
                     看做法
                   </Button>
-                  <Button className="btn-plain" onClick={() => placeholder('记一笔')}>
+                  <Button className="btn-plain" onClick={() => openFeedback(slot)}>
                     记一笔
                   </Button>
                 </View>
@@ -422,6 +435,21 @@ export default function HomePage() {
       </View>
 
       <Text className="img-note">示意图·正式版为试做实拍</Text>
+
+      {/* S-10：只记当前这一餐；成功回读后立即更新本餐标签，不等 useDidShow */}
+      {todayPlan && todayDayPlan && sheetSlot && (
+        <FeedbackSheet
+          visible={sheetSlot !== null}
+          planId={todayPlan.id}
+          slot={sheetSlot}
+          initialFeedback={feedbacks[sheetSlot] ?? null}
+          onClose={() => setSheetSlot(null)}
+          onSubmitted={(fb) => {
+            if (!sheetSlot) return
+            setFeedbacks((prev) => ({ ...prev, [sheetSlot]: fb }))
+          }}
+        />
+      )}
 
       <CustomTabBar />
     </View>

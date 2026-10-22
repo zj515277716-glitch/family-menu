@@ -118,6 +118,9 @@ importers:
 
   apps/h5:
     dependencies:
+      '@family-menu/list-merger':
+        specifier: workspace:*
+        version: link:../../packages/list-merger
       '@family-menu/shared':
         specifier: workspace:*
         version: link:../../packages/shared
