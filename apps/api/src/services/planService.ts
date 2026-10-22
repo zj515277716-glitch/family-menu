@@ -93,13 +93,27 @@ export interface PlanRow {
   createdAt: Date;
 }
 
+/**
+ * 旧单餐 context 列投影：仅完整 {people, timeBudgetMin, mustUse[]} 才保留。
+ * 三餐计划写入 context={}（旧列非空），空对象/残缺对象一律 undefined——
+ * 不伪造单餐上下文，也避免 PlanResponseSchema 校验失败把已落库计划读成 400。
+ */
+function normalizePlanContext(raw: unknown): PlanContext | undefined {
+  if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return undefined;
+  const o = raw as Record<string, unknown>;
+  if (typeof o.people !== 'number' || typeof o.timeBudgetMin !== 'number' || !Array.isArray(o.mustUse)) {
+    return undefined;
+  }
+  return { people: o.people, timeBudgetMin: o.timeBudgetMin, mustUse: o.mustUse as string[] };
+}
+
 function toPlan(row: PlanRow): Plan {
   return {
     id: row.id,
     familyId: row.familyId,
     planDate: row.planDate,
     // 三餐计划 context 列存空对象 -> 契约 optional 投影 undefined（不伪造单餐上下文）
-    context: (row.context as PlanContext | null) ?? undefined,
+    context: normalizePlanContext(row.context),
     dayContext: (row.dayContext as Plan['dayContext'] | null) ?? undefined,
     candidates: (row.candidates as Candidate[] | null) ?? [],
     dayPlan: (row.dayPlan as Plan['dayPlan'] | null) ?? undefined,
