@@ -46,7 +46,7 @@
 
 ## 终态（2026-10-22，第 2 层）
 
-- 分支 `t-q12-ui-main-flow` @ `c039033`（实现 5d22986；审查修复 743bb2f/93cecfc；验收驱动修复 0d54572/d709846/c039033），未合并 main、未推送。
+- 分支 `t-q12-ui-main-flow` @ `7712df1`（实现 5d22986；审查修复 743bb2f/93cecfc；验收驱动修复 0d54572/d709846/c039033；终态文档 7712df1）；**已合并 main `311c905` 并推送 origin，分支保留**。
 - 审查：fm-reviewer 最终通过（无阻断）；页面验收：fm-verify 66/66 通过。证据 `evidence/T-Q12/{review,verify}.md` 与 40 张 375×812@2x 截图。
 - 验收发现并修复 T-Q10 API 缺陷：三餐计划 `context={}` 致 recommend/plans 响应 400（读取侧投影 undefined）；「全换」全天空手仍落库返回 200（改为抛 SwapRecheckError、原菜单保持）。
 - 门禁：lint/tsc/test:taboo 全绿；test 675 passed / 3 failed（本机真实库脏数据击穿的既有挂账，与 main 基线同因）；h5 build 通过。
