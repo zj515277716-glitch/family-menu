@@ -1,0 +1,116 @@
+FIXTURE reset-dates: {"deletedPlans":7,"ids":["cmvjl2qry0013yspgo4q0co53","cmvjl38h00015yspgpekb8k4p","cmvjl39ff0017yspgxqpf2dxh","cmvjl3cb6001dyspgh4cgn78k","cmvjl3adw0019yspgtl7sfzu3","cmvjl3d9a001fyspgke7bfkkt","cmvjl3bcw001byspg98ch1gpy"],"deletedCookLogs":5,"dates":["2026-10-22","2026-10-23","2026-10-21","2026-10-20","2026-10-19","2026-10-07"]}
+PASS 0.0 验收前清理本机目标日期计划（仅本机 PG） | {"deletedPlans":7,"ids":["cmvjl2qry0013yspgo4q0co53","cmvjl38h00015yspgpekb8k4p","cmvjl39ff0017yspgxqpf2dxh","cmvjl3cb6001dyspgh4cgn78k","cmvjl3adw0019yspgtl7sfzu3","cmvjl3d9a001fyspgke7bfkkt","cmvjl3bcw001byspg98ch1gpy"],"deletedCookLogs":5,"dates":["2026-10-22","2026-10-23","2026-10-21","2026-10-20","2026-10-19","2026-10-07"]}
+(node:37256) [DEP0190] DeprecationWarning: Passing args to a child process with shell option true can lead to security vulnerabilities, as the arguments are not escaped, only concatenated.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+LOGIN attempt=1 typed=true
+PASS 0.1 登录页口令输入并进入首页
+PASS 0.2 真实登录并进入首页
+PASS S-11 真实空态：还没有记录 + 去定明天的餐 + Tabbar
+SHOT S-11-empty.png
+PASS S-11 空态最后操作按钮「去定明天的餐」完全可见 | box={"x":130.5,"y":193.390625,"width":114,"height":48}
+PASS S-04 人数步进：4 大 0 小 → 2 大 1 小
+PASS S-04 必消/临时忌口均写入 | 番茄×|＋ 加食材|香菜×|＋ 加忌口
+PASS S-04 想吃的菜点选加入（不让用户输入系统编号）
+SHOT S-04-journey-filled.png
+PASS S-04 最后操作按钮「推荐菜谱」完全可见 | box={"x":16,"y":748,"width":343,"height":48}
+PASS S-05 真实引擎生成今天计划（UI 全流程） | planId=cmvjleq49001qyspg14r8ro3n
+SHOT S-05-menu-generated.png
+FIXTURE move today: {"moved":"cmvjleq49001qyspg14r8ro3n","planDate":"2026-10-21T16:00:00.000Z","date":"2026-10-22"}
+PASS S-09 生成计划带三餐结构且人数 2 大 1 小 | meals=breakfast:2,lunch:3,dinner:1 ctx={"meals":["breakfast","lunch","dinner"],"adults":2,"children":1,"timeBudgetMin":30,"desiredDishIds":["cmtnpn9qx002h0wpgyl0rndy8","seed-dish-tomato-egg","seed-dish-garlic-greens"],"tempAvoidances":[{"ingredientName":"香菜"}],"avoidRecentDays":7,"mustUseIngredients":["番茄"]}
+PASS setup 菜谱池可读（真实 PUBLISHED 菜） | status=200 body=[{"id":"cmtnpn9om00080wpgdul1ai7u","name":"青椒炒鸡丁","mealRole":"MAIN","cuisine":"家常","flavorTags":["咸香","清爽"],"spicyLevel":0,"splitFlavor":false,"activeMinutes":8
+MANIFEST {"today":"2026-10-22","tomorrow":"2026-10-23","yesterday":"2026-10-21","dayBefore":"2026-10-20","threeDaysAgo":"2026-10-19","fifteenDaysAgo":"2026-10-07","todayInfo":{"planId":"cmvjleq49001qyspg14r8ro3n","brief":{"id":"cmvjleq49001qyspg14r8ro3n","planDate":"2026-10-21T16:00:00.000Z","createdAt":"2026-10-22T13:44:38.841Z","status":"LOCKED","dayContext":{"meals":["breakfast","lunch","dinner"],"adults":2,"children":1,"timeBudgetMin":30,"desiredDishIds":["cmtnpn9qx002h0wpgyl0rndy8","seed-dish-tomato-egg","seed-dish-garlic-greens"],"tempAvoidances":[{"ingredientName":"香菜"}],"avoidRecentDays":7,"mustUseIngredients":["番茄"]},"hasDayPlan":true,"meals":[{"slot":"breakfast","dishes":[{"id":"cmtnpn9q8001h0wpgvtw76zuo","name":"葱烧嫩豆腐"},{"id":"seed-dish-egg-fried-rice","name":"蛋炒饭"}]},{"slot":"lunch","dishes":[{"id":"cmtnpn9ql00200wpguox5xas5","name":"杭椒牛柳"},{"id":"cmtnpn9qx002h0wpgyl0rndy8","name":"清蒸鲈鱼"},{"id":"seed-dish-seaweed-soup","name":"紫菜蛋花汤"}]},{"slot":"dinner","dishes":[{"id":"seed-dish-tomato-egg","name":"番茄炒蛋"}]}],"failures":[]}},"history":{"y1a":{"id":"cmvjlf7ow001syspgjfoefy9h","planDate":"2026-10-22T16:00:00.000Z","createdAt":"2026-10-22T13:45:01.616Z","dayContext":{"adults":2,"children":1,"timeBudgetMin":30,"mustUseIngredients":[],"desiredDishIds":["seed-dish-beef-stew","seed-dish-cucumber-salad","seed-dish-millet-porridge"],"meals":["breakfast","lunch","dinner"]},"meals":[{"slot":"breakfast","dishes":[{"id":"cmtnpn9pi000m0wpgnz0oqrpt","name":"家常蒸蛋羹"},{"id":"cmtnpn9q8001h0wpgvtw76zuo","name":"葱烧嫩豆腐"}]},{"slot":"lunch","dishes":[{"id":"cmtnpn9re002w0wpgmxn110qi","name":"蒜香西兰花炒虾仁"},{"id":"cmtnpn9rs003h0wpgj7wlkoky","name":"土豆炖鸡块"}]},{"slot":"dinner","dishes":[{"id":"seed-dish-tomato-egg","name":"番茄炒蛋"}]}],"failures":[]},"y1b":{"id":"cmvjlf8n8001uyspg5fezql0g","planDate":"2026-10-22T16:00:00.000Z","createdAt":"2026-10-22T13:45:02.852Z","dayContext":{"adults":2,"children":1,"timeBudgetMin":30,"mustUseIngredients":[],"desiredDishIds":["seed-dish-braised-pork","seed-dish-broccoli-shrimp","seed-dish-milk-oatmeal"],"meals":["breakfast","lunch","dinner"]},"meals":[{"slot":"breakfast","dishes":[{"id":"cmtnpn9pi000m0wpgnz0oqrpt","name":"家常蒸蛋羹"},{"id":"cmtnpn9q8001h0wpgvtw76zuo","name":"葱烧嫩豆腐"}]},{"slot":"lunch","dishes":[{"id":"seed-dish-tomato-egg","name":"番茄炒蛋"}]},{"slot":"dinner","dishes":[{"id":"seed-dish-braised-pork","name":"红烧肉"},{"id":"seed-dish-broccoli-shrimp","name":"西兰花炒虾仁"}]}],"failures":[]},"d2":{"id":"cmvjlf9ll001wyspg0b82wif5","planDate":"2026-10-22T16:00:00.000Z","createdAt":"2026-10-22T13:45:04.089Z","dayContext":{"adults":2,"children":1,"timeBudgetMin":30,"mustUseIngredients":[],"desiredDishIds":["seed-dish-steamed-bass","seed-dish-seaweed-soup","seed-dish-tomato-egg"],"meals":["breakfast","lunch","dinner"]},"meals":[{"slot":"breakfast","dishes":[{"id":"seed-dish-egg-fried-rice","name":"蛋炒饭"},{"id":"seed-dish-seaweed-soup","name":"紫菜蛋花汤"}]},{"slot":"lunch","dishes":[{"id":"seed-dish-tomato-egg","name":"番茄炒蛋"}]},{"slot":"dinner","dishes":[{"id":"seed-dish-potato-ribs","name":"土豆烧排骨"},{"id":"seed-dish-steamed-bass","name":"清蒸鲈鱼"}]}],"failures":[]},"d3":{"id":"cmvjlfak9001yyspg2r306313","planDate":"2026-10-22T16:00:00.000Z","createdAt":"2026-10-22T13:45:05.337Z","dayContext":{"adults":2,"children":1,"timeBudgetMin":30,"mustUseIngredients":["鸵鸟肉"],"desiredDishIds":[],"meals":["breakfast","lunch","dinner"]},"meals":[],"failures":[{"slot":"breakfast","kind":"COMBINATION","detail":"必消食材鸵鸟肉没有任何一餐能用上，全天凑不齐","suggestions":["删减必消食材","补充菜库后再试"]},{"slot":"lunch","kind":"COMBINATION","detail":"必消食材鸵鸟肉没有任何一餐能用上，全天凑不齐","suggestions":["删减必消食材","补充菜库后再试"]},{"slot":"dinner","kind":"COMBINATION","detail":"必消食材鸵鸟肉没有任何一餐能用上，全天凑不齐","suggestions":["删减必消食材","补充菜库后再试"]}]},"oldPlan":{"id":"cmvjlfbik0020yspg8e5uadkt","planDate":"2026-10-22T16:00:00.000Z","createdAt":"2026-10-22T13:45:06.572Z","dayContext":{"adults":2,"children":1,"timeBudgetMin":30,"mustUseIngredients":[],"desiredDishIds":["seed-dish-egg-fried-rice","seed-dish-boiled-egg","seed-dish-millet-porridge"],"meals":["breakfast","lunch","dinner"]},"meals":[{"slot":"breakfast","dishes":[{"id":"seed-dish-egg-fried-rice","name":"蛋炒饭"},{"id":"seed-dish-seaweed-soup","name":"紫菜蛋花汤"}]},{"slot":"lunch","dishes":[{"id":"cmtnpn9re002w0wpgmxn110qi","name":"蒜香西兰花炒虾仁"},{"id":"cmtnpn9rs003h0wpgj7wlkoky","name":"土豆炖鸡块"}]},{"slot":"dinner","dishes":[{"id":"seed-dish-tomato-egg","name":"番茄炒蛋"}]}],"failures":[]},"planTomorrow":{"id":"cmvjlfch10022yspglkmaj54j","planDate":"2026-10-22T16:00:00.000Z","createdAt":"2026-10-22T13:45:07.813Z","dayContext":{"adults":2,"children":1,"timeBudgetMin":30,"mustUseIngredients":[],"desiredDishIds":["seed-dish-egg-fried-rice","seed-dish-cucumber-salad","seed-dish-tomato-egg-noodle"],"meals":["breakfast","lunch","dinner"]},"meals":[{"slot":"breakfast","dishes":[{"id":"seed-dish-egg-fried-rice","name":"蛋炒饭"},{"id":"seed-dish-seaweed-soup","name":"紫菜蛋花汤"}]},{"slot":"lunch","dishes":[{"id":"cmtnpn9re002w0wpgmxn110qi","name":"蒜香西兰花炒虾仁"},{"id":"cmtnpn9rs003h0wpgj7wlkoky","name":"土豆炖鸡块"}]},{"slot":"dinner","dishes":[{"id":"seed-dish-tomato-egg","name":"番茄炒蛋"}]}],"failures":[]}}}
+PASS 0.3 首页读到今天的真实三餐（非假数据） | meals=3
+SHOT S-03-home-with-plan.png
+PASS S-09 今天午餐有 ≥2 道菜（用于同餐上一道/下一道） | lunch=杭椒牛柳/清蒸鲈鱼/紫菜蛋花汤
+PASS S-09 首页午餐菜名与真实计划一致
+PASS S-09 4:3 全出血大图（图/占位块） | box={"x":0,"y":0,"width":375,"height":281.25}
+PASS S-09 菜名/今天·餐次·人数 chips 齐全
+SHOT S-09-hero.png
+PASS S-09 用料按（成人+儿童）/4 缩放且标注 | rows=10 已缩放
+SHOT S-09-ingredients.png
+PASS S-09 分步做法序号圆点连续 | steps=7 nums=1,2,3,4,5,6,7
+SHOT S-09-steps.png
+PASS S-09 首道：上一道「没有了」不可点，下一道为同餐第二道 | ‹ 上一道：没有了 | 下一道：清蒸鲈鱼 ›
+PASS S-09 下一道：真替换且上一道指回第一道
+SHOT S-09-next.png
+PASS S-09 末道：下一道「没有了」不可点 | ‹ 上一道：清蒸鲈鱼 | 下一道：没有了 ›
+PASS S-09 「没有了」点击不跳转（非静默按钮）
+SHOT S-09-last.png
+PASS S-09 最后操作按钮「做完记一笔」完全可见 | box={"x":16,"y":748,"width":343,"height":48}
+PASS S-09 返回：正常回到首页
+PASS S-09 菜品卡点击进入同一道菜的做法页
+SHOT S-09-from-card.png
+PASS S-10 午餐弹层标题正确
+PASS S-10 已有反馈的餐预填原值（做了/好吃/还做/30 分钟） | 做了,好吃,还做,30 分钟
+SHOT S-10-open-prefill.png
+PASS S-10 实际耗时可选填、可取消 | 做了,好吃,还做
+PASS S-10 耗时可再次选回
+PASS S-10 取消关闭后重开，未提交选择仍在（设计规则 5） | 做了,好吃,还做,30 分钟
+PASS S-10 三问校验：缺第①问有 toast
+SHOT S-10-validation-1.png
+PASS S-10 选「做了」后出现味道与耗时问题
+PASS S-10 三问校验：缺第②问有 toast
+SHOT S-10-validation-2.png
+PASS S-10 三问校验：缺第③问有 toast
+SHOT S-10-validation-3.png
+PASS S-10 三问+耗时均已选 | 做了,好吃,还做,50 分钟
+PASS S-10 点遮罩关闭弹层
+PASS S-10 遮罩关闭后重开，未提交选择仍在（设计规则 5） | 做了,好吃,还做,50 分钟
+SHOT S-10-reopen-retained.png
+PASS S-10 提交成功 toast「记好了」
+PASS S-10 提交成功后首页晚餐标签即时更新为「好吃」
+PASS S-10 提交报文：做了/好吃/还做/50 分钟 + 餐次晚餐 | {"didCook":true,"taste":"good","willRepeat":true,"actualMinutes":50,"mealSlot":"dinner"}
+SHOT S-10-submitted.png
+PASS S-10 重开晚餐弹层预填已保存值
+PASS S-10 同日同餐再次提交覆盖（页面读回最新=一般） | {"didCook":true,"taste":"ok","willRepeat":false,"actualMinutes":50,"mealSlot":"dinner"}
+SHOT S-10-overwrite.png
+PASS S-10 没做：隐藏味道/耗时，只保留「没做」选中 | 没做
+SHOT S-10-not-cooked-hidden.png
+PASS S-10 反序操作（没做→做了）不丢已选味道/耗时 | 做了,好吃,30 分钟
+SHOT S-10-order-restored.png
+PASS S-10 没做提交报文不带 taste/actualMinutes | {"didCook":false,"willRepeat":false,"mealSlot":"breakfast"}
+PASS S-10 没做后首页早餐标签为「没做」
+SHOT S-10-not-cooked.png
+PASS S-10 提交后重开：服务端已保存「没做/不做了」，不残留味道/耗时 | 没做,不做了
+PASS 回归 首次 GET feedback 失败：明说没读出来 + 重试
+SHOT S-09-feedback-retry.png
+PASS 回归 重试成功后打开记一笔：预填服务端已有答案（不空表单覆盖） | 做了,好吃,还做,30 分钟
+SHOT S-09-retry-prefill.png
+PASS 回读回归前：午餐预填仍为已保存值
+PASS 回读失败：提示「记下了，但没读回来」且主按钮为「重读评价」
+PASS 回读失败：POST 只发 1 次 | post=1 get=1
+SHOT S-10-readback-fail.png
+PASS 回读失败后点「重读评价」：只发 GET，不再 POST | post=1 get=2
+PASS 恢复后重读成功：弹层关闭 + 午餐标签更新为「翻车」
+PASS 恢复后仍只发 1 次 POST | post=1 get=3
+SHOT S-10-readback-recovered.png
+PASS S-11 按日分组 + 日期倒序（昨天→前天→大前天） | 10月21日 周三,10月20日 周二,10月19日 周一
+PASS S-11 每日最新 + 人数说明（3 餐 · 2 大 1 小） | 10月21日 周三:3 餐 · 2 大 1 小 | 10月20日 周二:3 餐 · 2 大 1 小 | 10月19日 周一:3 餐 · 2 大 1 小
+PASS S-11 四色标签齐全：好吃/翻车/没做（昨天最新计划） | ["早:做了 · 好吃","中:做了 · 翻车","晚:没做"]
+PASS S-11 一般/还没评价 标签（前天） | ["早:做了 · 一般","中:还没评价","晚:还没评价"]
+PASS S-11 缺餐如实标「没排上」（大前天真实必消鸵鸟肉空手） | ["早:没排上","中:没排上","晚:没排上"]
+PASS S-11 每餐菜名可读且来自真实计划（昨天最新） | y1b=家常蒸蛋羹/葱烧嫩豆腐/番茄炒蛋/红烧肉/西兰花炒虾仁
+PASS S-11 早/中/晚三行齐全 | 早,中,晚
+PASS S-11 今天/明天不出现 | 10月21日 周三,10月20日 周二,10月19日 周一
+PASS S-11 近 14 天窗口外（15 天前）不出现 | 10月21日 周三,10月20日 周二,10月19日 周一
+PASS S-11 15 天前计划的菜名不出现 | oldUnique=土豆炖鸡块
+SHOT S-11-normal-top.png
+SHOT S-11-normal-bottom.png
+PASS S-11 Tabbar 三入口完全可见 | box={"x":0,"y":763,"width":375,"height":49}
+PASS S-09 从历史进入过去日期：显示日期/餐次/人数 | 10月21日 周三 · 早餐 · 2 大 1 小
+PASS S-09 过去日期底部为「返回历史」而非「做完记一笔」 | 返回历史
+PASS S-09 过去日期最后操作按钮「返回历史」完全可见 | box={"x":16,"y":748,"width":343,"height":48}
+SHOT S-09-from-history.png
+PASS S-09 返回历史正常（历史页仍在）
+PASS S-11 错误态：明说拿不到 + 重试 + 不假数据
+SHOT S-11-error.png
+PASS S-11 点重试恢复真实历史
+SHOT S-11-recovered.png
+PASS 通用 Tabbar 三入口可切换（首页/历史/设置）
+PASS 通用 首页不出现假数据/假成功文案
+PASS 通用 非模拟失败步骤 console error=0
+PASS 通用 非模拟失败步骤失败请求/5xx=0 | 0 failed / 0 bad
+SUMMARY checks=77 failed=0
+SUMMARY unexpectedConsoleErrors=0
+SUMMARY unexpectedFailedRequests=0
+SUMMARY unexpectedBadResponses=0
