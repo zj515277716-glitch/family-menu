@@ -84,7 +84,9 @@ function HistoryDayCard({
                       ))}
                     </View>
                   )}
-                  <View className="meal-row-meta">{feedbackMeta(fb)}</View>
+                  <View className="meal-row-meta">
+                    {m.dishes.length === 0 ? '这一餐没排上' : feedbackMeta(fb)}
+                  </View>
                 </View>
                 <Text className={`tag ${tag.cls}`}>{tag.label}</Text>
               </View>

@@ -436,20 +436,22 @@ export default function HomePage() {
 
       <Text className="img-note">示意图·正式版为试做实拍</Text>
 
-      {/* S-10：只记当前这一餐；成功回读后立即更新本餐标签，不等 useDidShow */}
-      {todayPlan && todayDayPlan && sheetSlot && (
-        <FeedbackSheet
-          visible={sheetSlot !== null}
-          planId={todayPlan.id}
-          slot={sheetSlot}
-          initialFeedback={feedbacks[sheetSlot] ?? null}
-          onClose={() => setSheetSlot(null)}
-          onSubmitted={(fb) => {
-            if (!sheetSlot) return
-            setFeedbacks((prev) => ({ ...prev, [sheetSlot]: fb }))
-          }}
-        />
-      )}
+      {/* S-10：今天每餐各挂一个常驻弹层（key=slot），关闭只置 null 不卸载，
+          未提交选择按餐各自保留；成功回读后立即更新本餐标签，不等 useDidShow */}
+      {todayPlan &&
+        todayDayPlan?.meals.map((meal) => (
+          <FeedbackSheet
+            key={meal.slot}
+            visible={sheetSlot === meal.slot}
+            planId={todayPlan.id}
+            slot={meal.slot}
+            initialFeedback={feedbacks[meal.slot] ?? null}
+            onClose={() => setSheetSlot(null)}
+            onSubmitted={(fb) => {
+              setFeedbacks((prev) => ({ ...prev, [meal.slot]: fb }))
+            }}
+          />
+        ))}
 
       <CustomTabBar />
     </View>

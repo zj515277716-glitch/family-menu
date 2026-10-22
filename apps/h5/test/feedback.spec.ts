@@ -52,9 +52,24 @@ describe('预填与切换', () => {
     })
   })
 
-  it('切到没做：清空味道与实际耗时，避免切换残留', () => {
-    const next = chooseDidCook(draft({ didCook: true, taste: 'good', actualMinutes: 30 }), false)
-    expect(next).toEqual({ didCook: false, taste: null, willRepeat: null, actualMinutes: null })
+  it('切到没做：味道/耗时保留在草稿里，但报文不发送；切回「做了」原选择仍在', () => {
+    const before = draft({ didCook: true, taste: 'good', willRepeat: true, actualMinutes: 30 })
+    const notCooked = chooseDidCook(before, false)
+    expect(notCooked).toEqual({
+      didCook: false,
+      taste: 'good',
+      willRepeat: true,
+      actualMinutes: 30,
+    })
+    expect(buildFeedbackRequest(notCooked, 'lunch')).toEqual({
+      didCook: false,
+      willRepeat: true,
+      mealSlot: 'lunch',
+    })
+
+    const back = chooseDidCook(notCooked, true)
+    expect(back.taste).toBe('good')
+    expect(back.actualMinutes).toBe(30)
   })
 })
 

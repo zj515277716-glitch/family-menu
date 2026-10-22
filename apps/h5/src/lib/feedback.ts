@@ -38,10 +38,12 @@ export function initFeedbackDraft(fb: FeedbackResponse | null | undefined): Feed
   }
 }
 
-/** 切换「做了没」：切到没做时清空味道与实际耗时（隐藏且不发送，切换不残留） */
+/**
+ * 切换「做了没」：只改答案，不清空味道/耗时。
+ * 没做时界面隐藏，buildFeedbackRequest 也不会发送这两项；切回「做了」原选择仍在。
+ */
 export function chooseDidCook(draft: FeedbackDraft, didCook: boolean): FeedbackDraft {
-  if (didCook) return { ...draft, didCook }
-  return { ...draft, didCook, taste: null, actualMinutes: null }
+  return { ...draft, didCook }
 }
 
 /** 本地必填校验：返回缺哪一问的人话；null=可提交 */

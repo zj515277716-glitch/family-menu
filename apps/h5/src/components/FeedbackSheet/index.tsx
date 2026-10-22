@@ -2,7 +2,7 @@
 // S-10 记一笔底部弹层（T-Q13，C-5）：首页餐卡与 S-09 做法页共用。
 // 只记当前 plan + slot；三问必选 + 耗时选填；已有反馈预填原值；提交成功后
 // 以 GET feedback 回读为准再通知父级，失败保留已选与弹层，可重试。
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import Taro from '@tarojs/taro'
 import { View, Text } from '@tarojs/components'
 import { Button, Popup } from '@nutui/nutui-react-taro'
@@ -44,15 +44,19 @@ export default function FeedbackSheet({
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [pendingReadback, setPendingReadback] = useState(false)
+  const initKeyRef = useRef<string | null>(null)
+  const currentKey = `${planId}:${slot}`
 
-  // 每次打开按服务端已有反馈预填；关闭后再开不沿用上一次的临时选择
+  // 只在换计划/换餐次时按服务端反馈初始化；visible 开关不重置，
+  // 遮罩/取消关闭后重新打开，未提交的选择原样保留（设计规则 5）。
   useEffect(() => {
-    if (!visible) return
+    if (initKeyRef.current === currentKey) return
+    initKeyRef.current = currentKey
     setDraft(initFeedbackDraft(initialFeedback))
     setSubmitting(false)
     setError(null)
     setPendingReadback(false)
-  }, [visible, slot, initialFeedback])
+  }, [currentKey, initialFeedback])
 
   function handleClose() {
     if (submitting) {
@@ -69,6 +73,9 @@ export default function FeedbackSheet({
     try {
       const fb = await planApi.getFeedback(planId, slot)
       if (!fb) throw new Error('服务没返回这次评价')
+      // 回读成功即以服务端值为准同步草稿；下次打开看到的就是已保存的答案
+      setDraft(initFeedbackDraft(fb))
+      setPendingReadback(false)
       setSubmitting(false)
       onSubmitted(fb)
       Taro.showToast({ title: '记好了', icon: 'success' })
@@ -86,6 +93,11 @@ export default function FeedbackSheet({
   }
 
   async function handleSubmit() {
+    // 提交已成功但回读失败：只重读，绝不重复 POST（避免追加 Event/CookLog）
+    if (pendingReadback) {
+      await readBack()
+      return
+    }
     const missing = validateFeedbackDraft(draft)
     if (missing) {
       Taro.showToast({ title: missing, icon: 'none' })
@@ -228,8 +240,13 @@ export default function FeedbackSheet({
           <Button className="btn-plain" disabled={submitting} onClick={handleClose}>
             取消
           </Button>
-          <Button className="btn-main" loading={submitting} disabled={submitting} onClick={handleSubmit}>
-            {submitting ? '正在保存…' : '提交'}
+          <Button
+            className="btn-main"
+            loading={submitting}
+            disabled={submitting}
+            onClick={pendingReadback ? () => void readBack() : handleSubmit}
+          >
+            {submitting ? '正在保存…' : pendingReadback ? '重读评价' : '提交'}
           </Button>
         </View>
       </View>
