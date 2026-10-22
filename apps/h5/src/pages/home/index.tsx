@@ -166,7 +166,7 @@ export default function HomePage() {
         </View>
 
         <View className="banner banner-warn">
-          <Text>⚠ 服务未连接，暂时拿不到菜单{error ? `（${error}）` : ''}</Text>
+          <Text>⚠ {error || '服务未连接，暂时拿不到菜单'}</Text>
           <Text className="act" onClick={load}>
             重试
           </Text>

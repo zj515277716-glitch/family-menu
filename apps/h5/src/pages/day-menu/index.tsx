@@ -414,7 +414,7 @@ export default function DayMenuPage() {
           <View className="sub">{dateText}</View>
         </View>
         <View className="banner banner-warn">
-          <Text>⚠ 服务未连接，暂时拿不到三餐菜单{error ? `（${error}）` : ''}</Text>
+          <Text>⚠ {error || '服务未连接，暂时拿不到三餐菜单'}</Text>
           <Text className="act" onClick={loadPlan}>
             重试
           </Text>
