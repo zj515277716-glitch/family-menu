@@ -248,6 +248,11 @@ export const dayPlanService = {
 
     if (swapType === '全换') {
       const next = replanAllMeals(input, current);
+      // 当前菜不回池后全天空手（meals 为空或每餐 0 道）不是成功换餐：
+      // C-3a 失败恢复要求原菜单保持可再试——不落库、不写 Event，部分餐失败仍按现语义替换
+      if (next.meals.every((m) => m.dishes.length === 0)) {
+        throw new SwapRecheckError('这次没换出可用的三餐，已保持原餐');
+      }
       return persistDayPlanUpdate(plan, next, 'SWAP_MENU', {
         reason: reason ?? null,
         oldMeals: current.meals.map((m) => m.menuId),

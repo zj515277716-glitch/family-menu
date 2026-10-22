@@ -9,7 +9,7 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import { prisma } from '../src/db.js';
 import { dayPlanService } from '../src/services/dayPlanService.js';
-import { planService } from '../src/services/planService.js';
+import { planService, FAMILY_ID } from '../src/services/planService.js';
 import type { DayPlanResult } from '@family-menu/engine';
 import type { MealSlot } from '@family-menu/shared';
 
@@ -152,5 +152,59 @@ describe.skipIf(!canConnect)('T-Q10 三餐计划 API 集成（真实 PG）', () 
     expect(cookLogs.length).toBe(lunchDishIds.length);
     expect(cookLogs.every((c) => c.result === 'success')).toBe(true);
     expect(cookLogs.every((c) => c.willRepeat === true)).toBe(true);
+  });
+
+  it('全换空手：当前菜不回池后无可用三餐 -> 拒绝且原计划/事件不变', async () => {
+    // 用已生成计划的早餐菜快照作模板；把所有 PUBLISHED 菜都塞进这一天，
+    // 全换时引擎把这些 id 全部排除，必然出不了任何一餐。
+    const template = dayPlan.meals.find((m) => m.slot === 'breakfast')!.dishes[0];
+    const published = await prisma.dish.findMany({
+      where: { status: 'PUBLISHED' },
+      select: { id: true, name: true },
+    });
+    expect(published.length).toBeGreaterThan(0);
+
+    const crafted: DayPlanResult = {
+      meals: [
+        {
+          slot: 'breakfast',
+          menuId: 'crafted-all-published',
+          dishes: published.map((d) => ({ ...template, id: d.id, name: d.name })),
+          score: 1,
+          reasons: ['测试夹具：占满全部已发布菜'],
+          filtered: [],
+          totalActiveMinutes: template.activeMinutes * published.length,
+        },
+      ],
+      mustUseAllocation: [],
+      desiredNotes: [],
+      failures: [],
+      crossMealNotes: [],
+      filtered: [],
+    };
+
+    const p2 = await prisma.plan.create({
+      data: {
+        familyId: FAMILY_ID,
+        planDate: new Date(2035, 0, 1),
+        context: {},
+        dayContext: { ...CTX, meals: ['breakfast'] },
+        candidates: [],
+        dayPlan: crafted as unknown as object,
+        status: 'LOCKED',
+      },
+    });
+    createdPlanIds.push(p2.id);
+
+    // 修复前：replanAllMeals 返回空手，被当作成功落库；修复后必须拒绝并保持原餐
+    await expect(dayPlanService.swapDayPlan(p2.id, '全换')).rejects.toThrow('已保持原餐');
+
+    const row = await prisma.plan.findUnique({ where: { id: p2.id } });
+    expect(row).not.toBeNull();
+    expect(row!.dayPlan).toEqual(crafted);
+    const swapEvents = await prisma.event.count({
+      where: { planId: p2.id, type: 'SWAP_MENU' },
+    });
+    expect(swapEvents).toBe(0);
   });
 });
