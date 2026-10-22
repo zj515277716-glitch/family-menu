@@ -11,7 +11,7 @@ import type {
   SwapOption,
   SwapPlanRequest,
 } from '@family-menu/shared'
-import { MEAL_SLOT_LABELS } from '@family-menu/shared'
+import { MEAL_SLOTS, MEAL_SLOT_LABELS } from '@family-menu/shared'
 
 /** 菜品角色中文（设计规则 3：枚举一律中文；候选弹层展示用） */
 const MEAL_ROLE_LABELS: Record<MealRole, string> = {
@@ -23,6 +23,37 @@ const MEAL_ROLE_LABELS: Record<MealRole, string> = {
 
 export function mealRoleLabel(role: MealRole): string {
   return MEAL_ROLE_LABELS[role]
+}
+
+// ───── 三餐展示槽位（C-7/PD-018） ─────
+
+/**
+ * 应展示的餐次 = 用户勾选餐次 ∪ 已生成餐次 ∪ 失败归因餐次，按 MEAL_SLOTS 规范序。
+ * 引擎失败餐不产 DayPlanMeal（只留 failure），只看 meals 会把失败餐整块弄丢。
+ */
+export function displayMealSlots(
+  selected: readonly MealSlot[] | undefined,
+  mealSlots: readonly MealSlot[],
+  failureSlots: readonly MealSlot[],
+): MealSlot[] {
+  const present = new Set<MealSlot>([...(selected ?? []), ...mealSlots, ...failureSlots])
+  return MEAL_SLOTS.filter((slot) => present.has(slot))
+}
+
+/**
+ * 失败归因文案脱敏：引擎 detail 可能拼已 resolve 的 ingredientId（ing-*），
+ * 按已排菜用料表换成人能读的食材名；未知 id 统一「该食材」，绝不把内部 id 上屏。
+ */
+export function humanizeFailureDetail(detail: string, dayPlan: DayPlan): string {
+  const names = new Map<string, string>()
+  for (const meal of dayPlan.meals) {
+    for (const dish of meal.dishes) {
+      for (const ing of dish.ingredients) {
+        if (!names.has(ing.ingredientId)) names.set(ing.ingredientId, ing.ingredientName)
+      }
+    }
+  }
+  return detail.replace(/ing-[A-Za-z0-9_-]+/g, (id) => names.get(id) ?? '该食材')
 }
 
 // ───── 必消横幅（C-3：✓ 必消食材已用上 / 没排上如实标注） ─────

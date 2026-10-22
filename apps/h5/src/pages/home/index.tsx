@@ -3,12 +3,12 @@
 // 下半区定明天的餐（明天三餐摘要大卡 + 查看菜单 / 看采购清单）。
 // S-13：任一路由失败 → 明说「服务未连接」可重试，绝不显示假数据；「定明天的餐」仍可进入。
 // 保留 T-Q11 冷启动守卫（无家庭设置先去填设置）与 401 统一处理。
-import { useCallback, useEffect, useState } from 'react'
-import Taro from '@tarojs/taro'
+import { useCallback, useState } from 'react'
+import Taro, { useDidShow } from '@tarojs/taro'
 import { View, Text } from '@tarojs/components'
 import { Button } from '@nutui/nutui-react-taro'
-import type { DayPlanMeal, FamilyRule, FeedbackResponse, MealSlot, Plan } from '@family-menu/shared'
-import { MEAL_SLOTS, MEAL_SLOT_LABELS } from '@family-menu/shared'
+import type { FamilyRule, FeedbackResponse, MealSlot, Plan } from '@family-menu/shared'
+import { MEAL_SLOT_LABELS } from '@family-menu/shared'
 import { api, planApi, UnauthorizedError } from '../../api/client'
 import CustomTabBar from '../../components/CustomTabBar'
 import DishImage from '../../components/DishImage'
@@ -20,7 +20,12 @@ import {
   todayDateStr,
   tomorrowDateStr,
 } from '../../lib/day-plan'
-import { mealDishSummary } from '../../lib/day-menu'
+import {
+  displayMealSlots,
+  failureKindLabel,
+  humanizeFailureDetail,
+  mealDishSummary,
+} from '../../lib/day-menu'
 
 type Phase = 'loading' | 'ready' | 'error'
 type FeedbackMap = Partial<Record<MealSlot, FeedbackResponse | null>>
@@ -119,9 +124,8 @@ export default function HomePage() {
     setPhase('ready')
   }, [today, tomorrow])
 
-  useEffect(() => {
-    load()
-  }, [load])
+  // 从定餐/三餐菜单返回首页时重新拉取（Taro 页面展示钩子；首挂载即触发）
+  useDidShow(load)
 
   function placeholder(label: string) {
     Taro.showToast({ title: `${label}在下一版上线`, icon: 'none' })
@@ -233,13 +237,19 @@ export default function HomePage() {
   const nextText = view.next ? `${MEAL_SLOT_LABELS[view.next]}是今天的下一餐` : '今天三餐已过完'
 
   const todayDayPlan = todayPlan?.dayPlan
-  const todayMeals = todayDayPlan
-    ? view.order
-        .map((slot) => todayDayPlan.meals.find((m) => m.slot === slot))
-        .filter((m): m is DayPlanMeal => m !== undefined)
-    : []
+  const todaySlots = displayMealSlots(
+    todayPlan?.dayContext?.meals,
+    todayDayPlan?.meals.map((m) => m.slot) ?? [],
+    todayDayPlan?.failures.map((f) => f.slot) ?? [],
+  )
+  const todayOrder = view.order.filter((slot) => todaySlots.includes(slot))
 
   const tomorrowDayPlan = tomorrowPlan?.dayPlan
+  const tomorrowSlots = displayMealSlots(
+    tomorrowPlan?.dayContext?.meals,
+    tomorrowDayPlan?.meals.map((m) => m.slot) ?? [],
+    tomorrowDayPlan?.failures.map((f) => f.slot) ?? [],
+  )
 
   return (
     <View className="fm-page with-tabbar">
@@ -275,21 +285,45 @@ export default function HomePage() {
           </View>
         )}
 
-        {todayMeals.map((m) => {
-          const tag = view.next === m.slot ? { label: '下一餐', cls: 'tag-next' } : feedbackTag(feedbacks[m.slot])
-          return (
-            <View className="meal-block" key={m.slot}>
-              <View className="meal-head">
-                <Text className="meal-name">{MEAL_SLOT_LABELS[m.slot]}</Text>
-                <Text className="meal-time">{mealTimeHint(m.slot)}</Text>
-                <Text className={`tag ${tag.cls}`}>{tag.label}</Text>
-              </View>
+        {todayDayPlan &&
+          todayOrder.map((slot) => {
+            const meal = todayDayPlan.meals.find((m) => m.slot === slot)
+            const failure = todayDayPlan.failures.find((f) => f.slot === slot)
 
-              {m.dishes.length === 0 ? (
-                <View className="slot-empty">这一餐没凑出来</View>
-              ) : (
+            // 引擎失败餐不产 meal：餐头 + 「没排上」+ 空槽 + 脱敏失败原因，不给做法/记一笔
+            if (!meal || meal.dishes.length === 0) {
+              return (
+                <View className="meal-block" key={slot}>
+                  <View className="meal-head">
+                    <Text className="meal-name">{MEAL_SLOT_LABELS[slot]}</Text>
+                    <Text className="meal-time">{mealTimeHint(slot)}</Text>
+                    <Text className="tag tag-none">没排上</Text>
+                  </View>
+                  <View className="slot-empty">这一餐没凑出来</View>
+                  {failure && (
+                    <View className="form-note mt-2">
+                      {failureKindLabel(failure.kind)}：
+                      {humanizeFailureDetail(failure.detail, todayDayPlan)}
+                    </View>
+                  )}
+                </View>
+              )
+            }
+
+            const tag =
+              view.next === slot
+                ? { label: '下一餐', cls: 'tag-next' }
+                : feedbackTag(feedbacks[slot])
+            return (
+              <View className="meal-block" key={slot}>
+                <View className="meal-head">
+                  <Text className="meal-name">{MEAL_SLOT_LABELS[slot]}</Text>
+                  <Text className="meal-time">{mealTimeHint(slot)}</Text>
+                  <Text className={`tag ${tag.cls}`}>{tag.label}</Text>
+                </View>
+
                 <View className="hscroll">
-                  {m.dishes.map((d) => (
+                  {meal.dishes.map((d) => (
                     <View className="fcard" key={d.id}>
                       <DishImage imageUrl={d.imageUrl} seed={d.id} alt={d.name} />
                       <View className="fcard-body">
@@ -299,20 +333,19 @@ export default function HomePage() {
                     </View>
                   ))}
                 </View>
-              )}
 
-              {/* T-Q13 入口占位：点击必须说明，不静默 */}
-              <View className="btn-row">
-                <Button className="btn-ghost" onClick={() => placeholder('看做法')}>
-                  看做法
-                </Button>
-                <Button className="btn-plain" onClick={() => placeholder('记一笔')}>
-                  记一笔
-                </Button>
+                {/* T-Q13 入口占位：点击必须说明，不静默 */}
+                <View className="btn-row">
+                  <Button className="btn-ghost" onClick={() => placeholder('看做法')}>
+                    看做法
+                  </Button>
+                  <Button className="btn-plain" onClick={() => placeholder('记一笔')}>
+                    记一笔
+                  </Button>
+                </View>
               </View>
-            </View>
-          )
-        })}
+            )
+          })}
       </View>
 
       {/* 下半区：定明天的餐 */}
@@ -325,22 +358,25 @@ export default function HomePage() {
         {tomorrowPlan && tomorrowDayPlan ? (
           <>
             <View className="hscroll hscroll-wide">
-              {MEAL_SLOTS.map((slot) => tomorrowDayPlan.meals.find((m) => m.slot === slot))
-                .filter((m): m is DayPlanMeal => m !== undefined)
-                .map((m) => {
-                  const first = m.dishes[0]
-                  return (
-                    <View className="fcard" key={m.slot}>
-                      <DishImage imageUrl={first?.imageUrl} seed={first?.id ?? m.slot} alt={MEAL_SLOT_LABELS[m.slot]} />
-                      <View className="fcard-body">
-                        <View className="fcard-name">{MEAL_SLOT_LABELS[m.slot]}</View>
-                        <View className="fcard-meta">
-                          {m.dishes.length > 0 ? mealDishSummary(m) : '这一餐没凑出来'}
-                        </View>
+              {tomorrowSlots.map((slot) => {
+                const meal = tomorrowDayPlan.meals.find((m) => m.slot === slot)
+                const first = meal?.dishes[0]
+                return (
+                  <View className="fcard" key={slot}>
+                    <DishImage
+                      imageUrl={first?.imageUrl}
+                      seed={first?.id ?? slot}
+                      alt={MEAL_SLOT_LABELS[slot]}
+                    />
+                    <View className="fcard-body">
+                      <View className="fcard-name">{MEAL_SLOT_LABELS[slot]}</View>
+                      <View className="fcard-meta">
+                        {meal && meal.dishes.length > 0 ? mealDishSummary(meal) : '这一餐没凑出来'}
                       </View>
                     </View>
-                  )
-                })}
+                  </View>
+                )
+              })}
             </View>
             <View className="btn-row">
               <Button

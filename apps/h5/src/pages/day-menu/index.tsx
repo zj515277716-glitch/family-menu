@@ -7,7 +7,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import Taro from '@tarojs/taro'
 import { View, Text, Input } from '@tarojs/components'
 import { Button, Popup } from '@nutui/nutui-react-taro'
-import type { DayPlanDish, DayPlanMeal, MealFailure, MealSlot, Plan } from '@family-menu/shared'
+import type { DayPlan, DayPlanDish, MealFailure, MealSlot, Plan } from '@family-menu/shared'
 import { MEAL_SLOTS, MEAL_SLOT_LABELS } from '@family-menu/shared'
 import { planApi, UnauthorizedError } from '../../api/client'
 import DishImage from '../../components/DishImage'
@@ -16,7 +16,9 @@ import { formatDateCN, mealKindHint, mealTimeHint, tomorrowDateStr } from '../..
 import {
   buildMustUseBanner,
   dayTotalActiveMinutes,
+  displayMealSlots,
   failureKindLabel,
+  humanizeFailureDetail,
   isEmptyHand,
   mealRoleLabel,
   mustUseBannerText,
@@ -44,14 +46,22 @@ function errorText(e: unknown, fallback: string): string {
   return e instanceof Error && e.message ? e.message : fallback
 }
 
-/** 空手/失败卡（S-07）：哪一餐 + 原因类型 + detail + suggestions（点任一建议回 S-04 调整） */
-function FailureCard({ failure, onAdjust }: { failure: MealFailure; onAdjust: () => void }) {
+/** 空手/失败卡（S-07）：哪一餐 + 原因类型 + 脱敏 detail + suggestions（点任一建议回 S-04 调整） */
+function FailureCard({
+  failure,
+  dayPlan,
+  onAdjust,
+}: {
+  failure: MealFailure
+  dayPlan: DayPlan
+  onAdjust: () => void
+}) {
   return (
     <View className="card mt-3">
       <View className="form-title">
         {MEAL_SLOT_LABELS[failure.slot]} · {failureKindLabel(failure.kind)}
       </View>
-      <View className="form-note">{failure.detail}</View>
+      <View className="form-note">{humanizeFailureDetail(failure.detail, dayPlan)}</View>
       {failure.suggestions.length > 0 && (
         <View className="opts">
           {failure.suggestions.map((s) => (
@@ -133,10 +143,18 @@ export default function DayMenuPage() {
     })
   }
 
-  /** 回 S-04 调整（草稿在 store 里不丢）：有来路就返回，直开页面则重定向进设置 */
+  /**
+   * 回 S-04 调整：只有上一页确实是 S-04 才 navigateBack（保留草稿与原栈）；
+   * 从首页「查看菜单」等直接进来时上一页不是 S-04，必须 redirectTo 进设置，
+   * 不能 navigateBack 回首页（首页有计划时没有 S-04 入口，调整会断链）。
+   */
   function backToSetup() {
-    if (Taro.getCurrentPages().length > 1) {
-      Taro.navigateBack({ delta: 1 })
+    const pages = Taro.getCurrentPages()
+    const prev = pages[pages.length - 2] as { route?: string } | undefined
+    if (prev?.route?.includes('pages/meal-setup')) {
+      Taro.navigateBack({ delta: 1 }).catch(() => {
+        Taro.showToast({ title: '跳转失败，请重试', icon: 'none' })
+      })
       return
     }
     goSetup()
@@ -467,7 +485,12 @@ export default function DayMenuPage() {
         </View>
         {dayPlan.failures.length > 0 ? (
           dayPlan.failures.map((f, i) => (
-            <FailureCard key={`${f.slot}-${f.kind}-${i}`} failure={f} onAdjust={backToSetup} />
+            <FailureCard
+              key={`${f.slot}-${f.kind}-${i}`}
+              failure={f}
+              dayPlan={dayPlan}
+              onAdjust={backToSetup}
+            />
           ))
         ) : (
           <View className="card empty-box">
@@ -488,8 +511,10 @@ export default function DayMenuPage() {
   const bannerItems = buildMustUseBanner(dayPlan, plan.dayContext?.mustUseIngredients ?? [])
   const { usedText, unusedText } = mustUseBannerText(bannerItems)
   const totalActiveMinutes = dayTotalActiveMinutes(dayPlan)
-  const orderedMeals = MEAL_SLOTS.map((slot) => dayPlan.meals.find((m) => m.slot === slot)).filter(
-    (m): m is DayPlanMeal => m !== undefined,
+  const orderedSlots = displayMealSlots(
+    plan.dayContext?.meals,
+    dayPlan.meals.map((m) => m.slot),
+    dayPlan.failures.map((f) => f.slot),
   )
   const createdRaw = plan.createdAt as Date | string
   const createdTime = createdRaw instanceof Date ? createdRaw : new Date(createdRaw)
@@ -565,30 +590,33 @@ export default function DayMenuPage() {
       )}
 
       <View className="section">
-        {orderedMeals.map((m) => {
-          const failure = dayPlan.failures.find((f) => f.slot === m.slot)
+        {orderedSlots.map((slot) => {
+          const meal = dayPlan.meals.find((m) => m.slot === slot)
+          const failure = dayPlan.failures.find((f) => f.slot === slot)
           const mealSubmitting =
             swapState.phase === 'submitting' &&
             swapState.target.kind === 'meal' &&
-            swapState.target.slot === m.slot
+            swapState.target.slot === slot
           return (
-            <View className="meal-block" key={m.slot}>
+            <View className="meal-block" key={slot}>
               <View className="meal-head">
-                <Text className="meal-name">{MEAL_SLOT_LABELS[m.slot]}</Text>
+                <Text className="meal-name">{MEAL_SLOT_LABELS[slot]}</Text>
                 <Text className="meal-time">
-                  {mealTimeHint(m.slot)} · {mealKindHint(m.slot)}
+                  {mealTimeHint(slot)} · {mealKindHint(slot)}
                 </Text>
               </View>
 
-              {m.dishes.length === 0 ? (
+              {!meal || meal.dishes.length === 0 ? (
                 <>
                   <View className="slot-empty">这一餐没凑出来</View>
-                  {failure && <FailureCard failure={failure} onAdjust={backToSetup} />}
+                  {failure && (
+                    <FailureCard failure={failure} dayPlan={dayPlan} onAdjust={backToSetup} />
+                  )}
                 </>
               ) : (
                 <View className="grid2">
-                  {m.dishes.map((d) => {
-                    const hint = mustUseHint(d, m.slot)
+                  {meal.dishes.map((d) => {
+                    const hint = mustUseHint(d, slot)
                     return (
                       <View className="fcard" key={d.id}>
                         <DishImage imageUrl={d.imageUrl} seed={d.id} alt={d.name} />
@@ -609,15 +637,18 @@ export default function DayMenuPage() {
                 </View>
               )}
 
-              <View className="btn-row">
-                <Button
-                  className="btn-plain"
-                  loading={mealSubmitting}
-                  onClick={() => startMealSwap(m.slot)}
-                >
-                  {MEAL_SLOT_LABELS[m.slot]}换一餐
-                </Button>
-              </View>
+              {/* 该餐无 meal（引擎失败餐不产 menuId）时不提供「换一餐」，避免服务端无从承接 */}
+              {meal && (
+                <View className="btn-row">
+                  <Button
+                    className="btn-plain"
+                    loading={mealSubmitting}
+                    onClick={() => startMealSwap(slot)}
+                  >
+                    {MEAL_SLOT_LABELS[slot]}换一餐
+                  </Button>
+                </View>
+              )}
             </View>
           )
         })}

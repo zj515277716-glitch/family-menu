@@ -6,7 +6,9 @@ import type { DayPlan, DayPlanDish, DayPlanMeal, SwapOption } from '@family-menu
 import {
   buildMustUseBanner,
   dayTotalActiveMinutes,
+  displayMealSlots,
   failureKindLabel,
+  humanizeFailureDetail,
   isEmptyHand,
   mealDishSummary,
   mealRoleLabel,
@@ -258,5 +260,48 @@ describe('菜品角色中文（候选弹层展示）', () => {
   it('枚举一律中文', () => {
     expect(mealRoleLabel('MAIN')).toBe('主菜')
     expect(mealRoleLabel('SOUP')).toBe('汤')
+  })
+})
+
+describe('三餐展示槽位（失败餐不产 meal 也要显示）', () => {
+  it('部分失败：勾选/已生成/归因三者并集，补齐失败餐', () => {
+    // 用户勾了三餐，引擎只出了早餐，午餐失败（无 meal 条目）
+    expect(displayMealSlots(['breakfast', 'lunch', 'dinner'], ['breakfast'], ['lunch'])).toEqual([
+      'breakfast',
+      'lunch',
+      'dinner',
+    ])
+  })
+
+  it('规范序：乱序输入仍按早/中/晚返回', () => {
+    expect(displayMealSlots(['dinner', 'breakfast'], ['lunch'], [])).toEqual([
+      'breakfast',
+      'lunch',
+      'dinner',
+    ])
+  })
+
+  it('空输入返回空数组；selected 缺省时只看已生成与失败', () => {
+    expect(displayMealSlots([], [], [])).toEqual([])
+    expect(displayMealSlots(undefined, [], ['dinner'])).toEqual(['dinner'])
+  })
+})
+
+describe('失败归因文案脱敏（内部 ingredientId 不上屏）', () => {
+  it('已知 id → 菜名（已排菜用料表解析）', () => {
+    expect(humanizeFailureDetail('必消 ing-tomato 与忌口冲突', dayPlan)).toBe(
+      '必消 番茄 与忌口冲突',
+    )
+  })
+
+  it('未知 id → 该食材，不残留 ing-*', () => {
+    const out = humanizeFailureDetail('组合冲突：ing-unknown 与 ing-ghost_2 相克', dayPlan)
+    expect(out).toBe('组合冲突：该食材 与 该食材 相克')
+    expect(out).not.toMatch(/ing-/)
+  })
+
+  it('无 id 原样返回', () => {
+    const text = '符合要求的菜最少要 50 分钟'
+    expect(humanizeFailureDetail(text, dayPlan)).toBe(text)
   })
 })
