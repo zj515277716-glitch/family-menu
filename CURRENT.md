@@ -4,7 +4,7 @@
 > 整改依据：docs/复盘报告_V2_2026-09-29.md（阶段 A + T-Q04 全部完成）。
 
 ## 代码版本
-- main：`1f7d20f`（**T-Q13 合并**；已推送 origin `f9eb56d`）。
+- main：`1f7d20f`（**T-Q13 合并**；已推送 origin，远端以 `git ls-remote` 为准，不在本文件追短哈希）。
 - 分支 `t-q12-ui-main-flow`：`7712df1`（保留；已合并 main 并推送 origin）。
 - 分支 `t-q13-execution-history`：`593055c`（已合并 main `1f7d20f`；已推送 origin）。
 - 门禁：lint/tsc/test:taboo 全绿；全量 test 710 passed / 3 failed（均为本地真实库脏数据击穿的既有挂账：a3 B3/B4 + migration-backfill，候选一并修）；h5 生产构建通过。
