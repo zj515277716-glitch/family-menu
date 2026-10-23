@@ -16,6 +16,9 @@
     "db:seed": "pnpm --filter @family-menu/api prisma db seed",
     "deploy:api": "node tools/deploy-api.mjs",
     "deploy:h5": "node tools/deploy-h5.mjs",
+    "deploy:release": "node tools/deploy-release.mjs",
+    "backup:prod": "node tools/prod-backup.mjs",
+    "rollback:api": "node tools/rollback-api.mjs",
     "verify": "pnpm lint && pnpm build && pnpm test",
     "lint": "eslint .",
     "build": "pnpm -r build"
