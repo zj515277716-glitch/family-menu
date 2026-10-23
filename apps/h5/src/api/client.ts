@@ -9,9 +9,11 @@
 import Taro from '@tarojs/taro'
 import type {
   DayPlanContext,
+  DayPlanDishIngredient,
   Dish,
   ExclusionRule,
   FamilyRule,
+  FeedbackRequest,
   FeedbackResponse,
   MealSlot,
   Plan,
@@ -187,6 +189,11 @@ export const planApi = {
     return request<Plan>('/api/recommend', { method: 'POST', data: context })
   },
 
+  // GET /api/plans -> Plan[]（全量历史，契约数组；历史页自行按本地日分组）
+  listPlans(): Promise<Plan[]> {
+    return request<Plan[]>('/api/plans', { method: 'GET' })
+  },
+
   // GET /api/plans?date=YYYY-MM-DD -> Plan[]（该日全部版本 createdAt 倒序，首条=最新；
   // 「同一天重进看到同一份三餐」= 取首条，不重新生成）
   listPlansByDate(date: string): Promise<Plan[]> {
@@ -231,11 +238,31 @@ export const planApi = {
       { method: 'GET' },
     )
   },
+
+  // POST /api/plans/:id/feedback <- FeedbackRequest -> Plan（同日同餐重提覆盖，服务端保证）
+  submitFeedback(planId: string, body: FeedbackRequest): Promise<Plan> {
+    return request<Plan>(
+      `/api/plans/${encodeURIComponent(planId)}/feedback`,
+      { method: 'POST', data: body },
+    )
+  },
 }
+
+/** 菜品详情：Dish 全字段 + 用料行（GET /api/dishes/:id 响应形状，本地类型不扩 shared） */
+export type DishDetail = Dish & { ingredients: DayPlanDishIngredient[] }
 
 export const dishApi = {
   // GET /api/dishes?status=PUBLISHED（「想吃的菜」点选池：用户只见菜名，id 由列表带入）
   listPublished(): Promise<Dish[]> {
     return request<Dish[]>('/api/dishes?status=PUBLISHED', { method: 'GET' })
+  },
+
+  // GET /api/dishes/:id -> DishDetail（404 返回 null 供 S-09 如实显示「这道菜不在了」）
+  getDish(id: string): Promise<DishDetail | null> {
+    return request<DishDetail | null>(
+      `/api/dishes/${encodeURIComponent(id)}`,
+      { method: 'GET' },
+      true,
+    )
   },
 }

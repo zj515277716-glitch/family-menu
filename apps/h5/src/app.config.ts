@@ -18,6 +18,7 @@ export default defineAppConfig({
     'pages/meal-setup/index',
     'pages/day-menu/index',
     'pages/shopping-list/index',
+    'pages/dish/index',
   ],
   window: {
     backgroundTextStyle: 'light',

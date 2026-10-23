@@ -587,3 +587,115 @@ page {
   color: var(--c-ink-3);
   font-size: var(--fs-small);
 }
+
+/* ============================================================
+   T-Q13 执行回看（事实源 prototypes/style-1/v3 dish / feedback-sheet / history，×2）
+   ============================================================ */
+
+/* --- S-09 做法页：全出血 4:3 大图 + 渐变遮罩压菜名/餐次/chips --- */
+.fm-page.dish-page { padding: 0 0 var(--sp-6); }
+.fm-page.dish-page.with-stickybar { padding-bottom: calc(176px + env(safe-area-inset-bottom)); }
+.dish-main { padding: var(--sp-4); }
+.dhero { position: relative; width: 100%; aspect-ratio: 4 / 3; overflow: hidden; background: var(--c-tag-bg); }
+.dhero-img { display: block; width: 100%; height: 100%; object-fit: cover; }
+.dhero-ph { display: block; width: 100%; height: 100%; }
+.dhero-back {
+  position: absolute;
+  top: calc(var(--sp-4) + env(safe-area-inset-top));
+  left: var(--sp-4);
+  z-index: 2;
+  width: 88px;
+  height: 88px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, .86);
+  color: var(--c-ink);
+  font-size: var(--fs-h2);
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: var(--sh-card);
+}
+.dhero-back:active { opacity: .82; }
+.dhero-mask {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  padding: var(--sp-6) var(--sp-4) var(--sp-4);
+  background: linear-gradient(180deg, rgba(44, 36, 32, 0) 0%, rgba(44, 36, 32, .72) 100%);
+  color: #fff;
+}
+.dhero-name { font-size: var(--fs-h1); font-weight: 700; letter-spacing: var(--ls-head); }
+.dhero-sub { font-size: var(--fs-small); opacity: .92; margin-top: 4px; }
+.dchips { display: flex; flex-wrap: wrap; gap: var(--sp-2); margin-top: var(--sp-3); }
+.dchip {
+  display: inline-flex;
+  align-items: center;
+  min-height: 52px;
+  padding: 0 20px;
+  border-radius: var(--r-pill);
+  background: rgba(255, 255, 255, .18);
+  color: #fff;
+  font-size: var(--fs-mini);
+  font-weight: 600;
+}
+.dchip.hot { background: var(--c-primary); }
+
+/* 同餐同日换道（到头 = 「没有了」不可点） */
+.dswitch { display: flex; justify-content: space-between; align-items: center; gap: var(--sp-2); font-size: var(--fs-small); }
+.dswitch .nav { color: var(--c-primary); font-weight: 600; min-height: 64px; line-height: 64px; }
+.dswitch .nav:active { opacity: .82; }
+.dswitch .dimmed { color: var(--c-ink-3); min-height: 64px; line-height: 64px; }
+
+/* 用料行：名左 / 量右 */
+.ing-list { margin-top: var(--sp-2); }
+.ing-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-3);
+  padding: var(--sp-3) 0;
+  background: var(--line-fade) no-repeat top / 100% 2px;
+}
+.ing-list .ing-row:first-child { background: none; }
+.ing-name { font-size: var(--fs-body); }
+.ing-qty { font-size: var(--fs-small); color: var(--c-ink-2); text-align: right; white-space: nowrap; }
+
+/* --- S-10 记一笔弹层：问题块（选项复用全局 .opt） --- */
+.q { margin-top: var(--sp-4); }
+.q-title { font-size: var(--fs-body); font-weight: 700; }
+.q-note { font-size: var(--fs-mini); color: var(--c-ink-3); font-weight: 400; }
+.q .opts { margin-top: var(--sp-2); }
+
+/* --- S-11 历史：日头 + 餐行 + 小圆图组 --- */
+.day-head { display: flex; align-items: baseline; justify-content: space-between; gap: var(--sp-2); padding-bottom: var(--sp-2); }
+.day-title { font-size: var(--fs-h2); font-weight: 600; letter-spacing: var(--ls-head); }
+.day-note { font-size: var(--fs-small); color: var(--c-ink-3); }
+.meal-row {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  padding: var(--sp-3) 0;
+  background: var(--line-fade) no-repeat top / 100% 2px;
+}
+.meal-row-name { flex: none; width: 44px; font-size: var(--fs-small); font-weight: 700; color: var(--c-ink-2); }
+.meal-row-body { flex: 1; min-width: 0; }
+.meal-row-dishes { font-size: var(--fs-small); font-weight: 600; }
+.meal-row-dishes.muted { color: var(--c-ink-3); font-weight: 400; }
+.meal-dish { color: var(--c-ink); }
+.meal-dish:active { opacity: .82; }
+.meal-row-meta { font-size: var(--fs-mini); color: var(--c-ink-3); margin-top: 2px; }
+.meal-row .tag { flex: none; }
+.gthumbs { display: flex; flex: none; }
+.gthumbs .fcard-img,
+.gthumbs .fcard-ph {
+  width: 64px;
+  height: 64px;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid var(--c-card);
+  box-sizing: border-box;
+}
+.gthumbs > * + * { margin-left: -16px; }
