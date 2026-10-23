@@ -7,6 +7,7 @@
 - main：`1f7d20f`（**T-Q13 合并**；已推送 origin，远端以 `git ls-remote` 为准，不在本文件追短哈希）。
 - 分支 `t-q12-ui-main-flow`：`7712df1`（保留；已合并 main 并推送 origin）。
 - 分支 `t-q13-execution-history`：`593055c`（已合并 main `1f7d20f`；已推送 origin）。
+- 分支 `t-q14-clean-ci-gate`：验收阻断修复中（干净库 2 测试失败 + CI 红）。
 - 门禁：lint/tsc/test:taboo 全绿；全量 test 710 passed / 3 failed（均为本地真实库脏数据击穿的既有挂账：a3 B3/B4 + migration-backfill，候选一并修）；h5 生产构建通过。
 - T-Q04（第 2-3 层）：CI 全分支生效；/health 返回 `1.1.0+<短哈希>`；`pnpm deploy:api` 一条命令（ACR 拉镜像），生产机不再构建。
 - T-Q05 设计包（进行中）：PD-019 视觉基准 + PD-020 一日三餐**均已批准生效**；旧视觉基准已归档；导航图 v2 已重写待确认。
@@ -18,7 +19,7 @@
 - 以后发版：main 合并 → CI 自动构建推 ACR → `pnpm deploy:api`（需 ACR_REGISTRY/ACR_NAMESPACE 环境变量）。
 
 ## 任务队列
-1. **T-Q05 当前节点**：确认书 v2 生效。实施：①引擎 T-Q09 ✅ →②契约+DB T-Q10 ✅ →③UI 全量（T-Q11 ✅ →T-Q12 ✅ 第 2 层，main `311c905` →**T-Q13 ✅ 第 2 层，已合并 main `1f7d20f`（审查+验收 77/77）**）→**④验收【下一节点：发布链路预演 + 体验卡】**。
+1. **T-Q05 当前节点**：确认书 v2 生效。实施：①引擎 T-Q09 ✅ →②契约+DB T-Q10 ✅ →③UI 全量（T-Q11 ✅ →T-Q12 ✅ 第 2 层，main `311c905` →T-Q13 ✅ 第 2 层，main `1f7d20f`（审查+验收 77/77））→**④验收【进行中：干净库预演发现 2 测试失败/CI 红，T-Q14 修复后出报告+体验卡】**。
 2. T-Q12 审查/验收证据：evidence/T-Q12/review.md、verify.md；截图 40 张（S-03~S-08、S-13）。
 3. T-Q13 证据：evidence/T-Q13/{review,verify}.md；截图 40 张（S-09/S-10/S-11 + 回归专项）。
 4. 候选：spec 数据耐受性加固（a3 B3/B4 + T-Q10 回填，同一根因）、忌口食材分类自由文本落 targetId 致 DANGLING_TARGET（改 TAG 或点选）、根 test:gate 重跑脚本移除（与红线冲突）、`.workflow-verify` 移出项目（C3）、生产死规则 WARN×2 清理（低优先）、deploy:h5 实战校跑、根目录未跟踪杂物清理。
