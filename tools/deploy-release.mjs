@@ -61,7 +61,7 @@ function cleanupScript(planId) {
     `cd ${remoteDir}`,
     'set -a; . ./.env; set +a',
     `export PLAN_ID='${planId}'`,
-    `docker run --rm -e DATABASE_URL -e PLAN_ID postgres:18-alpine sh -c 'psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -v pid="$PLAN_ID" -c "DELETE FROM \\"Event\\" WHERE \\"planId\\" = :'"'"'pid'"'"'; DELETE FROM \\"Plan\\" WHERE id = :'"'"'pid'"'"';"'`,
+    `docker run --rm --pull=never -e DATABASE_URL -e PLAN_ID postgres:18-alpine sh -c 'psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -v pid="$PLAN_ID" -c "DELETE FROM \\"Event\\" WHERE \\"planId\\" = :'"'"'pid'"'"'; DELETE FROM \\"Plan\\" WHERE id = :'"'"'pid'"'"';"'`,
     'echo CLEANUP_OK',
   ].join('\n');
 }
@@ -78,7 +78,7 @@ if (DRY_RUN) {
   step('--dry-run：以下为阶段与命令，未执行任何 ssh/scp/子脚本。');
   const stageCmd = 'node tools/deploy-h5.mjs --stage';
   console.log(`  1) H5 暂存        : ${stageCmd}`);
-  console.log(`     dist ${distReady ? '已存在，--stage 时会跳过构建' : '不存在，--stage 时会先构建'}`);
+  console.log(`     dist ${distReady ? '已存在；--dry-run 复用，真实发布会重新构建' : '不存在，真实发布会先构建'}`);
   console.log('  2) API 发布       : node tools/deploy-api.mjs（备份 → pull → 迁移/种子/安全 → up → /health + /health/db）');
   console.log('  3) H5 原位替换    : node tools/deploy-h5.mjs --from-staged <STAGED_TAR>');
   console.log(`  4) 生产冒烟       : FM_BASE_URL=${base} node tests/e2e/T-Q15-prod-smoke.mjs`);

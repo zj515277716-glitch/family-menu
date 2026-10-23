@@ -77,11 +77,12 @@ const dbHealthUrl = process.env.DB_HEALTH_URL?.trim() || 'http://127.0.0.1:3001/
 const healthTimeoutMs = Number(process.env.HEALTH_TIMEOUT_MS || 120000);
 const image = `${registry}/${namespace}/family-menu-api:${sha}`;
 
-// 一次性容器内命令：PATH 指到镜像内 pnpm .bin，再进 apps/api 执行三件事。
-const oneOffInnerParts = ['export PATH=/app/node_modules/.bin:$PATH; cd apps/api'];
+// 一次性容器内命令：PATH 同时指到根与 apps/api 的 pnpm .bin（prisma 只在后者），再进 apps/api 执行三件事。
+const oneOffInnerParts = ['export PATH=/app/node_modules/.bin:/app/apps/api/node_modules/.bin:$PATH; cd apps/api'];
 if (!SKIP_MIGRATE) oneOffInnerParts.push('prisma migrate deploy');
 if (!SKIP_CONTENT) oneOffInnerParts.push('prisma db seed', 'tsx scripts/check-safety.ts');
 const oneOffInner = oneOffInnerParts.join(' && ');
+const hasOneOffWork = !SKIP_MIGRATE || !SKIP_CONTENT;
 const oneOffRemote = `set -eu
 cd ${remoteDir}
 API_TAG=${sha} docker compose --profile prod run --rm --no-deps api sh -c '${oneOffInner}'
@@ -177,7 +178,7 @@ step(`拉取镜像（ssh ${host}）…`);
 runRemote(pullRemote, '拉取镜像');
 
 // ── 4. 一次性容器：迁移 → 种子 → 安全只读检查 ──
-if (oneOffInner && oneOffInner !== 'export PATH=/app/node_modules/.bin:$PATH; cd apps/api') {
+if (hasOneOffWork) {
   step('一次性容器执行迁移/内容/安全（失败则不切换 api 容器）…');
   runRemote(oneOffRemote, '迁移/内容/安全');
 } else {

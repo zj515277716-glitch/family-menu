@@ -47,16 +47,16 @@ mkdir -p backups
 TS=$(date +%Y%m%d-%H%M%S)
 DUMP="backups/family_menu-\${TS}.dump"
 echo "dump start: \$DUMP"
-docker run --rm -e DATABASE_URL postgres:18-alpine sh -c 'pg_dump "$DATABASE_URL" --format=custom --no-owner --no-privileges' > "\$DUMP"
+docker run --rm --pull=never -e DATABASE_URL postgres:18-alpine sh -c 'pg_dump "$DATABASE_URL" --format=custom --no-owner --no-privileges' > "\$DUMP"
 if [ ! -s "\$DUMP" ]; then
   echo "FATAL: dump 为空（pg_dump 未产出）" >&2
   rm -f "\$DUMP"
   exit 1
 fi
 # 自检：同镜像 pg_restore --list 能读出归档目录（只校验可读，不打印内容/不连库）
-docker run --rm -v "\$PWD/backups:/backups:ro" postgres:18-alpine sh -c "pg_restore --list /backups/family_menu-\${TS}.dump > /dev/null"
+docker run --rm --pull=never -v "\$PWD/backups:/backups:ro" postgres:18-alpine sh -c "pg_restore --list /backups/family_menu-\${TS}.dump > /dev/null"
 DUMP_SIZE=$(du -h "\$DUMP" | cut -f1)
-DB_SIZE=$(docker run --rm -e DATABASE_URL postgres:18-alpine sh -c 'psql "$DATABASE_URL" -tAc "select pg_size_pretty(pg_database_size(current_database()))"' | tr -d '\\r' | head -1)
+DB_SIZE=$(docker run --rm --pull=never -e DATABASE_URL postgres:18-alpine sh -c 'psql "$DATABASE_URL" -tAc "select pg_size_pretty(pg_database_size(current_database()))"' | tr -d '\\r' | head -1)
 API_IMAGE=$(docker inspect family-menu-api --format '{{.Config.Image}}' 2>/dev/null || true)
 if [ -z "\$API_IMAGE" ]; then API_IMAGE=unknown; fi
 VERSION=$(cat VERSION 2>/dev/null || true)
