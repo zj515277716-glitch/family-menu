@@ -4,7 +4,7 @@
 > 整改依据：docs/复盘报告_V2_2026-09-29.md（阶段 A + T-Q04 全部完成）。
 
 ## 代码版本
-- main：`5f83d8c`（**T-Q14 合并**；已推送 origin；CI run 75 全绿，ACR 镜像 `family-menu-api:5f83d8c` 已构建推送，未部署）。
+- main：T-Q14 合并 + ④验收文档已推送 origin；CI run 75/76 全绿；ACR 镜像随 main CI 构建推送（未部署）。提交以 git log 为准，不追易失短哈希。
 - 分支 `t-q12-ui-main-flow`：`7712df1`；`t-q13-execution-history`：`593055c`（均已合并 main 并推送 origin）。
 - 分支 `t-q14-clean-ci-gate`：`d3c8e02`（已合并 main 并推送）。
 - 门禁：干净库 migrate+seed 后 test **713 passed / 0 failed**；CI 已含 Typecheck/Secrets/Safety；lint/tsc/test:taboo/check:secrets/check:safety 全绿；本机开发库仅剩既有 migration-backfill 脏库断言，不作验收依据。
