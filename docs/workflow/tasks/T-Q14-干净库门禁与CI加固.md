@@ -15,7 +15,7 @@
 
 1. **dayplan-integration 换一餐**：在测试内补足午餐候选夹具（≥2 MAIN + 1 SIDE + 1 SOUP，`mealTypes` 含 lunch/dinner，唯一前缀），保证「当前菜不回池」后仍有替代组合；断言换餐成功、其他两餐逐字不动。夹具按前缀精确清理，不碰真实数据。若引擎确实无替代，允许测试改为断言「服务端拒绝且原餐保持」，但不得弱化 slot 隔离覆盖。
 2. **mealtype-pool 换菜候选**：先 `planService.lockPlan` 锁定首候选，再取锁定组合中的 SIDE 菜调用 `getSwapOptions`；断言候选不含 breakfast 专属菜。清理不变。
-3. **CI 加固**：在 `.github/workflows/ci.yml` 的 Test 之前补 `pnpm -r exec tsc --noEmit`、`pnpm check:secrets`、`pnpm check:safety`（seed 之后）；失败即红。
+3. **CI 加固**：在 `.github/workflows/ci.yml` 的 Test 之前补 `pnpm -r exec tsc --noEmit`、`pnpm check:secrets`、`pnpm check:safety`（seed 之后）；失败即红。CI 固定 `TZ=Asia/Shanghai`（产品本地日界口径；UTC runner 会把 ISO 日期算成前一天）。
 4. **删除** `package.json` 的 `test:gate`（失败重跑脚本，违反红线），并清理 CURRENT 候选中的对应提法。
 5. **验证口径**：干净库（新建 `family_menu_ci2` 或等价）迁移+种子后 `pnpm test` 0 失败；本地开发库运行结果只作参考，不作为验收依据；lint/tsc/test:taboo 全绿；不新增失败。
 

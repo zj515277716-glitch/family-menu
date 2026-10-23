@@ -28,6 +28,8 @@ jobs:
 
     env:
       DATABASE_URL: postgresql://app:app_password@localhost:5432/family_menu
+      # 产品按家庭本地日界（Asia/Shanghai）展示日期；CI runner 默认 UTC 会把 ISO 日期前一天
+      TZ: Asia/Shanghai
 
     steps:
       - uses: actions/checkout@v4
