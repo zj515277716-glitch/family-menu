@@ -10,13 +10,13 @@
 ## 2. 预演环境
 
 - 生产机临时容器 `fm-rehearsal-pg`（`postgres:18-alpine`，256MB，仅绑 `127.0.0.1:55432`，trust 仅限临时容器），恢复上述 dump；本机经 SSH 隧道连入。
-- 恢复后基线：50 道菜、6 条迁移（生产旧 schema）；预演后容器已删除，生产服务/生产库未被写入。
+- 恢复后基线：50 道菜；`_prisma_migrations` 6 行，其中 `init` / `rescale_event_type` 各重复 1 行（distinct 4 条，与镜像 `1ef04f3` 的 4 条迁移文件一致，生产 schema 为旧版）；预演后容器已删除，生产服务/生产库未被写入。
 
 ## 3. 预演结果
 
 | 步骤 | 结果 |
 |---|---|
-| `prisma migrate deploy` | 成功应用 2 条（`meal_slots_dayplan`、`family_rule_defaults`）；总 8 条，failed=0 |
+| `prisma migrate deploy` | 成功应用 2 条（`meal_slots_dayplan`、`family_rule_defaults`）；迁移表行数 6→8、distinct 4→6，failed=0 |
 | `prisma db seed` | 成功：1 家庭 + 1 规则 + 3 忌口 + 34 食材 + 19 菜 + 74 用料 + 7 菜单 + 23 关联 |
 | `check:safety` | exit 0，失败 0；既有 TAG 死规则 WARN×2（花生/内脏，另有食材级规则覆盖） |
 | 不变量 | PUBLISHED 59 道全部通过 HARD 规则；早餐 PUBLISHED 6 道；存量 Plan 107 条保留；FamilyRule 回填 4/0/7 |
@@ -33,4 +33,5 @@
 
 - 生产发布未执行；API/H5 仍为 `1ef04f3` / `2a2b9c0`。发布必须在 main 上执行（脚本已加分支门禁），且 CI 需先为 main 提交构建镜像。
 - main 分支保护仍为 false（GitHub 公开 API）；需产品负责人在 GitHub Settings 开启。
+- 生产 `_prisma_migrations` 存在历史重复行（`init` / `rescale_event_type` 各 2 行，均 finished、无 rolled_back）；预演证明不阻断 deploy，清理需 L3 另行授权。
 - `apps/h5/.env.production` 仍有未使用的 `TARO_APP_ACCESS_TOKEN` 注入位；当前 dist 未包含该值（已 grep 验证），建议后续卡清理，避免将来被引用后进产物。
