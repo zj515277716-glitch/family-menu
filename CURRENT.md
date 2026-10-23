@@ -4,11 +4,10 @@
 > 整改依据：docs/复盘报告_V2_2026-09-29.md（阶段 A + T-Q04 全部完成）。
 
 ## 代码版本
-- main：`1f7d20f`（**T-Q13 合并**；已推送 origin，远端以 `git ls-remote` 为准，不在本文件追短哈希）。
-- 分支 `t-q12-ui-main-flow`：`7712df1`（保留；已合并 main 并推送 origin）。
-- 分支 `t-q13-execution-history`：`593055c`（已合并 main `1f7d20f`；已推送 origin）。
-- 分支 `t-q14-clean-ci-gate`：`2a90403`（干净库 713/0、CI run 73 全绿，已审查，待合并 main）。
-- 门禁：干净库 migrate+seed 后 test **713 passed / 0 failed**；lint/tsc/test:taboo/check:secrets/check:safety 全绿；本机开发库仅剩既有 migration-backfill 脏库断言，不作验收依据。
+- main：`5f83d8c`（**T-Q14 合并**；已推送 origin；CI run 75 全绿，ACR 镜像 `family-menu-api:5f83d8c` 已构建推送，未部署）。
+- 分支 `t-q12-ui-main-flow`：`7712df1`；`t-q13-execution-history`：`593055c`（均已合并 main 并推送 origin）。
+- 分支 `t-q14-clean-ci-gate`：`d3c8e02`（已合并 main 并推送）。
+- 门禁：干净库 migrate+seed 后 test **713 passed / 0 failed**；CI 已含 Typecheck/Secrets/Safety；lint/tsc/test:taboo/check:secrets/check:safety 全绿；本机开发库仅剩既有 migration-backfill 脏库断言，不作验收依据。
 - T-Q04（第 2-3 层）：CI 全分支生效；/health 返回 `1.1.0+<短哈希>`；`pnpm deploy:api` 一条命令（ACR 拉镜像），生产机不再构建。
 - T-Q05 设计包（进行中）：PD-019 视觉基准 + PD-020 一日三餐**均已批准生效**；旧视觉基准已归档；导航图 v2 已重写待确认。
 
@@ -19,9 +18,9 @@
 - 以后发版：main 合并 → CI 自动构建推 ACR → `pnpm deploy:api`（需 ACR_REGISTRY/ACR_NAMESPACE 环境变量）。
 
 ## 任务队列
-1. **T-Q05 当前节点**：确认书 v2 生效。实施：①引擎 T-Q09 ✅ →②契约+DB T-Q10 ✅ →③UI 全量（T-Q11 ✅ →T-Q12 ✅ →T-Q13 ✅（审查+验收 77/77））→**④验收【进行中：T-Q14 已恢复干净库 713/0 与 CI 绿；待合并后出验收报告+体验卡；生产发布链路仍有阻断】**。
-2. T-Q12 审查/验收证据：evidence/T-Q12/review.md、verify.md；截图 40 张（S-03~S-08、S-13）。
-3. T-Q13 证据：evidence/T-Q13/{review,verify}.md；截图 40 张（S-09/S-10/S-11 + 回归专项）。
+1. **T-Q05 当前节点**：③UI 全量 ✅（T-Q11/T-Q12/T-Q13）。**④验收：预演通过，生产发布未就绪**——报告 `docs/workflow/acceptance/T-Q05-验收报告.md`，体验卡 `T-Q05-体验卡.md`；发布阻断 5 项（部署内迁移/健康查库/内容交付/契约顺序/生产快照预演），待产品负责人决定是否立 T-Q15 发布链路卡。
+2. T-Q14 终态：干净库 713/0、CI run 73/75 全绿、`test:gate` 删除；证据 evidence/T-Q14/review.md。
+3. 证据：T-Q12/T-Q13/T-Q14 review+verify+截图；④验收预演截图 evidence/T-Q05-acceptance/。
 4. 候选：spec 数据耐受性加固（a3 B3/B4 + T-Q10 回填，同一根因）、忌口食材分类自由文本落 targetId 致 DANGLING_TARGET（改 TAG 或点选）、`.workflow-verify` 移出项目（C3）、生产死规则 WARN×2 清理（低优先）、deploy:h5 实战校跑、根目录未跟踪杂物清理。
 5. T-Q12 建议级未处理：S-06 副标题「今晚 HH:mm 生成」非晚间不准确；想吃的菜 reason 重复且可能带规则串。
 
