@@ -18,7 +18,7 @@
 - 以后发版：main 合并 → CI 自动构建推 ACR → `pnpm deploy:api`（需 ACR_REGISTRY/ACR_NAMESPACE 环境变量）。
 
 ## 任务队列
-1. **T-Q05 当前节点**：③UI 全量 ✅（T-Q11/T-Q12/T-Q13）。**④验收：预演通过，生产发布未就绪**——报告 `docs/workflow/acceptance/T-Q05-验收报告.md`，体验卡 `T-Q05-体验卡.md`；发布阻断 5 项（部署内迁移/健康查库/内容交付/契约顺序/生产快照预演），待产品负责人决定是否立 T-Q15 发布链路卡。
+1. **T-Q05 当前节点**：③UI 全量 ✅（T-Q11/T-Q12/T-Q13）。④验收预演通过；发布阻断 5 项由 **T-Q15 发布链路补齐（L3，分支 `t-q15-release-chain`）** 处理，报告 `docs/workflow/acceptance/T-Q05-验收报告.md`、体验卡 `T-Q05-体验卡.md`；生产发布另行授权。
 2. T-Q14 终态：干净库 713/0、CI run 73/75 全绿、`test:gate` 删除；证据 evidence/T-Q14/review.md。
 3. 证据：T-Q12/T-Q13/T-Q14 review+verify+截图；④验收预演截图 evidence/T-Q05-acceptance/。
 4. 候选：spec 数据耐受性加固（a3 B3/B4 + T-Q10 回填，同一根因）、忌口食材分类自由文本落 targetId 致 DANGLING_TARGET（改 TAG 或点选）、`.workflow-verify` 移出项目（C3）、生产死规则 WARN×2 清理（低优先）、deploy:h5 实战校跑、根目录未跟踪杂物清理。
