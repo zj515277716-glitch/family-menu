@@ -37,7 +37,8 @@ page.on('requestfailed', (r) => {
 try {
   // 1. 登录门 → 首页
   await page.goto(BASE, { waitUntil: 'load', timeout: 30000 })
-  const input = page.locator('input[placeholder="输入家庭口令"]')
+  // 新旧登录页文案兼容：v2 是「请输入口令」，旧版是「输入家庭口令」
+  const input = page.locator('input[placeholder="请输入口令"], input[placeholder="输入家庭口令"]').first()
   await input.waitFor({ state: 'visible', timeout: 15000 })
   await input.fill(TOKEN)
   await page.locator('text=进入').first().click()
@@ -58,19 +59,24 @@ try {
     console.log('首页文本片段: ' + text.replace(/\n+/g, ' | '))
   }
 
-  // 2. 新契约：POST /api/recommend（ctx.request 与页面共用 cookie）
-  const resp = await ctx.request.post(`${BASE}/api/recommend`, {
-    data: {
-      adults: 2,
-      children: 0,
-      timeBudgetMin: 30,
-      mustUseIngredients: [],
-      meals: ['breakfast', 'lunch', 'dinner'],
-    },
+  // 2. 新契约：页面内同源 fetch（带浏览器 cookie，与真实用户路径一致）
+  const resp = await page.evaluate(async () => {
+    const r = await fetch('/api/recommend', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        adults: 2,
+        children: 0,
+        timeBudgetMin: 30,
+        mustUseIngredients: [],
+        meals: ['breakfast', 'lunch', 'dinner'],
+      }),
+    })
+    return { status: r.status, body: await r.json().catch(() => null) }
   })
-  check(`POST /api/recommend = 200（实际 ${resp.status()}）`, resp.status() === 200)
+  check(`POST /api/recommend = 200（实际 ${resp.status}）`, resp.status === 200)
 
-  const data = await resp.json().catch(() => null)
+  const data = resp.body
   const dayPlan = data?.dayPlan
   const meals = dayPlan?.meals ?? []
   const failures = dayPlan?.failures ?? []

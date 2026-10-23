@@ -45,6 +45,10 @@ if (!sha) {
   sha = execSync('git rev-parse --short HEAD', { cwd: REPO_ROOT, encoding: 'utf8' }).trim();
 }
 if (!/^[0-9a-f]{7,40}$/.test(sha)) die(`镜像 tag 异常：${sha}`);
+if (!DRY_RUN) {
+  const branch = execSync('git rev-parse --abbrev-ref HEAD', { cwd: REPO_ROOT, encoding: 'utf8' }).trim();
+  if (branch !== 'main') die(`发布必须在 main 上执行（CI 只为 main 构建镜像，当前分支 ${branch}）。`);
+}
 
 const host = process.env.SSH_HOST?.trim() || 'fmsrv';
 const remoteDir = process.env.REMOTE_DIR?.trim() || '/opt/family-menu';
@@ -61,7 +65,9 @@ function cleanupScript(planId) {
     `cd ${remoteDir}`,
     'set -a; . ./.env; set +a',
     `export PLAN_ID='${planId}'`,
-    `docker run --rm --pull=never -e DATABASE_URL -e PLAN_ID postgres:18-alpine sh -c 'psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -v pid="$PLAN_ID" -c "DELETE FROM \\"Event\\" WHERE \\"planId\\" = :'"'"'pid'"'"'; DELETE FROM \\"Plan\\" WHERE id = :'"'"'pid'"'"';"'`,
+    // psql -c 不做 :'var' 变量替换（实测语法错），改为校验后 id 拼 SQL、经环境变量传入
+    `export SQL="DELETE FROM \\"Event\\" WHERE \\"planId\\" = '$PLAN_ID'; DELETE FROM \\"Plan\\" WHERE id = '$PLAN_ID';"`,
+    `docker run --rm --pull=never -e DATABASE_URL -e SQL postgres:18-alpine sh -c 'psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -c "$SQL"'`,
     'echo CLEANUP_OK',
   ].join('\n');
 }
