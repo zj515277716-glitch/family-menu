@@ -30,3 +30,11 @@
 - 提交后推送 origin（走代理），等待 CI `verify` 变绿；若 CI 仍红，按日志继续定位，不得以本地绿代替。
 - 分支 `t-q14-clean-ci-gate`，从 main `abb8b6d` 切；L1 流程：完成后主控派 fm-reviewer 实跑干净库与命令复核，再合并 main。
 - 完成后回报：两测试修法、CI 新增步骤、干净库测试结果、CI run 号与结论、提交号、推送状态。
+
+## 终态（2026-10-23，第 2 层）
+
+- 分支 `t-q14-clean-ci-gate`：实现 `4eae9ba` + 时区修复 `2a90403`；干净库 `family_menu_ci3` migrate+seed 后 **713 passed / 0 failed**。
+- 测试修法：换一餐补 8 道真实午餐候选夹具并断言旧菜不回池；换菜候选先 lock 再取候选、删除静默 return。
+- CI：新增 Typecheck/Secrets/Safety 三步，固定 `TZ=Asia/Shanghai`；`test:gate` 已删除。
+- 独立审查通过（evidence/T-Q14/review.md）；**CI run 73（commit 2a90403）verify 全绿**（Lint/Build/迁移/种子/Typecheck/Secrets/Safety/Test）。
+- 风险：夹具在共享开发库有约 20s PUBLISHED 窗口；同库并发测试会撞前缀；既有 CookLog 清理面未改。生产发布链路（迁移/内容/契约顺序）仍未解决，见验收报告。
