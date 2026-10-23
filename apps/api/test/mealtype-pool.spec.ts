@@ -80,13 +80,20 @@ describe.skipIf(!canConnect)('T-Q10 早餐菜不进单餐（晚餐）推荐池',
   it('换菜候选池同样不含 breakfast 专属菜（同一池函数，换菜不能绕过餐型约束）', async () => {
     const gen = await planService.generateRecommendation(CTX);
     if (gen.planId) dynamicPlanIds.push(gen.planId);
+    expect(gen.planId).toBeTruthy();
+    if (!gen.planId) throw new Error('推荐未返回 planId');
     const first = gen.candidates[0];
-    if (!first) return; // 池数据异常时不硬测，主断言已覆盖生成路径
+    expect(first).toBeDefined();
+    if (!first) throw new Error('推荐未返回候选组合');
     const sideDish = (first.menu as { dishes: Array<{ id: string; mealRole: string }> }).dishes.find(
       (d) => d.mealRole === 'SIDE',
     );
-    if (!sideDish) return;
-    const options = await planService.getSwapOptions(gen.planId!, sideDish.id);
+    expect(sideDish).toBeDefined();
+    if (!sideDish) throw new Error('候选组合缺少 SIDE 菜');
+
+    // 旧单餐 swap-options 只接受已锁定计划：先锁首候选，再对锁定组合中的 SIDE 取候选
+    await planService.lockPlan(gen.planId, first.menuId);
+    const options = await planService.getSwapOptions(gen.planId, sideDish.id);
     expect(options.candidates.map((c) => c.dishId)).not.toContain(DISH_ID);
   });
 });

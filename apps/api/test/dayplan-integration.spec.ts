@@ -20,6 +20,79 @@ const canConnect = await prisma
 
 const CTX = { adults: 2, children: 1, timeBudgetMin: 30, mustUseIngredients: [] as string[] };
 
+// 换一餐夹具（T-Q14）：干净种子库午/晚餐池不足以在「当前菜不回池」后再出一套组合。
+// 4 MAIN + 2 SIDE + 2 SOUP 覆盖两套槽位（换餐至少排除 2 MAIN + 1 SIDE + 1 SOUP），
+// 每道用唯一食材/用料，mealTypes 显式含 lunch/dinner；前缀精确清理，不碰真实数据。
+const FIXTURE_PREFIX = 'q14-swap-';
+interface SwapFixture {
+  id: string;
+  name: string;
+  mealRole: 'MAIN' | 'SIDE' | 'SOUP';
+  ingredientId: string;
+  ingredientName: string;
+  category: string;
+}
+const SWAP_FIXTURES: SwapFixture[] = [
+  { id: `${FIXTURE_PREFIX}main-1`, name: 'Q14测试牛腩', mealRole: 'MAIN', ingredientId: `${FIXTURE_PREFIX}ing-main-1`, ingredientName: 'Q14测试牛腩肉', category: '肉类' },
+  { id: `${FIXTURE_PREFIX}main-2`, name: 'Q14测试鸡腿', mealRole: 'MAIN', ingredientId: `${FIXTURE_PREFIX}ing-main-2`, ingredientName: 'Q14测试鸡腿肉', category: '肉类' },
+  { id: `${FIXTURE_PREFIX}main-3`, name: 'Q14测试鳕鱼', mealRole: 'MAIN', ingredientId: `${FIXTURE_PREFIX}ing-main-3`, ingredientName: 'Q14测试鳕鱼柳', category: '水产' },
+  { id: `${FIXTURE_PREFIX}main-4`, name: 'Q14测试肉丸', mealRole: 'MAIN', ingredientId: `${FIXTURE_PREFIX}ing-main-4`, ingredientName: 'Q14测试肉丸料', category: '肉类' },
+  { id: `${FIXTURE_PREFIX}side-1`, name: 'Q14测试青菜', mealRole: 'SIDE', ingredientId: `${FIXTURE_PREFIX}ing-side-1`, ingredientName: 'Q14测试小青菜', category: '蔬菜' },
+  { id: `${FIXTURE_PREFIX}side-2`, name: 'Q14测试菌菇', mealRole: 'SIDE', ingredientId: `${FIXTURE_PREFIX}ing-side-2`, ingredientName: 'Q14测试白玉菇', category: '蔬菜' },
+  { id: `${FIXTURE_PREFIX}soup-1`, name: 'Q14测试番茄汤', mealRole: 'SOUP', ingredientId: `${FIXTURE_PREFIX}ing-soup-1`, ingredientName: 'Q14测试番茄料', category: '蔬菜' },
+  { id: `${FIXTURE_PREFIX}soup-2`, name: 'Q14测试冬瓜汤', mealRole: 'SOUP', ingredientId: `${FIXTURE_PREFIX}ing-soup-2`, ingredientName: 'Q14测试冬瓜', category: '蔬菜' },
+];
+
+async function cleanupFixtures(): Promise<void> {
+  // FK 顺序：Event(planId) -> Plan -> DishIngredient -> Dish -> Ingredient
+  await prisma.event.deleteMany({ where: { planId: { startsWith: FIXTURE_PREFIX } } });
+  await prisma.plan.deleteMany({ where: { id: { startsWith: FIXTURE_PREFIX } } });
+  await prisma.dishIngredient.deleteMany({ where: { dishId: { startsWith: FIXTURE_PREFIX } } });
+  await prisma.dish.deleteMany({ where: { id: { startsWith: FIXTURE_PREFIX } } });
+  await prisma.ingredient.deleteMany({ where: { id: { startsWith: FIXTURE_PREFIX } } });
+}
+
+async function createFixtures(): Promise<void> {
+  for (const f of SWAP_FIXTURES) {
+    await prisma.ingredient.create({
+      data: {
+        id: f.ingredientId,
+        name: f.ingredientName,
+        aliases: [],
+        category: f.category,
+        defaultUnit: 'g',
+      },
+    });
+    await prisma.dish.create({
+      data: {
+        id: f.id,
+        name: f.name,
+        mealRole: f.mealRole,
+        mealTypes: ['lunch', 'dinner'],
+        cuisine: '家常',
+        flavorTags: ['清淡'],
+        spicyLevel: 0,
+        splitFlavor: false,
+        activeMinutes: 5,
+        totalMinutes: 5,
+        equipment: ['wok'],
+        steps: [{ order: 1, text: `做${f.name}` }],
+        status: 'PUBLISHED',
+        origin: 'MANUAL',
+      },
+    });
+    await prisma.dishIngredient.create({
+      data: {
+        dishId: f.id,
+        ingredientId: f.ingredientId,
+        qty: 100,
+        unit: 'g',
+        optional: false,
+      },
+    });
+  }
+}
+
 const createdPlanIds: string[] = [];
 const startedAt = new Date();
 
@@ -28,6 +101,8 @@ describe.skipIf(!canConnect)('T-Q10 三餐计划 API 集成（真实 PG）', () 
   let dayPlan: DayPlanResult;
 
   beforeAll(async () => {
+    await cleanupFixtures(); // 清失败重跑残留（幂等）
+    await createFixtures();
     const plan = await dayPlanService.generateDayPlan(CTX);
     planId = plan.id;
     createdPlanIds.push(planId);
@@ -44,6 +119,7 @@ describe.skipIf(!canConnect)('T-Q10 三餐计划 API 集成（真实 PG）', () 
     });
     await prisma.event.deleteMany({ where: { planId: { in: createdPlanIds } } });
     await prisma.plan.deleteMany({ where: { id: { in: createdPlanIds } } });
+    await cleanupFixtures();
     await prisma.$disconnect();
   });
 
@@ -107,6 +183,9 @@ describe.skipIf(!canConnect)('T-Q10 三餐计划 API 集成（真实 PG）', () 
 
     // lunch 重推：换出组合内容哈希变化（引擎组合生成确定性，非同组合）
     expect(afterLunch.menuId).not.toBe(beforeLunch.menuId);
+    // 当前菜不回池：换后该餐不得再出现换前任何一道菜
+    const beforeLunchIds = new Set(beforeLunch.dishes.map((d) => d.id));
+    expect(afterLunch.dishes.some((d) => beforeLunchIds.has(d.id))).toBe(false);
     // 其他两餐逐字不动（换一餐隔离语义，C-3a）
     expect(afterBreakfast).toEqual(beforeBreakfast);
     expect(afterDinner).toEqual(beforeDinner);

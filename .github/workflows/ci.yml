@@ -28,6 +28,8 @@ jobs:
 
     env:
       DATABASE_URL: postgresql://app:app_password@localhost:5432/family_menu
+      # 产品按家庭本地日界（Asia/Shanghai）展示日期；CI runner 默认 UTC 会把 ISO 日期前一天
+      TZ: Asia/Shanghai
 
     steps:
       - uses: actions/checkout@v4
@@ -55,6 +57,15 @@ jobs:
 
       - name: Seed database
         run: pnpm --filter @family-menu/api prisma db seed
+
+      - name: Typecheck
+        run: pnpm -r exec tsc --noEmit
+
+      - name: Secrets check
+        run: pnpm check:secrets
+
+      - name: Safety check
+        run: pnpm check:safety
 
       - name: Test (contract + seed + taboo + engine)
         run: pnpm test

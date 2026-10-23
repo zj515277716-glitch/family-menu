@@ -8,7 +8,6 @@
     "dev:h5": "pnpm --filter @family-menu/h5 dev:h5",
     "dev:admin": "pnpm --filter @family-menu/admin dev",
     "test": "vitest run --no-file-parallelism",
-    "test:gate": "pnpm test || pnpm test || pnpm test",
     "test:taboo": "vitest run packages/engine/test/",
     "check:secrets": "node tools/check-secrets.mjs",
     "check:safety": "pnpm --dir apps/api exec tsx scripts/check-safety.ts",
