@@ -56,6 +56,15 @@ jobs:
       - name: Seed database
         run: pnpm --filter @family-menu/api prisma db seed
 
+      - name: Typecheck
+        run: pnpm -r exec tsc --noEmit
+
+      - name: Secrets check
+        run: pnpm check:secrets
+
+      - name: Safety check
+        run: pnpm check:safety
+
       - name: Test (contract + seed + taboo + engine)
         run: pnpm test
 
